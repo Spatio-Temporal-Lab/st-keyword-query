@@ -24,10 +24,23 @@
     <property>
         <name>hbase.rootdir</name>
         <value>/usr/data/hbase</value>
+        <!--        <value>hdfs://winios:9000/hbase</value>-->
     </property>
     <property>
         <name>hbase.zookeeper.property.dataDir</name>
         <value>/usr/data/zookeeper</value>
+    </property>
+    <!--    <property>-->
+    <!--        <name>hbase.cluster.distributed</name>-->
+    <!--        <value>true</value>-->
+    <!--    </property>-->
+    <!--    <property>-->
+    <!--        <name>hbase.zookeeper.quorum</name>-->
+    <!--        <value>localhost</value>-->
+    <!--    </property>-->
+    <property>
+        <name>hbase.unsafe.stream.capability.enforce</name>
+        <value>false</value>
     </property>
     <property>
         <name>hbase.defaults.for.version.skip</name>
