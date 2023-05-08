@@ -24,11 +24,13 @@ import static org.apache.hadoop.hbase.regionserver.HStoreFile.LAST_BLOOM_KEY;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -277,6 +279,8 @@ public class StoreFileReader {
         return true;
       case ROWPREFIX_FIXED_LENGTH:
         return passesGeneralRowPrefixBloomFilter(scan);
+      case STK_ROSETTA:
+        return passesGeneralSTKRosetta(scan);
       default:
         return true;
     }
@@ -386,6 +390,62 @@ public class StoreFileReader {
       rowPrefix = Bytes.copy(row, 0, prefixLength);
     }
     return checkGeneralBloomFilter(rowPrefix, null, bloomFilter);
+  }
+
+  private int getTimeByKey(byte[] key) {
+    return (key[4] << 16 & 0xFF0000) | (key[5] << 8 & 0xFF00) | (key[6] & 0xFF);
+  }
+
+  private byte[] getKeyByTime(int time) {
+    return new byte[]{(byte) (time >>> 16 & 0xFF), (byte) (time >>> 8 & 0xFF), (byte) (time & 0xFF)};
+  }
+
+  private boolean passesGeneralSTKRosetta(Scan scan) {
+    BloomFilter bloomFilter = this.generalBloomFilter;
+    if (bloomFilter == null) {
+      return true;
+    }
+
+    byte[] keywordsByte = scan.getAttribute("keywords");
+    if (keywordsByte == null) {
+      return true;
+    }
+
+    byte[] startRow = scan.getStartRow();
+    byte[] stopRow = scan.getStopRow();
+
+    //TODO: here the spatial byte count and time byte count is fixed, there should be a parameter
+    int startTime = getTimeByKey(startRow);
+    int stopTime = getTimeByKey(stopRow);
+
+    byte[] spatialKey = Bytes.copy(startRow, 0, 4);
+
+    // assume that each keyword is mapped to 8 bytes
+    int keywordCount = keywordsByte.length >>> 3;
+
+
+    for (int i = 0; i < keywordCount; ++i) {
+
+      ByteBuffer byteBuffer = ByteBuffer.allocate(15);
+      byteBuffer.put(spatialKey);
+
+      byte[] wordKey = Bytes.copy(keywordsByte, i << 3, 8);
+      byteBuffer.put(wordKey);
+
+      boolean flag = false;
+      for (int j = startTime; j <= stopTime; ++j) {
+        if (checkGeneralBloomFilter(byteBuffer.put(getKeyByTime(j)).array(), null, bloomFilter)) {
+          flag = true;
+        }
+      }
+
+      // return true as long as a keyword exists
+      if (flag) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private boolean checkGeneralBloomFilter(byte[] key, Cell kvKey, BloomFilter bloomFilter) {
