@@ -50,15 +50,7 @@ import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
 import org.apache.hadoop.hbase.io.hfile.HFile;
 import org.apache.hadoop.hbase.io.hfile.HFileContext;
-import org.apache.hadoop.hbase.util.BloomContext;
-import org.apache.hadoop.hbase.util.BloomFilterFactory;
-import org.apache.hadoop.hbase.util.BloomFilterUtil;
-import org.apache.hadoop.hbase.util.BloomFilterWriter;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.FSUtils;
-import org.apache.hadoop.hbase.util.RowBloomContext;
-import org.apache.hadoop.hbase.util.RowColBloomContext;
-import org.apache.hadoop.hbase.util.RowPrefixFixedLengthBloomContext;
+import org.apache.hadoop.hbase.util.*;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,9 +133,12 @@ public class StoreFileWriter implements CellSink, ShipperListener {
           bloomContext = new RowColBloomContext(generalBloomFilterWriter, comparator);
           break;
         case ROWPREFIX_FIXED_LENGTH:
-        case ROWPREFIX_WITH_KEYWORDS:
           bloomContext = new RowPrefixFixedLengthBloomContext(generalBloomFilterWriter, comparator,
-              Bytes.toInt(bloomParam));
+                Bytes.toInt(bloomParam));
+          break;
+        case ROWPREFIX_WITH_KEYWORDS:
+          bloomContext = new RowPrefixWithKeywordsBloomContext(generalBloomFilterWriter, comparator,
+                  Bytes.toInt(bloomParam));
           break;
         default:
           throw new IOException(
