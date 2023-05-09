@@ -1,5 +1,4 @@
 /**
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,35 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.hadoop.hbase.util;
 
-package org.apache.hadoop.hbase.regionserver;
-
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.PrivateCellUtil;
 import org.apache.yetus.audience.InterfaceAudience;
 
-@InterfaceAudience.Public
-public enum BloomType {
-  /**
-   * Bloomfilters disabled
-   */
-  NONE,
-  /**
-   * Bloom enabled with Table row as Key
-   */
-  ROW,
-  /**
-   * Bloom enabled with Table row &amp; column (family+qualifier) as Key
-   */
-  ROWCOL,
-  /**
-   * Bloom enabled with Table row prefix as Key, specify the length of the prefix
-   */
-  ROWPREFIX_FIXED_LENGTH,
-  /**
-   * Bloom enabled with Table row prefix as Key, specify the length of the prefix
-   */
-  ROWPREFIX_WITH_KEYWORDS,
-  /**
-   * Bloom enabled with keyword & Table row prefix as Key
-   */
-  STK_ROSETTA
+@InterfaceAudience.Private
+public class RowWithKeywordsBloomHashKey extends RowBloomHashKey {
+
+  private final byte[] keyword;
+
+  public RowWithKeywordsBloomHashKey(byte[] keyword, Cell cell) {
+    super(cell);
+    this.keyword = keyword;
+  }
+
+  @Override
+  public byte get(int offset) {
+    if (offset < 4) return keyword[offset];
+    return PrivateCellUtil.getRowByte(t, offset - 4);
+  }
+
+  @Override
+  public int length() {
+    return keyword.length + this.t.getRowLength();
+  }
 }

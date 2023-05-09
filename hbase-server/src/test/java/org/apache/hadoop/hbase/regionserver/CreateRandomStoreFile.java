@@ -173,7 +173,7 @@ public class CreateRandomStoreFile {
           BLOOM_FILTER_OPTION));
     }
 
-    if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH) {
+    if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH || bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
       if (!cmdLine.hasOption(BLOOM_FILTER_PARAM_OPTION)) {
         LOG.error("the parameter of bloom filter is not specified");
         return false;

@@ -279,6 +279,8 @@ public class StoreFileReader {
         return true;
       case ROWPREFIX_FIXED_LENGTH:
         return passesGeneralRowPrefixBloomFilter(scan);
+      case ROWPREFIX_WITH_KEYWORDS:
+        return passesGeneralRowPrefixWithKeywordsBloomFilter(scan);
       case STK_ROSETTA:
         return passesGeneralSTKRosetta(scan);
       default:
@@ -392,6 +394,63 @@ public class StoreFileReader {
     return checkGeneralBloomFilter(rowPrefix, null, bloomFilter);
   }
 
+  private boolean passesGeneralRowPrefixWithKeywordsBloomFilter(Scan scan) {
+    BloomFilter bloomFilter = this.generalBloomFilter;
+    if (bloomFilter == null) {
+      return true;
+    }
+
+    byte[] startRow = scan.getStartRow();
+    byte[] stopRow = scan.getStopRow();
+    byte[] rowPrefix;
+    if (scan.isGetScan()) {
+      rowPrefix = Bytes.copy(startRow, 0, Math.min(prefixLength, startRow.length));
+    } else {
+      // For non-get scans
+      // Find out the common prefix of startRow and stopRow.
+      int commonLength = Bytes.findCommonPrefix(scan.getStartRow(), scan.getStopRow(),
+              scan.getStartRow().length, scan.getStopRow().length, 0, 0);
+      // startRow and stopRow don't have the common prefix.
+      // Or the common prefix length is less than prefixLength
+      if (commonLength <= 0 || commonLength < prefixLength) {
+        return true;
+      }
+      rowPrefix = Bytes.copy(startRow, 0, prefixLength);
+
+      // 1 byte = 256h, here we hope that the granularity is 4h
+      if (prefixLength + 1 <= Math.min(startRow.length, stopRow.length)) {
+        int x = startRow[prefixLength] & 0xFF;
+        int y = startRow[prefixLength] & 0xFF;
+        x >>= 2;
+        y >>= 2;
+        if (x == y) {
+          byte[] temp = new byte[prefixLength + 1];
+          System.arraycopy(rowPrefix, 0, temp, 0, prefixLength);
+          temp[prefixLength] = (byte) x;
+          rowPrefix = temp;
+          ++prefixLength;
+        }
+      }
+    }
+
+    byte[] keywordsByte = scan.getAttribute("keywords");
+    if (keywordsByte == null) {
+      return true;
+    }
+
+    int n = keywordsByte.length;
+    for (int i = 0; i < n; i += 4) {
+      ByteBuffer buffer = ByteBuffer.allocate(4 + prefixLength);
+      buffer.put(keywordsByte, i, 4);
+      buffer.put(rowPrefix);
+      if (checkGeneralBloomFilter(buffer.array(), null, bloomFilter)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private int getTimeByKey(byte[] key) {
     return (key[4] << 16 & 0xFF0000) | (key[5] << 8 & 0xFF00) | (key[6] & 0xFF);
   }
@@ -420,8 +479,8 @@ public class StoreFileReader {
 
     byte[] spatialKey = Bytes.copy(startRow, 0, 4);
 
-    // assume that each keyword is mapped to 8 bytes
-    int keywordCount = keywordsByte.length >>> 3;
+    // assume that each keyword is mapped to 4 bytes
+    int keywordCount = keywordsByte.length >>> 2;
 
 
     for (int i = 0; i < keywordCount; ++i) {
@@ -429,7 +488,7 @@ public class StoreFileReader {
       ByteBuffer byteBuffer = ByteBuffer.allocate(15);
       byteBuffer.put(spatialKey);
 
-      byte[] wordKey = Bytes.copy(keywordsByte, i << 3, 8);
+      byte[] wordKey = Bytes.copy(keywordsByte, i << 2, 4);
       byteBuffer.put(wordKey);
 
       boolean flag = false;
@@ -556,7 +615,7 @@ public class StoreFileReader {
     }
 
     byte[] p = fi.get(BLOOM_FILTER_PARAM_KEY);
-    if (bloomFilterType ==  BloomType.ROWPREFIX_FIXED_LENGTH) {
+    if (bloomFilterType ==  BloomType.ROWPREFIX_FIXED_LENGTH || bloomFilterType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
       prefixLength = Bytes.toInt(p);
     }
 

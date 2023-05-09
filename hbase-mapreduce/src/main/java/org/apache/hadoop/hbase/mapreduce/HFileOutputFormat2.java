@@ -398,7 +398,7 @@ public class HFileOutputFormat2
         BloomType bloomType = bloomTypeMap.get(tableAndFamily);
         bloomType = bloomType == null ? BloomType.NONE : bloomType;
         String bloomParam = bloomParamMap.get(tableAndFamily);
-        if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH) {
+        if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH || bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
           conf.set(BloomFilterUtil.PREFIX_LENGTH_KEY, bloomParam);
         }
         Integer blockSize = blockSizeMap.get(tableAndFamily);
@@ -938,7 +938,7 @@ public class HFileOutputFormat2
   static Function<ColumnFamilyDescriptor, String> bloomParamDetails = familyDescriptor -> {
     BloomType bloomType = familyDescriptor.getBloomFilterType();
     String bloomParam = "";
-    if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH) {
+    if (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH || bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
       bloomParam = familyDescriptor.getConfigurationValue(BloomFilterUtil.PREFIX_LENGTH_KEY);
     }
     return bloomParam;

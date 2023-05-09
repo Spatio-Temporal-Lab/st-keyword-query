@@ -23,8 +23,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
+import com.sun.xml.bind.v2.TODO;
 import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.PrivateCellUtil;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 
@@ -50,6 +53,8 @@ public class BloomFilterChunk implements BloomFilterBase {
   protected ByteBuffer bloom;
   /** The type of bloom */
   protected BloomType bloomType;
+
+  private static final byte[] keywordsQualifyByte = "keywords".getBytes();
 
   /**
    * Loads bloom filter meta data from file input.
@@ -187,6 +192,19 @@ public class BloomFilterChunk implements BloomFilterBase {
     int hash1;
     int hash2;
     HashKey<Cell> hashKey;
+    if (this.bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
+      if (Arrays.equals(cell.getQualifierArray(), keywordsQualifyByte)) {
+        byte[] keywordsByte = PrivateCellUtil.getValueBufferShallowCopy(cell).array();
+        int n = keywordsByte.length;
+        for (int i = 0; i < n; i += 4) {
+          hashKey = new RowWithKeywordsBloomHashKey(Bytes.copy(keywordsByte, i, 4), cell);
+          hash1 = this.hash.hash(hashKey, 0);
+          hash2 = this.hash.hash(hashKey, hash1);
+          setHashLoc(hash1, hash2);
+        }
+      }
+      return;
+    }
     if (this.bloomType == BloomType.ROWCOL) {
       hashKey = new RowColBloomHashKey(cell);
       hash1 = this.hash.hash(hashKey, 0);

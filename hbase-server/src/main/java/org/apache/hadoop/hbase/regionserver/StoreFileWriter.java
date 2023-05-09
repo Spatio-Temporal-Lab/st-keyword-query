@@ -128,7 +128,7 @@ public class StoreFileWriter implements CellSink, ShipperListener {
       this.bloomParam = BloomFilterUtil.getBloomFilterParam(bloomType, conf);
       if (LOG.isTraceEnabled()) {
         LOG.trace("Bloom filter type for " + path + ": " + this.bloomType + ", param: "
-            + (bloomType == BloomType.ROWPREFIX_FIXED_LENGTH?
+            + ((bloomType == BloomType.ROWPREFIX_FIXED_LENGTH || bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS)?
             Bytes.toInt(bloomParam):Bytes.toStringBinary(bloomParam))
             + ", " + generalBloomFilterWriter.getClass().getSimpleName());
       }
@@ -141,6 +141,7 @@ public class StoreFileWriter implements CellSink, ShipperListener {
           bloomContext = new RowColBloomContext(generalBloomFilterWriter, comparator);
           break;
         case ROWPREFIX_FIXED_LENGTH:
+        case ROWPREFIX_WITH_KEYWORDS:
           bloomContext = new RowPrefixFixedLengthBloomContext(generalBloomFilterWriter, comparator,
               Bytes.toInt(bloomParam));
           break;
