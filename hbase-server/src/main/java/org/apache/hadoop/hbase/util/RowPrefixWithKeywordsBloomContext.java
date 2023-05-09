@@ -47,9 +47,9 @@ public class RowPrefixWithKeywordsBloomContext extends RowBloomContext {
   private Cell getRowPrefixCell(Cell cell) {
     byte[] row = CellUtil.copyRow(cell);
     int rowLength = row.length;
-    int lastByte = row[rowLength - 1] & 0xFF;
+    int lastByte = row[prefixLength] & 0xFF;
     lastByte >>>= 2;
-    row[rowLength - 1] = (byte) lastByte;
+    row[prefixLength] = (byte) lastByte;
     return ExtendedCellBuilderFactory.create(CellBuilderType.DEEP_COPY)
         .setRow(row, 0, Math.min(prefixLength, row.length))
         .setType(Cell.Type.Put)
