@@ -5,6 +5,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
@@ -77,6 +78,24 @@ public class HBaseUtil {
         } else {
             TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
             builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
+            admin.createTable(builder.build());
+        }
+        return true;
+    }
+
+    public boolean createTable(String myTableName, String colFamily, BloomType bloomType) throws IOException {
+        TableName tableName = TableName.valueOf(myTableName);
+        if (admin.tableExists(tableName)) {
+            System.out.println("table is exists!");
+            return false;
+        } else {
+            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
+            ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
+                    ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
+            columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
+            columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(6));
+            builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
+//            builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
             admin.createTable(builder.build());
         }
         return true;
