@@ -69,6 +69,19 @@ public class HBaseUtil {
         return true;
     }
 
+    public boolean createTable(String myTableName, String colFamily) throws IOException {
+        TableName tableName = TableName.valueOf(myTableName);
+        if (admin.tableExists(tableName)) {
+            System.out.println("table is exists!");
+            return false;
+        } else {
+            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
+            builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
+            admin.createTable(builder.build());
+        }
+        return true;
+    }
+
     public Table getTable(String tableName) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             return table;
@@ -328,5 +341,14 @@ public class HBaseUtil {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public ArrayList<String> getTables() throws IOException {
+        List<TableDescriptor> tableDescriptors = admin.listTableDescriptors();
+        ArrayList<String> names = new ArrayList<>();
+        for (TableDescriptor descriptor : tableDescriptors) {
+            names.add(descriptor.getTableName().getNameAsString());
+        }
+        return names;
     }
 }
