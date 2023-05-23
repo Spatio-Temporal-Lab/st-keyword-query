@@ -25,6 +25,7 @@ import static org.apache.hadoop.hbase.regionserver.HStoreFile.LAST_BLOOM_KEY;
 import java.io.DataInput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
@@ -54,6 +55,7 @@ import org.apache.hadoop.hbase.util.BloomFilterFactory;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.yetus.audience.InterfaceStability;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hbase.thirdparty.com.google.common.annotations.VisibleForTesting;
@@ -579,6 +581,11 @@ public class StoreFileReader {
     return true;
   }
 
+  private byte[] getRowKey(Cell cell) {
+    int rowOffset = cell.getRowOffset();
+    return Arrays.copyOfRange(cell.getRowArray(), rowOffset, rowOffset + cell.getRowLength());
+  }
+
   /**
    * Checks whether the given scan rowkey range overlaps with the current storefile's
    * @param scan the scan specification. Used to determine the rowkey range.
@@ -591,6 +598,11 @@ public class StoreFileReader {
       // the file is empty
       return false;
     }
+
+    System.out.println(reader.getPath());
+    System.out.println("xxx start: " + Arrays.toString(getRowKey(firstKeyKV.get())));
+    System.out.println("xxx stop: " + Arrays.toString(getRowKey(lastKeyKV.get())));
+
     if (Bytes.equals(scan.getStartRow(), HConstants.EMPTY_START_ROW) &&
         Bytes.equals(scan.getStopRow(), HConstants.EMPTY_END_ROW)) {
       return true;
