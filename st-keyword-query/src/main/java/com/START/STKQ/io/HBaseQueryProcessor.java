@@ -34,7 +34,7 @@ public class HBaseQueryProcessor {
         //覆写线程的run方法
         @Override
         public void run() {
-            result.addAll(hBaseUtil.scanWithKeywords(tableName, keywords, ByteUtil.tobyte(start), ByteUtil.tobyte(end), queryType));
+            result.addAll(hBaseUtil.scanWithKeywords(tableName, (String[]) keywords.toArray(), ByteUtil.tobyte(start), ByteUtil.tobyte(end), queryType));
             cdl.countDown();
         }
     }

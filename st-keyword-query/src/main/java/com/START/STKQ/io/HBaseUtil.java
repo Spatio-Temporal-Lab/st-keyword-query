@@ -1,6 +1,7 @@
 package com.START.STKQ.io;
 
 import com.START.STKQ.constant.QueryType;
+import com.START.STKQ.util.ByteUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -9,6 +10,7 @@ import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -83,6 +85,23 @@ public class HBaseUtil {
         return true;
     }
 
+    public boolean createTable(String myTableName, String colFamily, BloomType bloomType, int preLen) throws IOException {
+        TableName tableName = TableName.valueOf(myTableName);
+        if (admin.tableExists(tableName)) {
+            System.out.println("table is exists!");
+            return false;
+        } else {
+            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
+            ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
+                    ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
+            columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
+            columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(preLen));
+            builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
+            admin.createTable(builder.build());
+        }
+        return true;
+    }
+
     public boolean createTable(String myTableName, String colFamily, BloomType bloomType) throws IOException {
         TableName tableName = TableName.valueOf(myTableName);
         if (admin.tableExists(tableName)) {
@@ -93,9 +112,10 @@ public class HBaseUtil {
             ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
                     ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
             columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
-            columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(6));
+            if (bloomType.equals(BloomType.ROWPREFIX_WITH_KEYWORDS)) {
+                columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(7));
+            }
             builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
-//            builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
             admin.createTable(builder.build());
         }
         return true;
@@ -240,7 +260,7 @@ public class HBaseUtil {
             try {
                 Scan scan = new Scan();
                 scan.withStartRow(rowkeyStart);
-                scan.withStopRow(rowkeyEnd);
+                scan.withStopRow(rowkeyEnd, true);
 
                 rs = table.getScanner(scan);
 
@@ -297,7 +317,7 @@ public class HBaseUtil {
     }
 
 
-    public List<Map<String, String>> scanWithKeywords(String tableName, ArrayList<String> keywords,
+    public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
                                                       byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -305,11 +325,15 @@ public class HBaseUtil {
                 Scan scan = new Scan();
                 scan.withStartRow(rowkeyStart);
                 scan.withStopRow(rowkeyEnd, true);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(keywords.length * 4);
+                for (String keyword : keywords) {
+                    byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
+                }
+                scan.setAttribute("keywords", byteBuffer.array());
 
                 rs = table.getScanner(scan);
 
                 List<Map<String, String>> dataList = new ArrayList<>();
-
                 for (Result r : rs) {
                     Map<String, String> objectMap = new HashMap<>();
                     objectMap.put("rowkey", Arrays.toString(r.getRow()));
@@ -318,6 +342,7 @@ public class HBaseUtil {
                         String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
                         objectMap.put(qualifier, value);
                     }
+                    dataList.add(objectMap);
                 }
                 return dataList;
             } finally {

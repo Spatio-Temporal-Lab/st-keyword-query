@@ -20,6 +20,7 @@ package org.apache.hadoop.hbase.io.hfile;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -180,6 +181,7 @@ public class CompoundBloomFilterWriter extends CompoundBloomFilterBase
                 .getCellKeySerializedAsKeyValueKey(PrivateCellUtil.createFirstOnRowCol(cell));
       } else {
         firstKeyInChunk = CellUtil.copyRow(cell);
+        System.out.println("first key in chunk: " + Arrays.toString(firstKeyInChunk));
       }
       allocateNewChunk();
     }

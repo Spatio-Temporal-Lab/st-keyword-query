@@ -406,6 +406,10 @@ public class StoreFileReader {
     byte[] startRow = scan.getStartRow();
     byte[] stopRow = scan.getStopRow();
 
+    if (startRow.length < 7 || stopRow.length < 7) {
+      return true;
+    }
+
     Optional<Cell> firstKeyKV = this.getFirstKey();
     Optional<Cell> lastKeyKV = this.getLastKey();
     if (!firstKeyKV.isPresent() || !lastKeyKV.isPresent()) {

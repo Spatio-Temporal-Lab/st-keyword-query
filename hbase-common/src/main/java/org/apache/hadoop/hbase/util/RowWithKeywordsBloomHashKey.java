@@ -31,14 +31,20 @@ public class RowWithKeywordsBloomHashKey extends RowBloomHashKey {
     this.keyword = keyword;
   }
 
+  /**
+   * keyword in the first 4 byte
+   * */
   @Override
   public byte get(int offset) {
     if (offset < 4) return keyword[offset];
     return PrivateCellUtil.getRowByte(t, offset - 4);
   }
 
+  /**
+   * the last 8 bytes are not needed
+   * */
   @Override
   public int length() {
-    return keyword.length + this.t.getRowLength();
+    return keyword.length + this.t.getRowLength() - 8;
   }
 }

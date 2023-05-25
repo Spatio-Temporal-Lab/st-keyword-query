@@ -18,16 +18,19 @@
 package org.apache.hadoop.hbase.util;
 
 import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.io.hfile.HFile;
 import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.IOException;
+
+import static org.apache.hadoop.hbase.regionserver.HStoreFile.LAST_BLOOM_KEY;
 
 /**
  * Handles ROWPREFIX bloom related context.
  * It works with both ByteBufferedCell and byte[] backed cells
  */
 @InterfaceAudience.Private
-public class RowPrefixWithKeywordsBloomContext extends RowBloomContext {
+public class RowPrefixWithKeywordsBloomContext extends BloomContext {
   private final int prefixLength;
 
   public RowPrefixWithKeywordsBloomContext(BloomFilterWriter bloomFilterWriter,
@@ -36,19 +39,18 @@ public class RowPrefixWithKeywordsBloomContext extends RowBloomContext {
     this.prefixLength = prefixLength;
   }
 
-  public void writeBloom(Cell cell) throws IOException {
-    super.writeBloom(getRowPrefixCell(cell));
+  @Override
+  public void addLastBloomKey(HFile.Writer writer) throws IOException {
+    if (this.getLastCell() != null) {
+      Cell firstOnRow = PrivateCellUtil.createFirstOnRowCol(this.getLastCell());
+      // This copy happens only once when the writer is closed
+      byte[] key = PrivateCellUtil.getCellKeySerializedAsKeyValueKey(firstOnRow);
+      writer.appendFileInfo(LAST_BLOOM_KEY, key);
+    }
   }
 
-  /**
-   * @param cell the cell
-   * @return the new cell created by row prefix
-   */
-  private Cell getRowPrefixCell(Cell cell) {
-    byte[] row = CellUtil.copyRow(cell);
-    return ExtendedCellBuilderFactory.create(CellBuilderType.DEEP_COPY)
-            .setRow(row, 0, Math.min(prefixLength, row.length))
-            .setType(Cell.Type.Put)
-            .build();
+  @Override
+  protected boolean isNewKey(Cell cell) {
+    return true;
   }
 }

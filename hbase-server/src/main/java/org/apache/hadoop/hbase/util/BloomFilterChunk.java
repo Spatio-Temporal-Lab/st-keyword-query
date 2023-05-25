@@ -23,10 +23,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import com.sun.xml.bind.v2.TODO;
 import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.PrivateCellUtil;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.hadoop.hbase.regionserver.BloomType;
@@ -192,16 +194,38 @@ public class BloomFilterChunk implements BloomFilterBase {
     int hash1;
     int hash2;
     HashKey<Cell> hashKey;
+
+    System.out.println("OK1111");
+    System.out.println(new String(cell.getQualifierArray()));
+    System.out.println(Arrays.toString(cell.getQualifierArray()));
+    byte[] qualifierByte = CellUtil.cloneQualifier(cell);
+    System.out.println(qualifierByte.length);
+    System.out.println(new String(CellUtil.cloneQualifier(cell)));
+    System.out.println(Arrays.toString(keywordsQualifyByte));
+
+    System.out.println("OK2222");
+    System.out.println(cell);
+    System.out.println(new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8));
+    byte[] keywordsByte = CellUtil.cloneValue(cell);
+    String[] keywords = new String(keywordsByte).split(" ");
+    System.out.println("insert keywords: " + Arrays.toString(keywords));
+
+    System.out.println("OK1111");
+
     if (this.bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
       if (Arrays.equals(cell.getQualifierArray(), keywordsQualifyByte)) {
-        byte[] keywordsByte = PrivateCellUtil.getValueBufferShallowCopy(cell).array();
-        int n = keywordsByte.length;
-        for (int i = 0; i < n; i += 4) {
-          hashKey = new RowWithKeywordsBloomHashKey(Bytes.copy(keywordsByte, i, 4), cell);
+        System.out.println("OK2222");
+//        byte[] keywordsByte = PrivateCellUtil.getValueBufferShallowCopy(cell).array();
+//        String[] keywords = new String(keywordsByte).split(" ");
+        System.out.println("insert keywords: " + Arrays.toString(keywords));
+        for (String keyword : keywords) {
+          hashKey = new RowWithKeywordsBloomHashKey(Bytes.toBytes(keyword.hashCode()), cell);
+          System.out.println(hashKey.length());
           hash1 = this.hash.hash(hashKey, 0);
           hash2 = this.hash.hash(hashKey, hash1);
-          setHashLoc(hash1, hash2);
+          setHashLocWithoutAddKeyCount(hash1, hash2);
         }
+        ++this.keyCount;
       }
       return;
     }
@@ -224,6 +248,13 @@ public class BloomFilterChunk implements BloomFilterBase {
     }
 
     ++this.keyCount;
+  }
+
+  private void setHashLocWithoutAddKeyCount(int hash1, int hash2) {
+    for (int i = 0; i < this.hashCount; i++) {
+      long hashLoc = Math.abs((hash1 + i * hash2) % (this.byteSize * 8));
+      set(hashLoc);
+    }
   }
 
   //---------------------------------------------------------------------------
