@@ -22,6 +22,7 @@ import org.apache.hadoop.hbase.io.hfile.HFile;
 import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.apache.hadoop.hbase.regionserver.HStoreFile.LAST_BLOOM_KEY;
 
@@ -51,6 +52,9 @@ public class RowPrefixWithKeywordsBloomContext extends BloomContext {
 
   @Override
   protected boolean isNewKey(Cell cell) {
+    if (this.getLastCell() != null) {
+      return Arrays.equals(cell.getQualifierArray(), "keywords".getBytes());
+    }
     return true;
   }
 }

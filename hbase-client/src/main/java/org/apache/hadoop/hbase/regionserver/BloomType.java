@@ -43,8 +43,4 @@ public enum BloomType {
    * Bloom enabled with Table row prefix as Key, specify the length of the prefix
    */
   ROWPREFIX_WITH_KEYWORDS,
-  /**
-   * Bloom enabled with keyword & Table row prefix as Key
-   */
-  STK_ROSETTA
 }

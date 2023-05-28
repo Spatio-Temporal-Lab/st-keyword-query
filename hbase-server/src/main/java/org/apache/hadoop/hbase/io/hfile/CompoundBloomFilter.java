@@ -21,15 +21,15 @@ package org.apache.hadoop.hbase.io.hfile;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.util.*;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.hadoop.hbase.nio.ByteBuff;
 import org.apache.hadoop.hbase.regionserver.BloomType;
-import org.apache.hadoop.hbase.util.BloomFilter;
-import org.apache.hadoop.hbase.util.BloomFilterUtil;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Hash;
 
 /**
  * A Bloom filter implementation built on top of 
@@ -115,6 +115,39 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
     return result;
   }
 
+  @Override
+  public boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
+    byte[] maxKeyWithID = ByteUtil.concat(key, new byte[]{1, 1, 1, 1, 1, 1, 1, 1});
+    int maxBlock = index.rootBlockContainingKey(maxKeyWithID, keyOffset, keyLength + 8);
+    if (maxBlock < 0) {
+      System.out.println("error!");
+      return false; // This key is not in the file.
+    }
+    byte[] minKeyWithID = ByteUtil.concat(key, new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
+    int minBlock = Math.max(0, index.rootBlockContainingKey(minKeyWithID, keyOffset, keyLength + 8));
+//    int block = index.rootBlockContainingKey(key, keyOffset, keyLength);
+
+    System.out.println("query bloom block count: " + (maxBlock - minBlock + 1));
+    for (int block = minBlock; block <= maxBlock; ++block) {
+      HFileBlock bloomBlock = getBloomBlock(block);
+      try {
+        ByteBuff bloomBuf = bloomBlock.getBufferReadOnly();
+        for (byte[] bytes : keywordsByte) {
+          System.out.println("query st key: " + Arrays.toString(key));
+          System.out.println("query keyword key: " + Arrays.toString(bytes));
+          if (BloomFilterUtil.contains(ByteUtil.concat(bytes, key), keyOffset, keyLength + 4, bloomBuf,
+                  bloomBlock.headerSize(), bloomBlock.getUncompressedSizeWithoutHeader(), hash, hashCount)) {
+            return true;
+          }
+        }
+      } finally {
+        // After the use return back the block if it was served from a cache.
+        reader.returnBlock(bloomBlock);
+      }
+    }
+    return false;
+  }
+
   private HFileBlock getBloomBlock(int block) {
     HFileBlock bloomBlock;
     try {
@@ -160,6 +193,7 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   public boolean supportsAutoLoading() {
     return true;
   }
+
 
   public int getNumChunks() {
     return numChunks;

@@ -284,8 +284,6 @@ public class StoreFileReader {
         return passesGeneralRowPrefixBloomFilter(scan);
       case ROWPREFIX_WITH_KEYWORDS:
         return passesGeneralRowPrefixWithKeywordsBloomFilter(scan);
-      case STK_ROSETTA:
-        return passesGeneralSTKRosetta(scan);
       default:
         return true;
     }
@@ -435,75 +433,24 @@ public class StoreFileReader {
       return true;
     }
 
-    int n = keywordsByte.length;
+    int keywordsCount = keywordsByte.length >>> 2;
+    byte[][] keywordsByteArray = new byte[keywordsCount][4];
+    for (int i = 0; i < keywordsCount; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        keywordsByteArray[i][j] = keywordsByte[i << 2 | j];
+      }
+    }
+
     for (long i = minSTKey; i <= maxSTKey; ++i) {
-      for (int j = 0; j < n; j += 4) {
-        ByteBuffer buffer = ByteBuffer.allocate(4 + prefixLength);
-        buffer.put(keywordsByte, j, 4);
-        buffer.put(ByteUtil.getKByte(i, 7));
-        System.out.println(Arrays.toString(buffer.array()));
-        if (checkGeneralBloomFilter(buffer.array(), null, bloomFilter)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private int getTimeByKey(byte[] key) {
-    return (key[4] << 16 & 0xFF0000) |
-            (key[5] << 8 & 0xFF00) |
-            (key[6] & 0xFF);
-  }
-
-  private byte[] getKeyByTime(int time) {
-    return new byte[]{(byte) (time >>> 16 & 0xFF), (byte) (time >>> 8 & 0xFF), (byte) (time & 0xFF)};
-  }
-
-  private boolean passesGeneralSTKRosetta(Scan scan) {
-    BloomFilter bloomFilter = this.generalBloomFilter;
-    if (bloomFilter == null) {
-      return true;
-    }
-
-    byte[] keywordsByte = scan.getAttribute("keywords");
-    if (keywordsByte == null) {
-      return true;
-    }
-
-    byte[] startRow = scan.getStartRow();
-    byte[] stopRow = scan.getStopRow();
-
-    //TODO: here the spatial byte count and time byte count is fixed, there should be a parameter
-    int startTime = getTimeByKey(startRow);
-    int stopTime = getTimeByKey(stopRow);
-
-    byte[] spatialKey = Bytes.copy(startRow, 0, 4);
-
-    // assume that each keyword is mapped to 4 bytes
-    int keywordCount = keywordsByte.length >>> 2;
-
-
-    for (int i = 0; i < keywordCount; ++i) {
-
-      ByteBuffer byteBuffer = ByteBuffer.allocate(15);
-      byteBuffer.put(spatialKey);
-
-      byte[] wordKey = Bytes.copy(keywordsByte, i << 2, 4);
-      byteBuffer.put(wordKey);
-
-      boolean flag = false;
-      for (int j = startTime; j <= stopTime; ++j) {
-        if (checkGeneralBloomFilter(byteBuffer.put(getKeyByTime(j)).array(), null, bloomFilter)) {
-          flag = true;
-        }
-      }
-
-      // return true as long as a keyword exists
-      if (flag) {
+      if (checkGeneralBloomFilterWithKeywords(ByteUtil.getKByte(i, 7), keywordsByteArray, null, bloomFilter)) {
         return true;
       }
+//      for (int j = 0; j < n; j += 4) {
+//        ByteBuffer buffer = ByteBuffer.allocate(4 + prefixLength);
+//        buffer.put(keywordsByte, j, 4);
+//        buffer.put(ByteUtil.getKByte(i, 7));
+//        System.out.println(Arrays.toString(buffer.array()));
+//      }
     }
 
     return false;
@@ -570,6 +517,57 @@ public class StoreFileReader {
     } catch (IOException e) {
       LOG.error("Error reading bloom filter data -- proceeding without",
           e);
+      setGeneralBloomFilterFaulty();
+    } catch (IllegalArgumentException e) {
+      LOG.error("Bad bloom filter data -- proceeding without", e);
+      setGeneralBloomFilterFaulty();
+    } finally {
+      // Return the bloom block so that its ref count can be decremented.
+      reader.returnBlock(bloomBlock);
+    }
+    return true;
+  }
+
+  private boolean checkGeneralBloomFilterWithKeywords(byte[] key, byte[][] keywordsByte, Cell kvKey, BloomFilter bloomFilter) {
+    // Empty file
+    if (reader.getTrailer().getEntryCount() == 0) {
+      return false;
+    }
+    HFileBlock bloomBlock = null;
+    try {
+      boolean shouldCheckBloom;
+      ByteBuff bloom;
+      if (bloomFilter.supportsAutoLoading()) {
+        bloom = null;
+        shouldCheckBloom = true;
+      } else {
+        bloomBlock = reader.getMetaBlock(HFile.BLOOM_FILTER_DATA_KEY, true);
+        bloom = bloomBlock.getBufferWithoutHeader();
+        shouldCheckBloom = bloom != null;
+      }
+
+      if (!bloomFilterType.equals(BloomType.ROWPREFIX_WITH_KEYWORDS)) {
+        throw new RuntimeException("bloom filter not equals to ROW_WITH_KEYWORDS");
+      }
+
+      if (shouldCheckBloom) {
+        boolean exists = false;
+
+        // Whether the primary Bloom key is greater than the last Bloom key
+        // from the file info. For row-column Bloom filters this is not yet
+        // a sufficient condition to return false.
+        boolean keyIsAfterLast = (lastBloomKey != null);
+        // hbase:meta does not have blooms. So we need not have special interpretation
+        // of the hbase:meta cells.  We can safely use Bytes.BYTES_RAWCOMPARATOR for ROW Bloom
+        if (keyIsAfterLast) {
+          keyIsAfterLast = (Bytes.BYTES_RAWCOMPARATOR.compare(key, lastBloomKey) > 0);
+        }
+        exists = !keyIsAfterLast && bloomFilter.containsWithKeywords(key, keywordsByte, 0, key.length, bloom);
+        return exists;
+      }
+    } catch (IOException e) {
+      LOG.error("Error reading bloom filter data -- proceeding without",
+              e);
       setGeneralBloomFilterFaulty();
     } catch (IllegalArgumentException e) {
       LOG.error("Bad bloom filter data -- proceeding without", e);

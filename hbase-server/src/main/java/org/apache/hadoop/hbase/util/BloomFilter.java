@@ -102,4 +102,6 @@ public interface BloomFilter extends BloomFilterBase {
    *         and thus allows a null byte buffer to be passed to contains()
    */
   boolean supportsAutoLoading();
+
+  boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int i, int length, ByteBuff bloom);
 }
