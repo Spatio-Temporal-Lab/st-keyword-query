@@ -195,32 +195,15 @@ public class BloomFilterChunk implements BloomFilterBase {
     int hash2;
     HashKey<Cell> hashKey;
 
-    System.out.println("OK1111");
-    System.out.println(new String(cell.getQualifierArray()));
-    System.out.println(Arrays.toString(cell.getQualifierArray()));
-    byte[] qualifierByte = CellUtil.cloneQualifier(cell);
-    System.out.println(qualifierByte.length);
-    System.out.println(new String(CellUtil.cloneQualifier(cell)));
-    System.out.println(Arrays.toString(keywordsQualifyByte));
-
-    System.out.println("OK2222");
-    System.out.println(cell);
-    System.out.println(new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8));
     byte[] keywordsByte = CellUtil.cloneValue(cell);
     String[] keywords = new String(keywordsByte).split(" ");
-    System.out.println("insert keywords: " + Arrays.toString(keywords));
-
-    System.out.println("OK1111");
 
     if (this.bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
       if (Arrays.equals(cell.getQualifierArray(), keywordsQualifyByte)) {
-        System.out.println("OK2222");
-//        byte[] keywordsByte = PrivateCellUtil.getValueBufferShallowCopy(cell).array();
-//        String[] keywords = new String(keywordsByte).split(" ");
-        System.out.println("insert keywords: " + Arrays.toString(keywords));
+//        System.out.println("insert keywords: " + Arrays.toString(keywords));
         for (String keyword : keywords) {
           hashKey = new RowWithKeywordsBloomHashKey(Bytes.toBytes(keyword.hashCode()), cell);
-          System.out.println(hashKey.length());
+//          System.out.println(hashKey.length());
           hash1 = this.hash.hash(hashKey, 0);
           hash2 = this.hash.hash(hashKey, hash1);
           setHashLocWithoutAddKeyCount(hash1, hash2);
