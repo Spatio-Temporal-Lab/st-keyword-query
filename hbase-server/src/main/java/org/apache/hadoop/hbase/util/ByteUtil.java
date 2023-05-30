@@ -1,7 +1,10 @@
 package org.apache.hadoop.hbase.util;
 
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.math.BigInteger;
 
+@InterfaceAudience.Private
 public class ByteUtil {
     public static byte[] getKByte(int num, int k) {
         k = Math.min(k, 4);

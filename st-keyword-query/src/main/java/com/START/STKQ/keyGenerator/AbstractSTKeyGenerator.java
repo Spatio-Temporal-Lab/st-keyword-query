@@ -10,6 +10,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,17 +63,20 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     public ArrayList<byte[]> toKeys(Query query) { return new ArrayList<>(); }
 
     public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) {
+        long sKey = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 4;
+        int tKey = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 2;
+        byte[] newKey = ByteUtil.concat(ByteUtil.getKByte(sKey, 4), ByteUtil.getKByte(tKey, 3));
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
-                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
+                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
                         return true;
                     }
                 }
                 return false;
             case CONTAIN_ALL:
                 for (byte[] keyPre : keyPres) {
-                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
+                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
                         return false;
                     }
                 }
@@ -82,18 +86,21 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     }
 
     public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType, BloomFilter<byte[]> bloomFilter) {
+        long sKey = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 4;
+        int tKey = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 2;
+        byte[] newKey = ByteUtil.concat(ByteUtil.getKByte(sKey, 4), ByteUtil.getKByte(tKey, 3));
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
 //                    System.out.println("yyy" + Arrays.toString(ByteUtil.concat(keyPre, key)));
-                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
+                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
                         return true;
                     }
                 }
                 return false;
             case CONTAIN_ALL:
                 for (byte[] keyPre : keyPres) {
-                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
+                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
                         return false;
                     }
                 }

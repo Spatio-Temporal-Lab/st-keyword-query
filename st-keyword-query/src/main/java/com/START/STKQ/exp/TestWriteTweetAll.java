@@ -11,6 +11,7 @@ import com.START.STKQ.util.DateUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
+import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.*;
@@ -27,13 +28,14 @@ public class TestWriteTweetAll {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
+        HBaseUtil hBaseUtil = new HBaseUtil();
+        hBaseUtil.init("192.168.137.204");
 
         String tableName = "testTweet";
-//        hBaseUtil.createTable(tableName, new String[]{"attr"});
+//        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7);
         hBaseUtil.truncateTable(tableName);
 
-        String inPathName = "/home/liruiyuan/Tweetsall.csv";
+        String inPathName = "/usr/data/tweetAll.csv";
 //        String inPathName = "E:\\data\\tweet\\tweet_2.csv";
 
         SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
@@ -41,32 +43,32 @@ public class TestWriteTweetAll {
 
         List<Put> puts = new ArrayList<>();
 
-        final BufferedMutator.ExceptionListener listener = (e, mutator) -> {
-            String failTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-            System.out.println("fail time :" + failTime + " ,insert data fail,cause：" + e.getCause(0) + "，failed num：" + e.getNumExceptions());
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-            //重试
-            String retryTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-            System.out.println("its time to retry:" + retryTime);
-            for (int i = 0; i < e.getNumExceptions(); i++) {
-                org.apache.hadoop.hbase.client.Row row = null;
-                try {
-                    row = e.getRow(i);
-                    mutator.mutate((Put) row);
-                } catch (IOException ex) {
-                    System.out.println("insert data fail,please check hbase status and row info : " + row);
-                }
-            }
-        };
+//        final BufferedMutator.ExceptionListener listener = (e, mutator) -> {
+//            String failTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+//            System.out.println("fail time :" + failTime + " ,insert data fail,cause：" + e.getCause(0) + "，failed num：" + e.getNumExceptions());
+//            try {
+//                Thread.sleep(2000);
+//            } catch (InterruptedException ex) {
+//                ex.printStackTrace();
+//            }
+//            //重试
+//            String retryTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+//            System.out.println("its time to retry:" + retryTime);
+//            for (int i = 0; i < e.getNumExceptions(); i++) {
+//                org.apache.hadoop.hbase.client.Row row = null;
+//                try {
+//                    row = e.getRow(i);
+//                    mutator.mutate((Put) row);
+//                } catch (IOException ex) {
+//                    System.out.println("insert data fail,please check hbase status and row info : " + row);
+//                }
+//            }
+//        };
 
-        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf(tableName)).writeBufferSize(10 * 1024 * 1024).listener(listener);
+//        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf(tableName)).writeBufferSize(10 * 1024 * 1024).listener(listener);
 
         int batchSize = 5000;
-        try (BufferedMutator table = hBaseUtil.getConnection().getBufferedMutator(htConfig)) {
+        try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -142,12 +144,16 @@ public class TestWriteTweetAll {
                     puts.add(put);
 
                     if (puts.size() >= batchSize) {
-                        table.mutate(puts);
+                        table.put(puts);
                         puts.clear();
                     }
+
+//                    if (ID > 4) {
+//                        break;
+//                    }
                 }
                 if (!puts.isEmpty()) {
-                    table.mutate(puts);
+                    table.put(puts);
                     puts.clear();
                 }
             } catch (IOException ex) {
@@ -158,18 +164,18 @@ public class TestWriteTweetAll {
         }
 
 
-        long rowCount = 0;
-        Scan scan = new Scan();
-        scan.setFilter(new FirstKeyOnlyFilter());
-        ResultScanner resultScanner = hBaseUtil.getTable(tableName).getScanner(scan);
-        for (Result result : resultScanner) {
-            rowCount += result.size();
-        }
-        String outPathName = "/home/liruiyuan/logBloomSize.txt";
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
-            writer.write(String.valueOf(rowCount));
-        }
-        System.out.println(rowCount);
+//        long rowCount = 0;
+//        Scan scan = new Scan();
+//        scan.setFilter(new FirstKeyOnlyFilter());
+//        ResultScanner resultScanner = hBaseUtil.getTable(tableName).getScanner(scan);
+//        for (Result result : resultScanner) {
+//            rowCount += result.size();
+//        }
+//        String outPathName = "/usr/data//log/rowCount.txt";
+//        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
+//            writer.write(String.valueOf(rowCount));
+//        }
+//        System.out.println(rowCount);
     }
 
 }

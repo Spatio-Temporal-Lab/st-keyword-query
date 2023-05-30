@@ -30,6 +30,10 @@
         <name>hbase.zookeeper.property.dataDir</name>
         <value>/usr/data/zookeeper</value>
     </property>
+<!--    <property>-->
+<!--        <name>hbase.regionserver.compaction.enabled</name>-->
+<!--        <value>false</value>-->
+<!--    </property>-->
     <!--    <property>-->
     <!--        <name>hbase.cluster.distributed</name>-->
     <!--        <value>true</value>-->

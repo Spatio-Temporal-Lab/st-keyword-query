@@ -262,7 +262,6 @@ public class DataReader {
                     continue;
                 }
 
-
                 count[(int) ((cur.getLat() + 90) / 5.625)][(int) ((cur.getLon() + 180) / 11.25)] += 1;
             }
 
@@ -296,6 +295,8 @@ public class DataReader {
             String line;
 
             boolean first = true;
+
+//            int n = 0;
             while ((line = br.readLine()) != null) {
                 if (first) {
                     first = false;
@@ -303,12 +304,16 @@ public class DataReader {
                 }
 
                 STObject cur = getSTObject(line);
+//                System.out.println(cur);
                 if (cur == null) {
                     continue;
                 }
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
-                            spatialKeyGenerator.toKey(cur.getLocation()), timeKeyGenerator.toKey(cur.getDate())
+                            ByteUtil.getKByte(sID, 4),
+                            ByteUtil.getKByte(tID, 3)
                             ));
                 }
 
@@ -322,6 +327,10 @@ public class DataReader {
                 if (cur.getDate().after(initEnd)) {
                     initEnd = cur.getDate();
                 }
+
+//                if (++n > 5) {
+//                    break;
+//                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();

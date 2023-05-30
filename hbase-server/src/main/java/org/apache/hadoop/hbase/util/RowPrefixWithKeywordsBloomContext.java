@@ -43,17 +43,19 @@ public class RowPrefixWithKeywordsBloomContext extends BloomContext {
   @Override
   public void addLastBloomKey(HFile.Writer writer) throws IOException {
     if (this.getLastCell() != null) {
-      Cell firstOnRow = PrivateCellUtil.createFirstOnRowCol(this.getLastCell());
-      // This copy happens only once when the writer is closed
-      byte[] key = PrivateCellUtil.getCellKeySerializedAsKeyValueKey(firstOnRow);
+      byte[] key = CellUtil.copyRow(this.getLastCell());
       writer.appendFileInfo(LAST_BLOOM_KEY, key);
+//      Cell firstOnRow = PrivateCellUtil.createFirstOnRowCol(this.getLastCell());
+//      // This copy happens only once when the writer is closed
+//      byte[] key = PrivateCellUtil.getCellKeySerializedAsKeyValueKey(firstOnRow);
+//      writer.appendFileInfo(LAST_BLOOM_KEY, key);
     }
   }
 
   @Override
   protected boolean isNewKey(Cell cell) {
     if (this.getLastCell() != null) {
-      return Arrays.equals(cell.getQualifierArray(), "keywords".getBytes());
+      return new String(CellUtil.cloneQualifier(cell)).equals("keywords");
     }
     return true;
   }

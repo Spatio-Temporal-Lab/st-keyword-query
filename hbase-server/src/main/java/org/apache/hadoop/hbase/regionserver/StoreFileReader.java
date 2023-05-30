@@ -401,6 +401,11 @@ public class StoreFileReader {
       return true;
     }
 
+    if (scan.getAttribute("useBf") == null) {
+      System.out.println("do not use bf");
+      return true;
+    }
+
     byte[] startRow = scan.getStartRow();
     byte[] stopRow = scan.getStopRow();
 
@@ -421,17 +426,19 @@ public class StoreFileReader {
     byte[] fileSTRowEnd = getSTRowKey(lastKeyKV.get());
 //    Bytes.incrementBytes()
 
-    long minSTKey = ByteUtil.toLong(Bytes.compareTo(scanSTRowStart, fileSTRowStart) < 0 ? scanSTRowStart : fileSTRowStart);
+    long minSTKey = ByteUtil.toLong(Bytes.compareTo(scanSTRowStart, fileSTRowStart) < 0 ? fileSTRowStart : scanSTRowStart);
     long maxSTKey = ByteUtil.toLong(Bytes.compareTo(scanSTRowEnd, fileSTRowEnd) < 0 ? scanSTRowEnd : fileSTRowEnd);
 
-    System.out.println(reader.getPath());
-    System.out.println("xxx st key start: " + minSTKey);
-    System.out.println("xxx st key stop: " + maxSTKey);
+//    System.out.println(reader.getPath());
+//    System.out.println("xxx min st key start: " + minSTKey);
+//    System.out.println("xxx max st key stop: " + maxSTKey);
 
     byte[] keywordsByte = scan.getAttribute("keywords");
     if (keywordsByte == null) {
       return true;
     }
+
+//    return true;
 
     int keywordsCount = keywordsByte.length >>> 2;
     byte[][] keywordsByteArray = new byte[keywordsCount][4];
@@ -443,16 +450,12 @@ public class StoreFileReader {
 
     for (long i = minSTKey; i <= maxSTKey; ++i) {
       if (checkGeneralBloomFilterWithKeywords(ByteUtil.getKByte(i, 7), keywordsByteArray, null, bloomFilter)) {
+//        System.out.println("pass HFile bf test");
         return true;
       }
-//      for (int j = 0; j < n; j += 4) {
-//        ByteBuffer buffer = ByteBuffer.allocate(4 + prefixLength);
-//        buffer.put(keywordsByte, j, 4);
-//        buffer.put(ByteUtil.getKByte(i, 7));
-//        System.out.println(Arrays.toString(buffer.array()));
-//      }
     }
 
+    System.out.println("do not pass HFile bf test");
     return false;
   }
 
@@ -557,12 +560,16 @@ public class StoreFileReader {
         // from the file info. For row-column Bloom filters this is not yet
         // a sufficient condition to return false.
         boolean keyIsAfterLast = (lastBloomKey != null);
-        // hbase:meta does not have blooms. So we need not have special interpretation
-        // of the hbase:meta cells.  We can safely use Bytes.BYTES_RAWCOMPARATOR for ROW Bloom
+//        // hbase:meta does not have blooms. So we need not have special interpretation
+//        // of the hbase:meta cells.  We can safely use Bytes.BYTES_RAWCOMPARATOR for ROW Bloom
         if (keyIsAfterLast) {
-          keyIsAfterLast = (Bytes.BYTES_RAWCOMPARATOR.compare(key, lastBloomKey) > 0);
+          keyIsAfterLast = (Bytes.BYTES_RAWCOMPARATOR.compare(key, Bytes.copy(lastBloomKey, 0, prefixLength)) > 0);
         }
-        exists = !keyIsAfterLast && bloomFilter.containsWithKeywords(key, keywordsByte, 0, key.length, bloom);
+//        System.out.println(Arrays.toString(lastBloomKey));
+//        System.out.println("key is after last " + keyIsAfterLast);
+        exists =
+                !keyIsAfterLast &&
+                bloomFilter.containsWithKeywords(key, keywordsByte, 0, key.length, bloom);
         return exists;
       }
     } catch (IOException e) {
@@ -602,9 +609,9 @@ public class StoreFileReader {
       return false;
     }
 
-    System.out.println(reader.getPath());
-    System.out.println("xxx start: " + Arrays.toString(getRowKey(firstKeyKV.get())));
-    System.out.println("xxx stop: " + Arrays.toString(getRowKey(lastKeyKV.get())));
+//    System.out.println(reader.getPath());
+//    System.out.println("xxx start: " + Arrays.toString(getRowKey(firstKeyKV.get())));
+//    System.out.println("xxx stop: " + Arrays.toString(getRowKey(lastKeyKV.get())));
 
     if (Bytes.equals(scan.getStartRow(), HConstants.EMPTY_START_ROW) &&
         Bytes.equals(scan.getStopRow(), HConstants.EMPTY_END_ROW)) {

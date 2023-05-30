@@ -1,7 +1,6 @@
 package com.START.STKQ.io;
 
 import com.START.STKQ.constant.QueryType;
-import com.START.STKQ.util.ByteUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -17,6 +16,15 @@ import java.util.*;
 public class HBaseUtil {
     public static Configuration configuration;
     public static Connection connection;
+
+    public static Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public static Admin getAdmin() {
+        return admin;
+    }
+
     public static Admin admin;
 
     // 建立连接
@@ -125,6 +133,10 @@ public class HBaseUtil {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             return table;
         }
+    }
+
+    public void flushTable(String tableName) throws IOException {
+        admin.flush(TableName.valueOf(tableName));
     }
 
     public void createTableAndDeleteOld(String myTableName, String[] colFamily) throws IOException {
@@ -317,7 +329,7 @@ public class HBaseUtil {
     }
 
 
-    public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
+    public List<Map<String, String>> scanWithKeywords(String tableName, boolean useBfInHBase, String[] keywords,
                                                       byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -330,6 +342,9 @@ public class HBaseUtil {
                     byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
                 }
                 scan.setAttribute("keywords", byteBuffer.array());
+                if (useBfInHBase) {
+                    scan.setAttribute("useBf", new byte[]{1});
+                }
 
                 rs = table.getScanner(scan);
 

@@ -19,17 +19,14 @@
 
 package org.apache.hadoop.hbase.io.hfile;
 
-import java.io.DataInput;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.util.*;
-import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.hadoop.hbase.nio.ByteBuff;
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.hadoop.hbase.util.*;
+import org.apache.yetus.audience.InterfaceAudience;
+
+import java.io.DataInput;
+import java.io.IOException;
 
 /**
  * A Bloom filter implementation built on top of 
@@ -117,7 +114,7 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
 
   @Override
   public boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
-    byte[] maxKeyWithID = ByteUtil.concat(key, new byte[]{1, 1, 1, 1, 1, 1, 1, 1});
+    byte[] maxKeyWithID = ByteUtil.concat(key, ByteUtil.longToByte(Long.MAX_VALUE));
     int maxBlock = index.rootBlockContainingKey(maxKeyWithID, keyOffset, keyLength + 8);
     if (maxBlock < 0) {
       System.out.println("error!");
@@ -127,14 +124,14 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
     int minBlock = Math.max(0, index.rootBlockContainingKey(minKeyWithID, keyOffset, keyLength + 8));
 //    int block = index.rootBlockContainingKey(key, keyOffset, keyLength);
 
-    System.out.println("query bloom block count: " + (maxBlock - minBlock + 1));
+//    System.out.println("query bloom block count: " + (maxBlock - minBlock + 1));
     for (int block = minBlock; block <= maxBlock; ++block) {
       HFileBlock bloomBlock = getBloomBlock(block);
       try {
         ByteBuff bloomBuf = bloomBlock.getBufferReadOnly();
         for (byte[] bytes : keywordsByte) {
-          System.out.println("query st key: " + Arrays.toString(key));
-          System.out.println("query keyword key: " + Arrays.toString(bytes));
+//          System.out.println("query st key: " + Arrays.toString(key));
+//          System.out.println("query keyword key: " + Arrays.toString(bytes));
           if (BloomFilterUtil.contains(ByteUtil.concat(bytes, key), keyOffset, keyLength + 4, bloomBuf,
                   bloomBlock.headerSize(), bloomBlock.getUncompressedSizeWithoutHeader(), hash, hashCount)) {
             return true;

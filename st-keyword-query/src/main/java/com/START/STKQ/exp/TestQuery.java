@@ -46,12 +46,12 @@ public class TestQuery {
                 long timeMethod = 0;
                 System.out.println("query size: " + queries.size());
 
-                QueryProcessor processor = new QueryProcessor(tableName, objectKeyGenerators[i]);
+                QueryProcessor processor = new QueryProcessor(tableName, objectKeyGenerators[i], false);
 
                 for (Query query : queries) {
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
-                    ArrayList<STObject> result = processor.getResult(query);
+//                    ArrayList<STObject> result = processor.getResult(query);
                     long endTime = System.currentTimeMillis();
                     timeMethod += endTime - startTime;
                 }

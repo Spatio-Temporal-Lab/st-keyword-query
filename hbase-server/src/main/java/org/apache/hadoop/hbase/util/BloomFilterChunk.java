@@ -194,16 +194,22 @@ public class BloomFilterChunk implements BloomFilterBase {
     int hash1;
     int hash2;
     HashKey<Cell> hashKey;
+//    System.out.println(bloomType);
+//    System.out.println("here we add cell" + CellUtil.getCellKeyAsString(cell));
+//    System.out.println("col = " + new String(CellUtil.cloneQualifier(cell)));
+//    System.out.println("val = " + new String(CellUtil.cloneValue(cell)));
 
     byte[] keywordsByte = CellUtil.cloneValue(cell);
     String[] keywords = new String(keywordsByte).split(" ");
+//    System.out.println("keywords = " + keywords);
 
     if (this.bloomType == BloomType.ROWPREFIX_WITH_KEYWORDS) {
-      if (Arrays.equals(cell.getQualifierArray(), keywordsQualifyByte)) {
+//      System.out.println("OKOKOK");
+      if (new String(CellUtil.cloneQualifier(cell)).equals("keywords")) {
 //        System.out.println("insert keywords: " + Arrays.toString(keywords));
         for (String keyword : keywords) {
           hashKey = new RowWithKeywordsBloomHashKey(Bytes.toBytes(keyword.hashCode()), cell);
-//          System.out.println(hashKey.length());
+//          System.out.println("hashkey :" + hashKey);
           hash1 = this.hash.hash(hashKey, 0);
           hash2 = this.hash.hash(hashKey, hash1);
           setHashLocWithoutAddKeyCount(hash1, hash2);
