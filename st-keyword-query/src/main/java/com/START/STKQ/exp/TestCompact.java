@@ -25,10 +25,10 @@ public class TestCompact {
         hBaseUtil.put(tableName, new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                 "attr", "keywords", "b c");
         hBaseUtil.flushTable(tableName);
-//        hBaseUtil.put("test01", new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2},
-//                "attr", "keywords", "c d");
-//        hBaseUtil.put("test01", new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4},
-//                "attr", "keywords", "d e");
+        hBaseUtil.put("test01", new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2},
+                "attr", "keywords", "c d");
+        hBaseUtil.put("test01", new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+                "attr", "keywords", "d e");
         Admin admin = hBaseUtil.getConnection().getAdmin();
         admin.majorCompact(TableName.valueOf("test01"));
 

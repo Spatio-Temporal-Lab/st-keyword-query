@@ -52,17 +52,21 @@ public class HBaseQueryProcessor {
                                                  QueryType queryType, ArrayList<String> keywords, boolean useBfInHBase) throws InterruptedException {
 
         List<Map<String, String>> sycResult = Collections.synchronizedList(new ArrayList<>());
-        cdl = new CountDownLatch(ranges.size());
-        ArrayList<ScanThread> threads = new ArrayList<>();
+//        cdl = new CountDownLatch(ranges.size());
+//        ArrayList<ScanThread> threads = new ArrayList<>();
         for (Range<byte[]> range : ranges) {
-            threads.add(new ScanThread(tableName, useBfInHBase,
+            sycResult.addAll(hBaseUtil.scanWithKeywords(tableName, useBfInHBase, keywords.toArray(new String[0]),
                     ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
-                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), queryType, keywords, sycResult));
+                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)),
+                    queryType));
+//            threads.add(new ScanThread(tableName, useBfInHBase,
+//                    ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
+//                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), queryType, keywords, sycResult));
         }
-        for (ScanThread thread : threads) {
-            thread.start();
-        }
-        cdl.await();
+//        for (ScanThread thread : threads) {
+//            thread.start();
+//        }
+//        cdl.await();
         return sycResult;
     }
 

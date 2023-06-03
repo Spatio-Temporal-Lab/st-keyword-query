@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class TestQueryTweetAll {
@@ -41,34 +42,47 @@ public class TestQueryTweetAll {
         ObjectInputStream oi = new ObjectInputStream(fi);
         BloomFilter<byte[]> bloomFilter = (BloomFilter<byte[]>) oi.readObject();
 
+
+        boolean[] flags = new boolean[]{false, false};
+
         AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
         keyGenerator1.setBloomFilter(bloomFilter);
         QueryProcessor[] processors = new QueryProcessor[]{
+                new QueryProcessor(tableName, keyGenerator1, true),
+                new QueryProcessor(tableName, keyGenerator1, true),
                 new QueryProcessor(tableName, keyGenerator1, false),
-//                new QueryProcessor(tableName, new SpatialFirstSTKeyGenerator(), false)
+                new QueryProcessor(tableName, keyGenerator1, false)
         };
 
-        ArrayList<Integer> len1 = new ArrayList<>();
-        ArrayList<Integer> len2 = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> len = new ArrayList<>(processors.length);
+        for (int i = 0; i < processors.length; ++i) {
+            len.add(new ArrayList<>());
+        }
 
+        ArrayList<String> keywords111 = new ArrayList<>();
+//        keywords111.add("12jkl");
+        boolean f = true;
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
             System.out.println("query size: " + queries.size());
-            for (int i = 0; i < 1; ++i) {
+            for (int i = 0; i < processors.length; ++i) {
                 long timeMethod = 0;
 
                 int ii = 0;
                 for (Query query : queries) {
-//                    if (++ii > 5) {
+//                    if (++ii > 20) {
 //                        break;
 //                    }
+//                    query.setKeywords(keywords111);
 //                    System.out.println("query = " + query);
+
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
-                    ArrayList<STObject> result = processors[i].getResult(query, true);
-                    len1.add(result.size());
+                    ArrayList<STObject> result = processors[i].getResult(query, f);
+                    len.get(i).add(result.size());
                     long endTime = System.currentTimeMillis();
                     timeMethod += endTime - startTime;
                 }
+                f = !f;
                 System.out.println("method " + i + " time: " + timeMethod);
                 System.out.println("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime());
                 writer.write("method " + i + " time: " + timeMethod + "\n");
@@ -91,9 +105,16 @@ public class TestQueryTweetAll {
             throw new RuntimeException(e);
         }
 
-        for (int i = 0; i < queries.size(); ++i) {
-            System.out.println(len1.get(i));
+        for (int i = 0; i < processors.length; ++i) {
+            for (int j = i + 1; j < processors.length; ++j) {
+                if (!len.get(i).equals(len.get(j))) {
+                    System.out.println(i + " " + j);
+                }
+            }
         }
+//        for (int i = 0; i < queries.size(); ++i) {
+//            System.out.println(len1.get(i));
+//        }
 //        for (int i = 0; i < queries.size(); ++i) {
 //            System.out.println(len1.get(i) + " " + len2.get(i));
 //            if (!Objects.equals(len1.get(i), len2.get(i))) {

@@ -190,6 +190,8 @@ public final class BloomFilterFactory {
     int maxFold = conf.getInt(IO_STOREFILE_BLOOM_MAX_FOLD,
         MAX_ALLOWED_FOLD_FACTOR);
 
+    System.out.println("error rate " + err);
+    System.out.println(getBloomBlockSize(conf));
     // Do we support compound bloom filters?
     // In case of compound Bloom filters we ignore the maxKeys hint.
     CompoundBloomFilterWriter bloomWriter = new CompoundBloomFilterWriter(getBloomBlockSize(conf),

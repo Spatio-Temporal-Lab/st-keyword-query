@@ -27,6 +27,7 @@ import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * A Bloom filter implementation built on top of 
@@ -116,6 +117,7 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   public boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
     byte[] maxKeyWithID = ByteUtil.concat(key, ByteUtil.longToByte(Long.MAX_VALUE));
     int maxBlock = index.rootBlockContainingKey(maxKeyWithID, keyOffset, keyLength + 8);
+
     if (maxBlock < 0) {
       System.out.println("error!");
       return false; // This key is not in the file.
@@ -124,11 +126,14 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
     int minBlock = Math.max(0, index.rootBlockContainingKey(minKeyWithID, keyOffset, keyLength + 8));
 //    int block = index.rootBlockContainingKey(key, keyOffset, keyLength);
 
+//    System.out.println("block from " + minBlock + " to " + maxBlock);
 //    System.out.println("query bloom block count: " + (maxBlock - minBlock + 1));
     for (int block = minBlock; block <= maxBlock; ++block) {
       HFileBlock bloomBlock = getBloomBlock(block);
       try {
         ByteBuff bloomBuf = bloomBlock.getBufferReadOnly();
+//        System.out.println(bloomBuf.toBytes().length);
+//        System.out.println(Arrays.toString(Bytes.copy(bloomBuf.toBytes(), bloomBlock.headerSize(), 100)));
         for (byte[] bytes : keywordsByte) {
 //          System.out.println("query st key: " + Arrays.toString(key));
 //          System.out.println("query keyword key: " + Arrays.toString(bytes));

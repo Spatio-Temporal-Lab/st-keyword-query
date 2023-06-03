@@ -82,6 +82,9 @@ public class StoreFileReader {
   private boolean skipResetSeqId = true;
   private int prefixLength = -1;
 
+  private Optional<Cell> firstKey;
+  private Optional<Cell> lastKey;
+
   // Counter that is incremented every time a scanner is created on the
   // store file. It is decremented when the scan on the store file is
   // done. All StoreFileReader for the same StoreFile will share this counter.
@@ -94,6 +97,8 @@ public class StoreFileReader {
 
   private StoreFileReader(HFile.Reader reader, AtomicInteger refCount, boolean shared) {
     this.reader = reader;
+    firstKey = reader.getFirstKey();
+    lastKey = reader.getLastKey();
     bloomFilterType = BloomType.NONE;
     this.refCount = refCount;
     this.shared = shared;
@@ -402,7 +407,7 @@ public class StoreFileReader {
     }
 
     if (scan.getAttribute("useBf") == null) {
-      System.out.println("do not use bf");
+//      System.out.println("do not use bf");
       return true;
     }
 
@@ -413,19 +418,21 @@ public class StoreFileReader {
       return true;
     }
 
-    Optional<Cell> firstKeyKV = this.getFirstKey();
-    Optional<Cell> lastKeyKV = this.getLastKey();
-    if (!firstKeyKV.isPresent() || !lastKeyKV.isPresent()) {
-      // the file is empty
-      return false;
-    }
+//    Optional<Cell> firstKeyKV = this.getFirstKey();
+//    Optional<Cell> lastKeyKV = this.getLastKey();
+//    if (!firstKeyKV.isPresent() || !lastKeyKV.isPresent()) {
+//      // the file is empty
+//      return false;
+//    }
 
     byte[] scanSTRowStart = Bytes.copy(startRow, 0, 7);
-    byte[] fileSTRowStart = getSTRowKey(firstKeyKV.get());
+    byte[] fileSTRowStart = getSTRowKey(firstKey.get());
     byte[] scanSTRowEnd = Bytes.copy(stopRow, 0, 7);
-    byte[] fileSTRowEnd = getSTRowKey(lastKeyKV.get());
+    byte[] fileSTRowEnd = getSTRowKey(lastKey.get());
 //    Bytes.incrementBytes()
 
+//    System.out.println("scan range: " + Arrays.toString(scanSTRowStart) + " " + Arrays.toString(scanSTRowEnd));
+//    System.out.println("file range: " + Arrays.toString(fileSTRowStart) + " " + Arrays.toString(fileSTRowEnd));
     long minSTKey = ByteUtil.toLong(Bytes.compareTo(scanSTRowStart, fileSTRowStart) < 0 ? fileSTRowStart : scanSTRowStart);
     long maxSTKey = ByteUtil.toLong(Bytes.compareTo(scanSTRowEnd, fileSTRowEnd) < 0 ? scanSTRowEnd : fileSTRowEnd);
 
@@ -448,14 +455,16 @@ public class StoreFileReader {
       }
     }
 
+//    System.out.println("---------------------------------");
     for (long i = minSTKey; i <= maxSTKey; ++i) {
       if (checkGeneralBloomFilterWithKeywords(ByteUtil.getKByte(i, 7), keywordsByteArray, null, bloomFilter)) {
+//        System.out.println("pass for :" + i + " from " + minSTKey + " to " + maxSTKey);
 //        System.out.println("pass HFile bf test");
         return true;
       }
     }
 
-    System.out.println("do not pass HFile bf test");
+//    System.out.println("do not pass HFile bf test for scan " + minSTKey + " " + maxSTKey);
     return false;
   }
 

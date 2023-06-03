@@ -92,6 +92,12 @@ public class QueryProcessor {
         } else {
             ranges = generator.toKeyRanges(query);
         }
+//        int n = ranges.size();
+//        System.out.print(n);
+//        for (int i = 0; i < n; ++i) {
+//            System.out.print(" " + getRangeSize(ranges.get(i)));
+//        }
+//        System.out.println();
 
 //        System.out.println("--------------------------------------------" + filter);
 //        for (Range<byte[]> range : ranges) {

@@ -49,6 +49,7 @@ import org.apache.hadoop.hbase.regionserver.querymatcher.ScanQueryMatcher;
 @InterfaceAudience.LimitedPrivate(HBaseInterfaceAudience.PHOENIX)
 @InterfaceStability.Evolving
 public class StoreFileScanner implements KeyValueScanner {
+  static long allTime = 0;
   // the reader it comes from:
   private final StoreFileReader reader;
   private final HFileScanner hfs;
@@ -500,7 +501,11 @@ public class StoreFileScanner implements KeyValueScanner {
       timeRange = scan.getTimeRange();
     }
     return reader.passesTimerangeFilter(timeRange, oldestUnexpiredTS) && reader
-        .passesKeyRangeFilter(scan) && reader.passesBloomFilter(scan, scan.getFamilyMap().get(cf));
+            .passesKeyRangeFilter(scan) && reader.passesBloomFilter(scan, scan.getFamilyMap().get(cf));
+  }
+
+  public static long getAllTime() {
+    return allTime;
   }
 
   @Override

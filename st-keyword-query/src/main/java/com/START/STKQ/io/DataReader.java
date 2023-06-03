@@ -4,6 +4,7 @@ import com.START.STKQ.keyGenerator.*;
 import com.START.STKQ.model.*;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
+import com.START.STKQ.util.KeywordCounter;
 import com.github.StairSketch.StairBf;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
@@ -166,6 +167,10 @@ public class DataReader {
             return null;
         }
 
+        for (String keyword : keywords) {
+            KeywordCounter.add(keyword);
+        }
+
         Date date = null;
         try {
             String time = columns[0];
@@ -173,9 +178,6 @@ public class DataReader {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        //        for (String keyword : keywords) {
-//            KeywordCounter.add(keyword);
-//        }
         return new STObject(ID++, lat, lon, date, keywords);
     }
 

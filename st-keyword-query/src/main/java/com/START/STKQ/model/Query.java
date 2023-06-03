@@ -10,7 +10,7 @@ public class Query {
     private Date s;
     private Date t;
     private MBR mbr;
-    private final ArrayList<String> keywords;
+    private ArrayList<String> keywords;
     private QueryType queryType;
 
     public Query(double lat1, double lat2, double lon1, double lon2, Date s, Date t, ArrayList<String> keywords) {
@@ -90,5 +90,9 @@ public class Query {
     public String toString() {
         return mbr.toString() + " " + DateUtil.format(s) + " "
                 + DateUtil.format(t) + " " + keywords;
+    }
+
+    public void setKeywords(ArrayList<String> keywords) {
+        this.keywords = keywords;
     }
 }

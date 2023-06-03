@@ -64,13 +64,13 @@ public class QueryGenerator {
     }
 
     public static void generateQueries(ArrayList<STObject> objects) throws IOException {
-        String path = new File("").getAbsolutePath() + "\\src\\main\\resources\\queries.csv";
+        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
         System.out.println(path);
         File file = new File(path);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             int n = objects.size();
             int writeCount = 0;
-            while (writeCount < 1000) {
+            while (writeCount < 2000) {
                 STObject object = objects.get(random.nextInt(n));
                 if (object.getLat() > 179 || object.getLat() < -179) {
                     continue;
@@ -93,12 +93,12 @@ public class QueryGenerator {
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
-                keywords = getRandomKeywords(object.getKeywords());
-//                if (writeCount <= 1000) {
-//                    keywords = getRandomKeywords();
-//                } else {
-//                    keywords = getRandomKeywords(object.getKeywords());
-//                }
+//                keywords = getRandomKeywords(object.getKeywords());
+                if (writeCount <= 1000) {
+                    keywords = getRandomKeywords();
+                } else {
+                    keywords = getRandomKeywords(object.getKeywords());
+                }
                 for (String keyword : keywords) {
                     writer.write("," + keyword);
                 }
@@ -112,10 +112,7 @@ public class QueryGenerator {
     public static void main(String[] args) throws IOException, ParseException {
         DataReader dataReader = new DataReader();
         dataReader.setRate(0.01);
-        ArrayList<STObject> objects = new ArrayList<>();
-        for (int i = 2; i <= 2; ++i) {
-            objects.addAll(dataReader.getSTObjects("E:\\data\\tweet\\tweetAll.csv"));
-        }
+        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetAll.csv"));
         generateQueries(objects);
     }
 }

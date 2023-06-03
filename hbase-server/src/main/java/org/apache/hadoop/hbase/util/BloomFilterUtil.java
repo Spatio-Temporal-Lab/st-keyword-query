@@ -205,6 +205,9 @@ public final class BloomFilterUtil {
     // because byteSize was adjusted to allow for folding, and hashCount was
     // rounded.
     bbf.maxKeys = (int) computeMaxKeys(bitSize, errorRate, bbf.hashCount);
+    if (bloomType.equals(ROWPREFIX_WITH_KEYWORDS)) {
+      bbf.maxKeys /= 10;
+    }
 
     return bbf;
   }

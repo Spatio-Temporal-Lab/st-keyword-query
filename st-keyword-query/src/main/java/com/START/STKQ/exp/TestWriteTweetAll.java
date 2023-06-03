@@ -32,8 +32,9 @@ public class TestWriteTweetAll {
         hBaseUtil.init("192.168.137.204");
 
         String tableName = "testTweet";
-//        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7);
-        hBaseUtil.truncateTable(tableName);
+        hBaseUtil.deleteTable("testTweet");
+        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7);
+//        hBaseUtil.truncateTable(tableName);
 
         String inPathName = "/usr/data/tweetAll.csv";
 //        String inPathName = "E:\\data\\tweet\\tweet_2.csv";

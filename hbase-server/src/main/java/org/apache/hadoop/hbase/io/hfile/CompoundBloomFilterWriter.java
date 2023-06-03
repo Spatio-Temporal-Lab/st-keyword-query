@@ -181,6 +181,8 @@ public class CompoundBloomFilterWriter extends CompoundBloomFilterBase
                 .getCellKeySerializedAsKeyValueKey(PrivateCellUtil.createFirstOnRowCol(cell));
       } else {
         firstKeyInChunk = CellUtil.copyRow(cell);
+//        System.out.println("error rate: " + errorRate);
+//        System.out.println("max keys: " + chunk.getMaxKeys());
         System.out.println("first key in chunk: " + Arrays.toString(firstKeyInChunk));
       }
       allocateNewChunk();
