@@ -103,5 +103,5 @@ public interface BloomFilter extends BloomFilterBase {
    */
   boolean supportsAutoLoading();
 
-  boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int i, int length, ByteBuff bloom);
+  boolean containsWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, int i, int prefixLength, ByteBuff bloom);
 }

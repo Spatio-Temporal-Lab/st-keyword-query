@@ -52,6 +52,12 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   private long[] numQueriesPerChunk;
   private long[] numPositivesPerChunk;
 
+  private static long timeForBf = 0;
+
+  public static long getTimeForBf() {
+    return timeForBf;
+  }
+
   /**
    * De-serialization for compound Bloom filter metadata. Must be consistent
    * with what {@link CompoundBloomFilterWriter} does.
@@ -114,39 +120,61 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   }
 
   @Override
-  public boolean containsWithKeywords(byte[] key, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
-    byte[] maxKeyWithID = ByteUtil.concat(key, ByteUtil.longToByte(Long.MAX_VALUE));
-    int maxBlock = index.rootBlockContainingKey(maxKeyWithID, keyOffset, keyLength + 8);
+  public boolean containsWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
+    int lastBloomId = -1;
+    ByteBuff bloomBuf = null;
+    HFileBlock bloomBlock = null;
 
-    if (maxBlock < 0) {
-      System.out.println("error!");
-      return false; // This key is not in the file.
-    }
-    byte[] minKeyWithID = ByteUtil.concat(key, new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
-    int minBlock = Math.max(0, index.rootBlockContainingKey(minKeyWithID, keyOffset, keyLength + 8));
+    long startTime = System.currentTimeMillis();
+    for (long keyLong = stStart; keyLong <= stEnd; ++keyLong) {
+
+      byte[] key = ByteUtil.getKByte(keyLong, keyLength);
+      byte[] maxKeyWithID = ByteUtil.concat(key, ByteUtil.longToByte(Long.MAX_VALUE));
+      int maxBlock = index.rootBlockContainingKey(maxKeyWithID, keyOffset, keyLength + 8);
+
+      if (maxBlock < 0) {
+        System.out.println("error!");
+        return false; // This key is not in the file.
+      }
+      byte[] minKeyWithID = ByteUtil.concat(key, new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
+      int minBlock = Math.max(0, index.rootBlockContainingKey(minKeyWithID, keyOffset, keyLength + 8));
 //    int block = index.rootBlockContainingKey(key, keyOffset, keyLength);
 
 //    System.out.println("block from " + minBlock + " to " + maxBlock);
 //    System.out.println("query bloom block count: " + (maxBlock - minBlock + 1));
-    for (int block = minBlock; block <= maxBlock; ++block) {
-      HFileBlock bloomBlock = getBloomBlock(block);
-      try {
-        ByteBuff bloomBuf = bloomBlock.getBufferReadOnly();
+      for (int block = minBlock; block <= maxBlock; ++block) {
+        boolean returnCache = false;
+        try {
+          if (block != lastBloomId) {
+            bloomBlock = getBloomBlock(block);
+            bloomBuf = bloomBlock.getBufferReadOnly();
+            lastBloomId = block;
+            returnCache = true;
+          }
 //        System.out.println(bloomBuf.toBytes().length);
 //        System.out.println(Arrays.toString(Bytes.copy(bloomBuf.toBytes(), bloomBlock.headerSize(), 100)));
-        for (byte[] bytes : keywordsByte) {
+          for (byte[] bytes : keywordsByte) {
 //          System.out.println("query st key: " + Arrays.toString(key));
 //          System.out.println("query keyword key: " + Arrays.toString(bytes));
-          if (BloomFilterUtil.contains(ByteUtil.concat(bytes, key), keyOffset, keyLength + 4, bloomBuf,
-                  bloomBlock.headerSize(), bloomBlock.getUncompressedSizeWithoutHeader(), hash, hashCount)) {
-            return true;
+            if (BloomFilterUtil.contains(ByteUtil.concat(bytes, key), keyOffset, keyLength + 4, bloomBuf,
+                    bloomBlock.headerSize(), bloomBlock.getUncompressedSizeWithoutHeader(), hash, hashCount)) {
+              if (returnCache) {
+                reader.returnBlock(bloomBlock);
+              }
+              timeForBf += System.currentTimeMillis() - startTime;
+              return true;
+            }
+          }
+        } finally {
+          // After the use return back the block if it was served from a cache.
+          if (returnCache) {
+            reader.returnBlock(bloomBlock);
           }
         }
-      } finally {
-        // After the use return back the block if it was served from a cache.
-        reader.returnBlock(bloomBlock);
       }
+//      return false;
     }
+    timeForBf += System.currentTimeMillis() - startTime;
     return false;
   }
 

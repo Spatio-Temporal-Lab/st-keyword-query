@@ -48,9 +48,9 @@ public class TestQueryTweetAll {
         AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
         keyGenerator1.setBloomFilter(bloomFilter);
         QueryProcessor[] processors = new QueryProcessor[]{
+//                new QueryProcessor(tableName, keyGenerator1, true),
                 new QueryProcessor(tableName, keyGenerator1, true),
-                new QueryProcessor(tableName, keyGenerator1, true),
-                new QueryProcessor(tableName, keyGenerator1, false),
+//                new QueryProcessor(tableName, keyGenerator1, false),
                 new QueryProcessor(tableName, keyGenerator1, false)
         };
 
@@ -61,7 +61,7 @@ public class TestQueryTweetAll {
 
         ArrayList<String> keywords111 = new ArrayList<>();
 //        keywords111.add("12jkl");
-        boolean f = true;
+        boolean f = false;
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
             System.out.println("query size: " + queries.size());
             for (int i = 0; i < processors.length; ++i) {
@@ -69,8 +69,10 @@ public class TestQueryTweetAll {
 
                 int ii = 0;
                 for (Query query : queries) {
-//                    if (++ii > 20) {
-//                        break;
+//                    System.out.println(++ii);
+//                    if (++ii < 1000) {
+//                        continue;
+////                        break;
 //                    }
 //                    query.setKeywords(keywords111);
 //                    System.out.println("query = " + query);
@@ -88,9 +90,9 @@ public class TestQueryTweetAll {
                 writer.write("method " + i + " time: " + timeMethod + "\n");
                 writer.write("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime() + "\n");
 //                if (i == 1) {
-//                    System.out.println("origin size: " + processors[i].getAllSize());
+                    System.out.println("origin size: " + processors[i].getAllSize());
 //                    System.out.println("filtered size: " + processors[i].getFilteredSize());
-//                    System.out.println("origin count: " + processors[i].getAllCount());
+                    System.out.println("origin count: " + processors[i].getAllCount());
 //                    System.out.println("filtered count: " + processors[i].getFilteredCount());
 //                    System.out.println("bloom time: " + processors[i].getQueryBloomTime());
 //
@@ -112,6 +114,14 @@ public class TestQueryTweetAll {
                 }
             }
         }
+//        for (int i = 0; i < processors.length; ++i) {
+//            for (int j = 0; j < queries.size(); ++j) {
+//                if (j > 1000) {
+//                    System.out.print(len.get(i).get(j) + " ");
+//                }
+//            }
+//            System.out.println();
+//        }
 //        for (int i = 0; i < queries.size(); ++i) {
 //            System.out.println(len1.get(i));
 //        }

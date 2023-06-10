@@ -44,11 +44,7 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.FSDataInputStreamWrapper;
 import org.apache.hadoop.hbase.io.TimeRange;
-import org.apache.hadoop.hbase.io.hfile.BlockType;
-import org.apache.hadoop.hbase.io.hfile.CacheConfig;
-import org.apache.hadoop.hbase.io.hfile.HFile;
-import org.apache.hadoop.hbase.io.hfile.HFileBlock;
-import org.apache.hadoop.hbase.io.hfile.HFileScanner;
+import org.apache.hadoop.hbase.io.hfile.*;
 import org.apache.hadoop.hbase.nio.ByteBuff;
 import org.apache.hadoop.hbase.util.BloomFilter;
 import org.apache.hadoop.hbase.util.BloomFilterFactory;
@@ -89,6 +85,9 @@ public class StoreFileReader {
   // store file. It is decremented when the scan on the store file is
   // done. All StoreFileReader for the same StoreFile will share this counter.
   private final AtomicInteger refCount;
+
+  private static int scanCount;
+  private static int rejectCount;
 
   // indicate that whether this StoreFileReader is shared, i.e., used for pread. If not, we will
   // close the internal reader when readCompleted is called.
@@ -455,17 +454,28 @@ public class StoreFileReader {
       }
     }
 
-//    System.out.println("---------------------------------");
-    for (long i = minSTKey; i <= maxSTKey; ++i) {
-      if (checkGeneralBloomFilterWithKeywords(ByteUtil.getKByte(i, 7), keywordsByteArray, null, bloomFilter)) {
-//        System.out.println("pass for :" + i + " from " + minSTKey + " to " + maxSTKey);
-//        System.out.println("pass HFile bf test");
-        return true;
-      }
+    ++scanCount;
+    boolean f = checkGeneralBloomFilterWithKeywords(minSTKey, maxSTKey, keywordsByteArray, null, bloomFilter);
+//    return checkGeneralBloomFilterWithKeywords(minSTKey, maxSTKey, keywordsByteArray, null, bloomFilter);
+    if (!f) {
+//      System.out.println("do not pass HFile bf test for scan " + minSTKey + " " + maxSTKey);
+      ++rejectCount;
     }
 
+//    System.out.println(scanCount + " " + rejectCount);
+    return f;
+
+//    System.out.println("---------------------------------");
+//    for (long i = minSTKey; i <= maxSTKey; ++i) {
+//      if (checkGeneralBloomFilterWithKeywords(ByteUtil.getKByte(i, 7), keywordsByteArray, null, bloomFilter)) {
+////        System.out.println("pass for :" + i + " from " + minSTKey + " to " + maxSTKey);
+////        System.out.println("pass HFile bf test");
+//        return true;
+//      }
+//    }
+
 //    System.out.println("do not pass HFile bf test for scan " + minSTKey + " " + maxSTKey);
-    return false;
+//    return false;
   }
 
   private boolean checkGeneralBloomFilter(byte[] key, Cell kvKey, BloomFilter bloomFilter) {
@@ -540,7 +550,7 @@ public class StoreFileReader {
     return true;
   }
 
-  private boolean checkGeneralBloomFilterWithKeywords(byte[] key, byte[][] keywordsByte, Cell kvKey, BloomFilter bloomFilter) {
+  private boolean checkGeneralBloomFilterWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, Cell kvKey, BloomFilter bloomFilter) {
     // Empty file
     if (reader.getTrailer().getEntryCount() == 0) {
       return false;
@@ -565,6 +575,7 @@ public class StoreFileReader {
       if (shouldCheckBloom) {
         boolean exists = false;
 
+        byte[] lastStKey = ByteUtil.getKByte(stEnd, 7);
         // Whether the primary Bloom key is greater than the last Bloom key
         // from the file info. For row-column Bloom filters this is not yet
         // a sufficient condition to return false.
@@ -572,13 +583,15 @@ public class StoreFileReader {
 //        // hbase:meta does not have blooms. So we need not have special interpretation
 //        // of the hbase:meta cells.  We can safely use Bytes.BYTES_RAWCOMPARATOR for ROW Bloom
         if (keyIsAfterLast) {
-          keyIsAfterLast = (Bytes.BYTES_RAWCOMPARATOR.compare(key, Bytes.copy(lastBloomKey, 0, prefixLength)) > 0);
+          keyIsAfterLast = (Bytes.BYTES_RAWCOMPARATOR.compare(lastStKey, Bytes.copy(lastBloomKey, 0, prefixLength)) > 0);
+        }
+
+        if (keyIsAfterLast) {
+          return false;
         }
 //        System.out.println(Arrays.toString(lastBloomKey));
 //        System.out.println("key is after last " + keyIsAfterLast);
-        exists =
-                !keyIsAfterLast &&
-                bloomFilter.containsWithKeywords(key, keywordsByte, 0, key.length, bloom);
+        exists = bloomFilter.containsWithKeywords(stStart, stEnd, keywordsByte, 0, prefixLength, bloom);
         return exists;
       }
     } catch (IOException e) {
