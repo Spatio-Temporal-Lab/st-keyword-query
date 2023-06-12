@@ -25,17 +25,15 @@ public class QueryGenerator {
     }
 
     private static ArrayList<String> getRandomKeywords(ArrayList<String> keywords) {
-        int n = keywords.size();
+        ArrayList<String> keywords1 = new ArrayList<>(keywords);
+        Collections.shuffle(keywords1);
+        int n = keywords1.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
         if (m == n) {
-            return keywords;
+            return keywords1;
         }
         System.out.println(m + " " + n);
-        Set<String> set = new HashSet<>();
-        while (set.size() < m) {
-            set.add(keywords.get(random.nextInt(n)));
-        }
-        return new ArrayList<>(set);
+        return new ArrayList<>(keywords1.subList(0, m));
     }
 
     public static ArrayList<Query> getQueries() {
@@ -83,15 +81,15 @@ public class QueryGenerator {
                 }
                 double lat = object.getLat();
                 double lon = object.getLon();
-                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 2000);
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
                 writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
                 writer.write(",");
                 writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
                 writer.write(",");
                 Date date = object.getDate();
-                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -480)));
                 writer.write(",");
-                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 480)));
                 ArrayList<String> keywords;
 //                keywords = getRandomKeywords(object.getKeywords());
                 if (writeCount <= 1000) {

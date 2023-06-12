@@ -76,6 +76,18 @@ public class StoreFileScanner implements KeyValueScanner {
   // Higher values means scanner has newer data.
   private final long scannerOrder;
 
+  private final byte[] startSTKey = new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  private static final byte[] INIT_START_ST_KEY = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  public byte[] getStartSTKey() {
+    return startSTKey;
+  }
+
+  public static byte[] getInitStartStKey() {
+    return INIT_START_ST_KEY;
+  }
+
   /**
    * Implements a {@link KeyValueScanner} on top of the specified {@link HFileScanner}
    * @param useMVCC If true, scanner will filter out updates with MVCC larger than {@code readPt}.
@@ -501,7 +513,7 @@ public class StoreFileScanner implements KeyValueScanner {
       timeRange = scan.getTimeRange();
     }
     return reader.passesTimerangeFilter(timeRange, oldestUnexpiredTS) && reader
-            .passesKeyRangeFilter(scan) && reader.passesBloomFilter(scan, scan.getFamilyMap().get(cf));
+            .passesKeyRangeFilter(scan) && reader.passesBloomFilter(scan, scan.getFamilyMap().get(cf), startSTKey);
   }
 
   public static long getAllTime() {

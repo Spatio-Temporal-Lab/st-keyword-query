@@ -27,7 +27,6 @@ import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * A Bloom filter implementation built on top of 
@@ -52,11 +51,11 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   private long[] numQueriesPerChunk;
   private long[] numPositivesPerChunk;
 
-  private static long timeForBf = 0;
+//  private static long timeForBf = 0;
 
-  public static long getTimeForBf() {
-    return timeForBf;
-  }
+//  public static long getTimeForBf() {
+//    return timeForBf;
+//  }
 
   /**
    * De-serialization for compound Bloom filter metadata. Must be consistent
@@ -120,7 +119,7 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
   }
 
   @Override
-  public boolean containsWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom) {
+  public boolean containsWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, int keyOffset, int keyLength, ByteBuff bloom, byte[] startSTKey) {
     int lastBloomId = -1;
     ByteBuff bloomBuf = null;
     HFileBlock bloomBlock = null;
@@ -161,7 +160,11 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
               if (returnCache) {
                 reader.returnBlock(bloomBlock);
               }
-              timeForBf += System.currentTimeMillis() - startTime;
+//              timeForBf += System.currentTimeMillis() - startTime;
+              if (keyLength >= 0) System.arraycopy(key, 0, startSTKey, 0, keyLength);
+              for (int i = 0; i < 8; ++i) {
+                startSTKey[keyLength + i] = 0;
+              }
               return true;
             }
           }
@@ -174,7 +177,6 @@ public class CompoundBloomFilter extends CompoundBloomFilterBase
       }
 //      return false;
     }
-    timeForBf += System.currentTimeMillis() - startTime;
     return false;
   }
 

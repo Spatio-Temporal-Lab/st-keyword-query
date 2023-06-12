@@ -24,14 +24,12 @@ import static org.apache.hadoop.hbase.regionserver.HStoreFile.LAST_BLOOM_KEY;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -52,7 +50,6 @@ import org.apache.hadoop.hbase.util.ByteUtil;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.yetus.audience.InterfaceStability;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hbase.thirdparty.com.google.common.annotations.VisibleForTesting;
@@ -253,15 +250,16 @@ public class StoreFileReader {
    * the lower-level API {@link #passesGeneralRowBloomFilter(byte[], int, int)}
    * and {@link #passesGeneralRowColBloomFilter(Cell)}.
    *
-   * @param scan the scan specification. Used to determine the row, and to
-   *          check whether this is a single-row ("get") scan.
-   * @param columns the set of columns. Only used for row-column Bloom
-   *          filters.
+   * @param scan       the scan specification. Used to determine the row, and to
+   *                   check whether this is a single-row ("get") scan.
+   * @param columns    the set of columns. Only used for row-column Bloom
+   *                   filters.
+   * @param startSTKey
    * @return true if the scan with the given column set passes the Bloom
-   *         filter, or if the Bloom filter is not applicable for the scan.
-   *         False if the Bloom filter is applicable and the scan fails it.
+   * filter, or if the Bloom filter is not applicable for the scan.
+   * False if the Bloom filter is applicable and the scan fails it.
    */
-  boolean passesBloomFilter(Scan scan, final SortedSet<byte[]> columns) {
+  boolean passesBloomFilter(Scan scan, final SortedSet<byte[]> columns, byte[] startSTKey) {
     byte[] row = scan.getStartRow();
     switch (this.bloomFilterType) {
       case ROW:
@@ -287,7 +285,7 @@ public class StoreFileReader {
       case ROWPREFIX_FIXED_LENGTH:
         return passesGeneralRowPrefixBloomFilter(scan);
       case ROWPREFIX_WITH_KEYWORDS:
-        return passesGeneralRowPrefixWithKeywordsBloomFilter(scan);
+        return passesGeneralRowPrefixWithKeywordsBloomFilter(scan, startSTKey);
       default:
         return true;
     }
@@ -399,8 +397,9 @@ public class StoreFileReader {
     return checkGeneralBloomFilter(rowPrefix, null, bloomFilter);
   }
 
-  private boolean passesGeneralRowPrefixWithKeywordsBloomFilter(Scan scan) {
+  private boolean passesGeneralRowPrefixWithKeywordsBloomFilter(Scan scan, byte[] startSTKey) {
     BloomFilter bloomFilter = this.generalBloomFilter;
+
     if (bloomFilter == null) {
       return true;
     }
@@ -455,7 +454,7 @@ public class StoreFileReader {
     }
 
     ++scanCount;
-    boolean f = checkGeneralBloomFilterWithKeywords(minSTKey, maxSTKey, keywordsByteArray, null, bloomFilter);
+    boolean f = checkGeneralBloomFilterWithKeywords(minSTKey, maxSTKey, keywordsByteArray, null, bloomFilter, startSTKey);
 //    return checkGeneralBloomFilterWithKeywords(minSTKey, maxSTKey, keywordsByteArray, null, bloomFilter);
     if (!f) {
 //      System.out.println("do not pass HFile bf test for scan " + minSTKey + " " + maxSTKey);
@@ -550,7 +549,7 @@ public class StoreFileReader {
     return true;
   }
 
-  private boolean checkGeneralBloomFilterWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, Cell kvKey, BloomFilter bloomFilter) {
+  private boolean checkGeneralBloomFilterWithKeywords(long stStart, long stEnd, byte[][] keywordsByte, Cell kvKey, BloomFilter bloomFilter, byte[] startSTKey) {
     // Empty file
     if (reader.getTrailer().getEntryCount() == 0) {
       return false;
@@ -591,7 +590,7 @@ public class StoreFileReader {
         }
 //        System.out.println(Arrays.toString(lastBloomKey));
 //        System.out.println("key is after last " + keyIsAfterLast);
-        exists = bloomFilter.containsWithKeywords(stStart, stEnd, keywordsByte, 0, prefixLength, bloom);
+        exists = bloomFilter.containsWithKeywords(stStart, stEnd, keywordsByte, 0, prefixLength, bloom, startSTKey);
         return exists;
       }
     } catch (IOException e) {

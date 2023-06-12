@@ -20,10 +20,7 @@ package org.apache.hadoop.hbase.regionserver;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NavigableSet;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -247,8 +244,7 @@ public class StoreScanner extends NonReversedNonLazyKeyValueScanner
       // key does not exist, then to the start of the next matching Row).
       // Always check bloom filter to optimize the top row seek for delete
       // family marker.
-      seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery && lazySeekEnabledGlobally,
-        parallelSeekEnabled);
+      seekScanners(scanners, matcher.getStartKey(), explicitColumnQuery && lazySeekEnabledGlobally, parallelSeekEnabled);
 
       // set storeLimit
       this.storeLimit = scan.getMaxResultsPerColumnFamily();
@@ -382,7 +378,16 @@ public class StoreScanner extends NonReversedNonLazyKeyValueScanner
     // family marker.
     if (isLazy) {
       for (KeyValueScanner scanner : scanners) {
-        scanner.requestSeek(seekKey, false, true);
+        if (scanner.isFileScanner()){
+          byte[] startSTKey = ((StoreFileScanner) scanner).getStartSTKey();
+          if (!Arrays.equals(startSTKey, StoreFileScanner.getInitStartStKey())) {
+            scanner.requestSeek(PrivateCellUtil.createFirstOnRow(startSTKey), false, true);
+          } else {
+            scanner.requestSeek(seekKey, false, true);
+          }
+        } else {
+          scanner.requestSeek(seekKey, false, true);
+        }
       }
     } else {
       if (!isParallelSeek) {
@@ -392,13 +397,28 @@ public class StoreScanner extends NonReversedNonLazyKeyValueScanner
             throw new RowTooBigException("Max row size allowed: " + maxRowSize
               + ", but row is bigger than that");
           }
-          scanner.seek(seekKey);
+          if (scanner.isFileScanner()) {
+            byte[] startSTKey = ((StoreFileScanner) scanner).getStartSTKey();
+            if (!Arrays.equals(startSTKey, StoreFileScanner.getInitStartStKey())) {
+//              System.out.println(CellUtil.toString(seekKey, true));
+//              System.out.println(CellUtil.toString((PrivateCellUtil.createFirstOnRow(startSTKey)), true));
+               System.out.println("seekKey: " + Arrays.toString(CellUtil.copyRow(seekKey)));
+               System.out.println("modified seekKey: " + Arrays.toString(CellUtil.copyRow(PrivateCellUtil.createFirstOnRow(startSTKey))));
+//              scanner.seek(PrivateCellUtil.createFirstOnRow(startSTKey));
+              scanner.seek(seekKey);
+            } else {
+              scanner.seek(seekKey);
+            }
+          } else {
+            scanner.seek(seekKey);
+          }
           Cell c = scanner.peek();
           if (c != null) {
             totalScannersSoughtBytes += PrivateCellUtil.estimatedSerializedSizeOf(c);
           }
         }
       } else {
+//        System.out.println("parallel seek");
         parallelSeek(scanners, seekKey);
       }
     }

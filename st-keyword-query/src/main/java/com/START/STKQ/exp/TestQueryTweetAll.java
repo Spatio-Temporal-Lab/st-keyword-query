@@ -49,9 +49,9 @@ public class TestQueryTweetAll {
         keyGenerator1.setBloomFilter(bloomFilter);
         QueryProcessor[] processors = new QueryProcessor[]{
 //                new QueryProcessor(tableName, keyGenerator1, true),
-                new QueryProcessor(tableName, keyGenerator1, true),
+//                new QueryProcessor(tableName, keyGenerator1, true),
 //                new QueryProcessor(tableName, keyGenerator1, false),
-                new QueryProcessor(tableName, keyGenerator1, false)
+                new QueryProcessor(tableName, keyGenerator1, true)
         };
 
         ArrayList<ArrayList<Integer>> len = new ArrayList<>(processors.length);
@@ -61,22 +61,14 @@ public class TestQueryTweetAll {
 
         ArrayList<String> keywords111 = new ArrayList<>();
 //        keywords111.add("12jkl");
-        boolean f = false;
+        boolean f = true;
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
             System.out.println("query size: " + queries.size());
             for (int i = 0; i < processors.length; ++i) {
                 long timeMethod = 0;
 
-                int ii = 0;
                 for (Query query : queries) {
 //                    System.out.println(++ii);
-//                    if (++ii < 1000) {
-//                        continue;
-////                        break;
-//                    }
-//                    query.setKeywords(keywords111);
-//                    System.out.println("query = " + query);
-
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
                     ArrayList<STObject> result = processors[i].getResult(query, f);
@@ -89,19 +81,8 @@ public class TestQueryTweetAll {
                 System.out.println("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime());
                 writer.write("method " + i + " time: " + timeMethod + "\n");
                 writer.write("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime() + "\n");
-//                if (i == 1) {
-                    System.out.println("origin size: " + processors[i].getAllSize());
-//                    System.out.println("filtered size: " + processors[i].getFilteredSize());
-                    System.out.println("origin count: " + processors[i].getAllCount());
-//                    System.out.println("filtered count: " + processors[i].getFilteredCount());
-//                    System.out.println("bloom time: " + processors[i].getQueryBloomTime());
-//
-//                    writer.write("origin size: " + processors[i].getAllSize() + "\n");
-//                    writer.write("filtered size: " + processors[i].getFilteredSize() + "\n");
-//                    writer.write("origin count: " + processors[i].getAllCount() + "\n");
-//                    writer.write("filtered count: " + processors[i].getFilteredCount() + "\n");
-//                    writer.write("bloom time: " + processors[i].getQueryBloomTime() + "\n");
-//                }
+                System.out.println("origin size: " + processors[i].getAllSize());
+                System.out.println("origin count: " + processors[i].getAllCount());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
