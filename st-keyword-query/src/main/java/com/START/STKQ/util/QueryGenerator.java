@@ -91,7 +91,7 @@ public class QueryGenerator {
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, 480)));
                 ArrayList<String> keywords;
-//                keywords = getRandomKeywords(object.getKeywords());
+                keywords = getRandomKeywords(object.getKeywords());
                 if (writeCount <= 1000) {
                     keywords = getRandomKeywords();
                 } else {
@@ -109,8 +109,8 @@ public class QueryGenerator {
 
     public static void main(String[] args) throws IOException, ParseException {
         DataReader dataReader = new DataReader();
-        dataReader.setRate(0.01);
-        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetAll.csv"));
+//        dataReader.setRate(1);
+        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
         generateQueries(objects);
     }
 }

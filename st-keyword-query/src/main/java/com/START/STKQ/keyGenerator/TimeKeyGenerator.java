@@ -6,11 +6,21 @@ import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 
 import java.io.Serializable;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
     private final int BYTE_COUNT = 3;
+    private final int hourPerBin;
+
+    public TimeKeyGenerator() {
+        hourPerBin = 1;
+    }
+
+    public TimeKeyGenerator(int hourPerBin) {
+        this.hourPerBin = hourPerBin;
+    }
 
     public int getByteCount() {
         return BYTE_COUNT;
@@ -32,8 +42,8 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
 
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
         ranges.add(new Range<>(
-                ByteUtil.getKByte(ds, BYTE_COUNT),
-                ByteUtil.getKByte(dt, BYTE_COUNT)
+                ByteUtil.getKByte(ds / hourPerBin, BYTE_COUNT),
+                ByteUtil.getKByte(dt / hourPerBin, BYTE_COUNT)
         ));
 
         return ranges;

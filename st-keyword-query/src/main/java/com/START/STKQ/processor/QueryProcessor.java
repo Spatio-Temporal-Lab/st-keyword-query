@@ -29,7 +29,7 @@ public class QueryProcessor {
     long filteredCount = 0;
 
     public long getQueryBloomTime() {
-        return queryBloomTime / 1000000;
+        return queryBloomTime;
     }
 
     public long getAllSize() {
@@ -87,11 +87,15 @@ public class QueryProcessor {
         List<Map<String, String>> scanResults;
 
         ArrayList<Range<byte[]>> ranges;
+
+        long begin = System.currentTimeMillis();
         if (filter) {
             ranges = generator.toFilteredKeyRanges(query);
         } else {
             ranges = generator.toKeyRanges(query);
         }
+        long end = System.currentTimeMillis();
+        queryBloomTime += end - begin;
 
 //        int n = ranges.size();
 //        System.out.print(n);
@@ -99,7 +103,7 @@ public class QueryProcessor {
 //            System.out.print(" " + getRangeSize(ranges.get(i)));
 //        }
 //        System.out.println();
-
+//
 //        System.out.println("--------------------------------------------" + filter);
 //        for (Range<byte[]> range : ranges) {
 //            System.out.println(Arrays.toString(range.getLow()) + " " + Arrays.toString(range.getHigh()));
@@ -112,9 +116,9 @@ public class QueryProcessor {
         allSize += ranges.size();
         allCount += getRangesSize(ranges);
 
-        long begin = System.currentTimeMillis();
-        scanResults = HBaseQueryProcessor.scan(tableName, ranges, queryType, queryKeywords, useBfInHBase);
-        long end = System.currentTimeMillis();
+        begin = System.currentTimeMillis();
+        scanResults = HBaseQueryProcessor.scan(tableName, ranges, query, useBfInHBase);
+        end = System.currentTimeMillis();
         queryHBaseTime += end - begin;
 
 //        System.out.println("****************************");
@@ -130,6 +134,7 @@ public class QueryProcessor {
             if (!loc.in(query.getMBR())) {
                 continue;
             }
+
             Date date = DateUtil.getDate(map.get("time"));
             if (date.before(query.getS()) || date.after(query.getT())) {
                 continue;

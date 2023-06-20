@@ -18,7 +18,15 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
     private final int MAX_RANGE_COUNT = 4;
     NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(BIT_COUNT);
     NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(BIT_COUNT);
-    private final SmallHilbertCurve curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);
+    private SmallHilbertCurve curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);
+
+    public HilbertSpatialKeyGenerator() {
+        curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);
+    }
+
+    public HilbertSpatialKeyGenerator(int precision) {
+        curve = HilbertCurve.small().bits(precision).dimensions(2);
+    }
 
     public int getByteCount() {
         return BYTE_COUNT;

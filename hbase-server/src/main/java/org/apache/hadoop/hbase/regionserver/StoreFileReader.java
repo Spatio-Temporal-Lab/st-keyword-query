@@ -285,6 +285,7 @@ public class StoreFileReader {
       case ROWPREFIX_FIXED_LENGTH:
         return passesGeneralRowPrefixBloomFilter(scan);
       case ROWPREFIX_WITH_KEYWORDS:
+//        return false;
         return passesGeneralRowPrefixWithKeywordsBloomFilter(scan, startSTKey);
       default:
         return true;

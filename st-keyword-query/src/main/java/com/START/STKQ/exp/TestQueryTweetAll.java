@@ -6,7 +6,6 @@ import com.START.STKQ.keyGenerator.SpatialFirstSTKeyGenerator;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.processor.QueryProcessor;
-import com.START.STKQ.util.DateUtil;
 import com.START.STKQ.util.QueryGenerator;
 import com.google.common.hash.BloomFilter;
 
@@ -19,15 +18,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
 
 public class TestQueryTweetAll {
     public static void main(String[] args) throws ParseException, InterruptedException, IOException, ClassNotFoundException {
 
-        String tableName = "testTweet";
-        String bloomPath = "/usr/data/bloom/tweetBloom.txt";
-        String outPathName = "/usr/data/log/queryBloomLog.txt";
+        String tableName = "testTweetSample";
+//        String bloomPath = "/usr/data/bloom/tweetBloom.txt";
+//        String outPathName = "/usr/data/log/queryBloomLog.txt";
+        String bloomPath = "/usr/data/bloom/multiBloom/";
+        String outPathName = "/usr/data/log/querySampleBloomLog.txt";
 
         ArrayList<Query> queries = QueryGenerator.getQueries();
 //        ArrayList<Query> queries = new ArrayList<>();
@@ -38,20 +37,24 @@ public class TestQueryTweetAll {
 //                "boy"
 //        ));
 
-        FileInputStream fi = new FileInputStream(bloomPath);
-        ObjectInputStream oi = new ObjectInputStream(fi);
-        BloomFilter<byte[]> bloomFilter = (BloomFilter<byte[]>) oi.readObject();
+        ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
+        for (int i = 0; i < 3; ++i) {
+            FileInputStream fi = new FileInputStream(bloomPath + i + ".txt");
+            ObjectInputStream oi = new ObjectInputStream(fi);
+            bloomFilters.add((BloomFilter<byte[]>) oi.readObject());
+//            BloomFilter<byte[]> bloomFilter = (BloomFilter<byte[]>) oi.readObject();
+        }
 
 
-        boolean[] flags = new boolean[]{false, false};
-
-        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
-        keyGenerator1.setBloomFilter(bloomFilter);
+        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
+//        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
+        keyGenerator1.setBloomFilter(bloomFilters.get(0));
+//        keyGenerator2.setBloomFilter(bloomFilters.get(0));
         QueryProcessor[] processors = new QueryProcessor[]{
-//                new QueryProcessor(tableName, keyGenerator1, true),
-//                new QueryProcessor(tableName, keyGenerator1, true),
-//                new QueryProcessor(tableName, keyGenerator1, false),
-                new QueryProcessor(tableName, keyGenerator1, true)
+                new QueryProcessor(tableName, keyGenerator1, false),
+                new QueryProcessor(tableName, keyGenerator1, false),
+                new QueryProcessor(tableName, keyGenerator1, true),
+                new QueryProcessor(tableName, keyGenerator1, true),
         };
 
         ArrayList<ArrayList<Integer>> len = new ArrayList<>(processors.length);
@@ -61,14 +64,18 @@ public class TestQueryTweetAll {
 
         ArrayList<String> keywords111 = new ArrayList<>();
 //        keywords111.add("12jkl");
-        boolean f = true;
+        boolean f = false;
+//        boolean f = true;
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
             System.out.println("query size: " + queries.size());
             for (int i = 0; i < processors.length; ++i) {
                 long timeMethod = 0;
 
+//                int ii = 0;
                 for (Query query : queries) {
-//                    System.out.println(++ii);
+//                    if (++ii != 1999) {
+//                        continue;
+//                    }
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
                     ArrayList<STObject> result = processors[i].getResult(query, f);
@@ -79,8 +86,10 @@ public class TestQueryTweetAll {
                 f = !f;
                 System.out.println("method " + i + " time: " + timeMethod);
                 System.out.println("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime());
+                System.out.println("method " + i + " query bloom time: " + processors[i].getQueryBloomTime());
                 writer.write("method " + i + " time: " + timeMethod + "\n");
                 writer.write("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime() + "\n");
+                writer.write("method " + i + " query bloom time: " + processors[i].getQueryBloomTime() + "\n");
                 System.out.println("origin size: " + processors[i].getAllSize());
                 System.out.println("origin count: " + processors[i].getAllCount());
             }
@@ -95,14 +104,14 @@ public class TestQueryTweetAll {
                 }
             }
         }
-//        for (int i = 0; i < processors.length; ++i) {
-//            for (int j = 0; j < queries.size(); ++j) {
-//                if (j > 1000) {
-//                    System.out.print(len.get(i).get(j) + " ");
-//                }
-//            }
-//            System.out.println();
-//        }
+        for (int i = 0; i < processors.length; ++i) {
+            for (int j = 0; j < Math.min(len.get(i).size(), queries.size()); ++j) {
+                if (j > 1000) {
+                    System.out.print(len.get(i).get(j) + " ");
+                }
+            }
+            System.out.println();
+        }
 //        for (int i = 0; i < queries.size(); ++i) {
 //            System.out.println(len1.get(i));
 //        }

@@ -60,47 +60,20 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return new ArrayList<>();
     }
 
-    public ArrayList<byte[]> toKeys(Query query) { return new ArrayList<>(); }
+    public ArrayList<byte[]> toKeys(Query query, ArrayList<Range<byte[]>> sRange, ArrayList<Range<byte[]>> tRange) {return new ArrayList<>(); }
 
     public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) {
-        long sKey = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 4;
-        int tKey = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 2;
-        byte[] newKey = ByteUtil.concat(ByteUtil.getKByte(sKey, 4), ByteUtil.getKByte(tKey, 3));
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
-                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
+                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
                         return true;
                     }
                 }
                 return false;
             case CONTAIN_ALL:
                 for (byte[] keyPre : keyPres) {
-                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
-                        return false;
-                    }
-                }
-                return true;
-        }
-        return true;
-    }
-
-    public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType, BloomFilter<byte[]> bloomFilter) {
-        long sKey = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 4;
-        int tKey = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 2;
-        byte[] newKey = ByteUtil.concat(ByteUtil.getKByte(sKey, 4), ByteUtil.getKByte(tKey, 3));
-        switch (queryType) {
-            case CONTAIN_ONE:
-                for (byte[] keyPre : keyPres) {
-//                    System.out.println("yyy" + Arrays.toString(ByteUtil.concat(keyPre, key)));
-                    if (bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
-                        return true;
-                    }
-                }
-                return false;
-            case CONTAIN_ALL:
-                for (byte[] keyPre : keyPres) {
-                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, newKey))) {
+                    if (!bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
                         return false;
                     }
                 }
@@ -117,7 +90,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
         for (int i = 0; i < n; ) {
             int j = i + 1;
-            while (j < n && keysLong.get(j) == keysLong.get(j - 1) + 1)
+            while (j < n && keysLong.get(j) <= keysLong.get(j - 1) + 1)
                 ++j;
             ranges.add(new Range<>(
                     ByteUtil.getKByte(keysLong.get(i), SPATIAL_BYTE_COUNT + TIME_BYTE_COUNT),
@@ -129,44 +102,21 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return ranges;
     }
 
-    public ArrayList<byte[]> toFilteredKeys(Query query) {
-        ArrayList<byte[]> keysBefore = toKeys(query);
-
-        QueryType queryType = query.getQueryType();
-
-        ArrayList<byte[]> wordKeys = new ArrayList<>();
-        for (String s : query.getKeywords()) {
-            wordKeys.add(Bytes.toBytes(s.hashCode()));
-        }
-
-        Stream<byte[]> filteredKeys = keysBefore.stream().parallel().filter(
-                key -> checkInBF(key, wordKeys, queryType)
-        );
-        return filteredKeys.collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    public ArrayList<byte[]> toFilteredKeys(Query query, BloomFilter<byte[]> bloomFilter) {
-        ArrayList<byte[]> keysBefore = toKeys(query);
-
-        QueryType queryType = query.getQueryType();
-
-        ArrayList<byte[]> wordKeys = new ArrayList<>();
-        for (String s : query.getKeywords()) {
-            wordKeys.add(Bytes.toBytes(s.hashCode()));
-        }
-
-        Stream<byte[]> filteredKeys = keysBefore.stream().parallel().filter(
-                key -> checkInBF(key, wordKeys, queryType, bloomFilter)
-        );
-
-        return filteredKeys.collect(Collectors.toCollection(ArrayList::new));
-    }
-
     public ArrayList<Range<byte[]>> toFilteredKeyRanges(Query query) {
         if (bloomFilter == null) {
             return new ArrayList<>();
         }
-        ArrayList<byte[]> keysBefore = toKeys(query);
+
+        ArrayList<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
+        ArrayList<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
+
+        List<Range<Long>> sRangesLong = sRanges.stream().map(
+                key -> new Range<>(ByteUtil.toLong(key.getLow()), ByteUtil.toLong(key.getHigh()))).collect(Collectors.toList());
+        Range<Integer> tRangesInt = new Range<>(
+                ByteUtil.toInt(tRanges.get(0).getLow()), ByteUtil.toInt(tRanges.get(0).getHigh())
+        );
+
+        ArrayList<byte[]> keysBefore = toKeys(query, sRanges, tRanges);
 
         QueryType queryType = query.getQueryType();
 
@@ -178,6 +128,39 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         Stream<byte[]> filteredKeys = keysBefore.stream().parallel().filter(
                 key -> checkInBF(key, wordKeys, queryType)
         );
+
+        filteredKeys = filteredKeys.parallel().map(
+                key -> {
+                    ArrayList<byte[]> keys = new ArrayList<>();
+                    long sCode = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4));
+                    int tCode = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7));
+                    ArrayList<byte[]> sKeys = new ArrayList<>();
+                    ArrayList<byte[]> tKeys = new ArrayList<>();
+
+                    for (long i = sCode << 4; i <= (sCode << 4 | 15); ++i) {
+                        for (Range<Long> sRange : sRangesLong) {
+                            if (i >= sRange.getLow() && i <= sRange.getHigh()) {
+                                sKeys.add(ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT));
+                                break;
+                            }
+                        }
+                    }
+
+                    for (int i = tCode << 2; i <= (tCode << 2 | 3); ++i) {
+                        if (i >= tRangesInt.getLow() && i <= tRangesInt.getHigh()) {
+                            tKeys.add(ByteUtil.getKByte(i, TIME_BYTE_COUNT));
+                        }
+                    }
+
+                    for (byte[] sKey : sKeys) {
+                        for (byte[] tKey : tKeys) {
+                            keys.add(ByteUtil.concat(sKey, tKey));
+                        }
+                    }
+                    return keys;
+                }
+        ).flatMap(ArrayList::stream);
+
         return keysToRanges(filteredKeys);
     }
 }

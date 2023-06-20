@@ -12,8 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SpatialKeyGenerator implements IKeyGenerator<Location> {
-    private final static Z2SFC z2 = new Z2SFC(14);
+    private Z2SFC z2 = new Z2SFC(14);
     private final int BYTE_COUNT = 4;
+
+    public SpatialKeyGenerator() {
+        z2 = new Z2SFC(14);
+    }
+
+    public SpatialKeyGenerator(int precision) {
+        z2 = new Z2SFC(precision);
+    }
 
     public int getByteCount() {
         return BYTE_COUNT;

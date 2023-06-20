@@ -402,10 +402,10 @@ public class StoreScanner extends NonReversedNonLazyKeyValueScanner
             if (!Arrays.equals(startSTKey, StoreFileScanner.getInitStartStKey())) {
 //              System.out.println(CellUtil.toString(seekKey, true));
 //              System.out.println(CellUtil.toString((PrivateCellUtil.createFirstOnRow(startSTKey)), true));
-               System.out.println("seekKey: " + Arrays.toString(CellUtil.copyRow(seekKey)));
-               System.out.println("modified seekKey: " + Arrays.toString(CellUtil.copyRow(PrivateCellUtil.createFirstOnRow(startSTKey))));
-//              scanner.seek(PrivateCellUtil.createFirstOnRow(startSTKey));
-              scanner.seek(seekKey);
+//               System.out.println("seekKey: " + Arrays.toString(CellUtil.copyRow(seekKey)));
+//               System.out.println("modified seekKey: " + Arrays.toString(CellUtil.copyRow(PrivateCellUtil.createFirstOnRow(startSTKey))));
+              scanner.seek(PrivateCellUtil.createFirstOnRow(startSTKey));
+//              scanner.seek(seekKey);
             } else {
               scanner.seek(seekKey);
             }
