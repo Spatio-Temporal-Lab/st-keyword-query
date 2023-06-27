@@ -75,8 +75,6 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
             ArrayList<byte[]> tCodes = new ArrayList<>();
 
             for (Range<byte[]> spatialRange : sRanges) {
-//                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> 4;
-//                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> 4;
                 long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> 4;
                 long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> 4;
 
@@ -104,12 +102,12 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
         } else {
             for (Range<byte[]> spatialRange : sRanges) {
-                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow());
-                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh());
+                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> 4;
+                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> 4;
                 for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
                     byte[] now = ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT);
-                    int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow());
-                    int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh());
+                    int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> 2;
+                    int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> 2;
                     for (int j = timeRangeStart; j <= timeRangeEnd; ++j) {
                         keys.add(ByteUtil.concat(now, ByteUtil.getKByte(j, TIME_BYTE_COUNT)));
                     }

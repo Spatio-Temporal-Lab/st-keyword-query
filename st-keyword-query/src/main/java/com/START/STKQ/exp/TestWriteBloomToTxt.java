@@ -22,10 +22,10 @@ public class TestWriteBloomToTxt {
 
     public static void main1() throws ParseException, IOException {
         DataReader dataReader = new DataReader();
-        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilter1("/usr/data/tweetSample.csv", 50000, 0.001);
+        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilters("/usr/data/tweetAll.csv", 50_000_000, 0.001);
         int n = bloomFilters.size();
         for (int i = 0; i < n; ++i) {
-            String outputPath = "/usr/data/bloom/multiBloom/" + i + ".txt";
+            String outputPath = "/usr/data/bloom/multiBloom/all/" + i + ".txt";
             FileOutputStream f = new FileOutputStream(outputPath);
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(bloomFilters.get(i));

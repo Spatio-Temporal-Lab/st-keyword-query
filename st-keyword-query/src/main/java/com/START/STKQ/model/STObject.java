@@ -4,7 +4,7 @@ import com.START.STKQ.util.DateUtil;
 
 import java.util.*;
 
-public class STObject {
+public class STObject implements Comparable<STObject> {
     private final Location place;
     private final Date date;
     private final ArrayList<String> keywords;
@@ -83,6 +83,11 @@ public class STObject {
             }
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(STObject stObject) {
+        return Long.compare(ID, stObject.getID());
     }
 }
 

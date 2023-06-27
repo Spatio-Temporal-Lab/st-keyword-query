@@ -9,16 +9,18 @@ import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 //TODO: set spatial key generator type
 public class QueryProcessor {
     private final String tableName;
     private final AbstractSTKeyGenerator generator;
-    private boolean filter;
+    private final boolean filterInMemory;
+    private final boolean filterInDb;
+    private final boolean parallel;
 
     long queryHBaseTime = 0;
     long queryBloomTime = 0;
@@ -72,24 +74,27 @@ public class QueryProcessor {
         return sum;
     }
 
-    public QueryProcessor(String tableName, AbstractSTKeyGenerator rangeGenerator, boolean filter) {
+    public QueryProcessor(String tableName, AbstractSTKeyGenerator rangeGenerator, boolean filterInMemory,
+                          boolean filterInDb, boolean parallel) {
         this.tableName = tableName;
         this.generator = rangeGenerator;
-        this.filter = filter;
+        this.filterInMemory = filterInMemory;
+        this.filterInDb = filterInDb;
+        this.parallel = parallel;
     }
 
     public long getQueryHBaseTime() {
         return queryHBaseTime;
     }
 
-    public ArrayList<STObject> getResult(Query query, boolean useBfInHBase) throws InterruptedException, ParseException {
+    public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException {
 
         List<Map<String, String>> scanResults;
 
         ArrayList<Range<byte[]>> ranges;
 
         long begin = System.currentTimeMillis();
-        if (filter) {
+        if (filterInMemory) {
             ranges = generator.toFilteredKeyRanges(query);
         } else {
             ranges = generator.toKeyRanges(query);
@@ -97,74 +102,20 @@ public class QueryProcessor {
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;
 
-//        int n = ranges.size();
-//        System.out.print(n);
-//        for (int i = 0; i < n; ++i) {
-//            System.out.print(" " + getRangeSize(ranges.get(i)));
-//        }
-//        System.out.println();
-//
-//        System.out.println("--------------------------------------------" + filter);
-//        for (Range<byte[]> range : ranges) {
-//            System.out.println(Arrays.toString(range.getLow()) + " " + Arrays.toString(range.getHigh()));
-//        }
-//        System.out.println("--------------------------------------------");
-
-        QueryType queryType = query.getQueryType();
-        ArrayList<String> queryKeywords = query.getKeywords();
-
         allSize += ranges.size();
         allCount += getRangesSize(ranges);
 
         begin = System.currentTimeMillis();
-        scanResults = HBaseQueryProcessor.scan(tableName, ranges, query, useBfInHBase);
+        scanResults = HBaseQueryProcessor.scan(tableName, ranges, query, filterInDb, parallel);
         end = System.currentTimeMillis();
         queryHBaseTime += end - begin;
 
-//        System.out.println("****************************");
-//        for (Map<String, String> m : scanResults) {
-//            System.out.println(m);
-//        }
-//        System.out.println("****************************");
-
         ArrayList<STObject> result = new ArrayList<>();
-
         for (Map<String, String> map : scanResults) {
             Location loc = new Location(map.get("loc"));
-            if (!loc.in(query.getMBR())) {
-                continue;
-            }
-
             Date date = DateUtil.getDate(map.get("time"));
-            if (date.before(query.getS()) || date.after(query.getT())) {
-                continue;
-            }
             ArrayList<String> keywords = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
-            if (queryType.equals(QueryType.CONTAIN_ONE)) {
-                boolean flag = false;
-                for (String s : query.getKeywords()) {
-                    if (keywords.contains(s)) {
-                        flag = true;
-                        break;
-                    }
-                }
-                if (!flag) {
-                    continue;
-                }
-            } else if (queryType.equals(QueryType.CONTAIN_ALL)) {
-                boolean flag = true;
-                for (String s : query.getKeywords()) {
-                    if (!keywords.contains(s)) {
-                        flag = false;
-                        break;
-                    }
-                }
-                if (!flag) {
-                    continue;
-                }
-            }
-
-            result.add(new STObject(Bytes.toLong(map.get("id").getBytes()), loc.getLat(), loc.getLon(), date, keywords));
+            result.add(new STObject(Long.parseLong(map.get("id")), loc.getLat(), loc.getLon(), date, keywords));
         }
 
         return result;

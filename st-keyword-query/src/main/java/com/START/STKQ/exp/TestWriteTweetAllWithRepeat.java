@@ -119,7 +119,8 @@ public class TestWriteTweetAllWithRepeat {
                         Put put = new Put(ByteUtil.concat(sCode, tCode, Bytes.toBytes(ID)));
                         put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID++));
                         put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(location.toString()));
-                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date)));
+                        Date date1 = DateUtil.getDateAfter(date, random.nextInt(240) - 120);
+                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date1)));
                         put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(String.join(" ", keywords)));
                         puts.add(put);
                     }

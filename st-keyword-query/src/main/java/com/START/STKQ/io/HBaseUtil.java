@@ -1,6 +1,8 @@
 package com.START.STKQ.io;
 
 import com.START.STKQ.constant.QueryType;
+import com.START.STKQ.model.Range;
+import com.START.STKQ.util.ByteUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -12,6 +14,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HBaseUtil {
     public static Configuration configuration;
@@ -180,53 +185,6 @@ public class HBaseUtil {
         }
     }
 
-    // 插入多行多列数据
-    public void put(String tableName,
-                    List<byte[]> rowKey, String columnFamily, List<String> columns, List<String> data) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            List<Put> puts = new ArrayList<>();
-            int i = 0;
-            for (byte[] bytes : rowKey) {
-                Put put = new Put(bytes);
-                for (String column : columns) {
-                    put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), Bytes.toBytes(data.get(i)));
-                    ++i;
-                }
-                puts.add(put);
-            }
-            table.put(puts);
-        }
-    }
-
-    // 插入多行一列数据
-    public void put(String tableName,
-                    List<byte[]> rowKey, String columnFamily, String column, List<String> data) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            List<Put> puts = new ArrayList<>();
-            int n = rowKey.size();
-            for (int i = 0; i < n; ++i) {
-                Put put = new Put(rowKey.get(i));
-                put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), Bytes.toBytes(data.get(i)));
-                puts.add(put);
-            }
-            table.put(puts);
-        }
-    }
-
-    // 插入多行一列数据（数据全部相同）
-    public void put(String tableName,
-                    List<byte[]> rowKey, String columnFamily, String column, String data) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            List<Put> puts = new ArrayList<>();
-            for (byte[] bytes : rowKey) {
-                Put put = new Put(bytes);
-                put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), Bytes.toBytes(data));
-                puts.add(put);
-            }
-            table.put(puts);
-        }
-    }
-
     // 扫描一格内容
     public String getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
@@ -368,11 +326,17 @@ public class HBaseUtil {
 
                 List<Map<String, String>> dataList = Collections.synchronizedList(new ArrayList<>());
                 for (Result r : rs) {
-                    Map<String, String> objectMap = new HashMap<>();
+                    Map<String, String> objectMap = new Hashtable<>();
                     objectMap.put("rowkey", Arrays.toString(r.getRow()));
                     for (Cell cell : r.listCells()) {
                         String qualifier = new String(CellUtil.cloneQualifier(cell));
-                        String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                        String value;
+                        if (qualifier.equals("id")) {
+                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                        }
+                        else {
+                            value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                        }
                         objectMap.put(qualifier, value);
                     }
                     dataList.add(objectMap);
@@ -397,6 +361,12 @@ public class HBaseUtil {
                 admin.disableTable(TableName.valueOf(tableName));
                 admin.deleteTable(TableName.valueOf(tableName));
             }
+        }
+    }
+
+    public boolean existsTable(String tableName) throws IOException {
+        try (Admin admin = connection.getAdmin()) {
+            return admin.tableExists(TableName.valueOf(tableName));
         }
     }
 

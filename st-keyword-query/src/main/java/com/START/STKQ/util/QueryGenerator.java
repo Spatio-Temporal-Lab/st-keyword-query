@@ -37,8 +37,12 @@ public class QueryGenerator {
     }
 
     public static ArrayList<Query> getQueries() {
+        return getQueries("queries.csv");
+    }
+
+    public static ArrayList<Query> getQueries(String fileName) {
         ArrayList<Query> queries = new ArrayList<>();
-        try (InputStream in = QueryGenerator.class.getResourceAsStream("/queries.csv");
+        try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + fileName);
              BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(in)))) {
             // CSV文件的分隔符
             String DELIMITER = ",";
@@ -62,7 +66,8 @@ public class QueryGenerator {
     }
 
     public static void generateQueries(ArrayList<STObject> objects) throws IOException {
-        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
+//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
+        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesForSample.csv";
         System.out.println(path);
         File file = new File(path);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -87,11 +92,10 @@ public class QueryGenerator {
                 writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
                 writer.write(",");
                 Date date = object.getDate();
-                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -480)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
-                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 480)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
-                keywords = getRandomKeywords(object.getKeywords());
                 if (writeCount <= 1000) {
                     keywords = getRandomKeywords();
                 } else {
@@ -109,7 +113,7 @@ public class QueryGenerator {
 
     public static void main(String[] args) throws IOException, ParseException {
         DataReader dataReader = new DataReader();
-//        dataReader.setRate(1);
+//        dataReader.setRate(0.001);
         ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
         generateQueries(objects);
     }

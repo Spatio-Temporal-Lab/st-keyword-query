@@ -10,21 +10,16 @@ import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class TestWriteTweetAll {
+public class TestWriteTweet {
 
     public static void main(String[] args) throws IOException, ParseException {
 
@@ -32,42 +27,19 @@ public class TestWriteTweetAll {
         hBaseUtil.init("192.168.137.204");
 
         String tableName = "testTweet";
-        hBaseUtil.deleteTable("testTweet");
-        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7, 256 * 1012 * 1024);
-//        hBaseUtil.truncateTable(tableName);
+
+        if (hBaseUtil.existsTable(tableName)) {
+            hBaseUtil.truncateTable(tableName);
+        } else {
+            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7, 256 * 1012 * 1024);
+        }
 
         String inPathName = "/usr/data/tweetAll.csv";
-//        String inPathName = "E:\\data\\tweet\\tweet_2.csv";
 
         SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
         List<Put> puts = new ArrayList<>();
-
-//        final BufferedMutator.ExceptionListener listener = (e, mutator) -> {
-//            String failTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-//            System.out.println("fail time :" + failTime + " ,insert data fail,cause：" + e.getCause(0) + "，failed num：" + e.getNumExceptions());
-//            try {
-//                Thread.sleep(2000);
-//            } catch (InterruptedException ex) {
-//                ex.printStackTrace();
-//            }
-//            //重试
-//            String retryTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-//            System.out.println("its time to retry:" + retryTime);
-//            for (int i = 0; i < e.getNumExceptions(); i++) {
-//                org.apache.hadoop.hbase.client.Row row = null;
-//                try {
-//                    row = e.getRow(i);
-//                    mutator.mutate((Put) row);
-//                } catch (IOException ex) {
-//                    System.out.println("insert data fail,please check hbase status and row info : " + row);
-//                }
-//            }
-//        };
-
-//        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf(tableName)).writeBufferSize(10 * 1024 * 1024).listener(listener);
-
         int batchSize = 5000;
         try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
 
@@ -138,20 +110,18 @@ public class TestWriteTweetAll {
                     byte[] tCode = tKeyGenerator.toKey(date);
 
                     Put put = new Put(ByteUtil.concat(sCode, tCode,  Bytes.toBytes(ID)));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID++));
+                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(location.toString()));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date)));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(String.join(" ", keywords)));
+
+                    ++ID;
                     puts.add(put);
 
                     if (puts.size() >= batchSize) {
                         table.put(puts);
                         puts.clear();
                     }
-
-//                    if (ID > 4) {
-//                        break;
-//                    }
                 }
                 if (!puts.isEmpty()) {
                     table.put(puts);
@@ -163,20 +133,5 @@ public class TestWriteTweetAll {
 
             System.out.println("Dataset size: " + ID);
         }
-
-
-//        long rowCount = 0;
-//        Scan scan = new Scan();
-//        scan.setFilter(new FirstKeyOnlyFilter());
-//        ResultScanner resultScanner = hBaseUtil.getTable(tableName).getScanner(scan);
-//        for (Result result : resultScanner) {
-//            rowCount += result.size();
-//        }
-//        String outPathName = "/usr/data//log/rowCount.txt";
-//        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
-//            writer.write(String.valueOf(rowCount));
-//        }
-//        System.out.println(rowCount);
     }
-
 }
