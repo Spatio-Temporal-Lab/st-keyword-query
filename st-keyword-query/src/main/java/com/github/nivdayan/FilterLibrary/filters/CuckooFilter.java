@@ -2,8 +2,8 @@ package com.github.nivdayan.FilterLibrary.filters;
 
 import java.util.Random;
 
-import bitmap_implementations.Bitmap;
-import bitmap_implementations.QuickBitVectorWrapper;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
 
 public class CuckooFilter extends Filter {
 

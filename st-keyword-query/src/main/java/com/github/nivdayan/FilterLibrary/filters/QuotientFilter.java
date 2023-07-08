@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import bitmap_implementations.Bitmap;
-import bitmap_implementations.QuickBitVectorWrapper;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
 
 public class QuotientFilter extends Filter {
 

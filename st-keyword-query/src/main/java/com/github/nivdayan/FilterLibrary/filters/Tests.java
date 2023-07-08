@@ -6,9 +6,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import bitmap_implementations.Bitmap;
-import infiniFilter_experiments.Experiment1;
-import infiniFilter_experiments.InfiniFilterExperiments;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
+import com.github.nivdayan.FilterLibrary.infiniFilter_experiments.Experiment1;
+import com.github.nivdayan.FilterLibrary.infiniFilter_experiments.InfiniFilterExperiments;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

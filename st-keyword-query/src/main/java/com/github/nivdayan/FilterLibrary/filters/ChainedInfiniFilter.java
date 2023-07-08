@@ -2,8 +2,6 @@ package com.github.nivdayan.FilterLibrary.filters;
 
 import java.util.ArrayList;
 
-import filters.FingerprintGrowthStrategy.FalsePositiveRateExpansion;
-
 /*
  * The following example assumes we begin with an InfiniFilter with 2^3, or 8 cells and 4 bits per fingerprint
  * The example assumes decreasing the FPR polynomially, or in other words

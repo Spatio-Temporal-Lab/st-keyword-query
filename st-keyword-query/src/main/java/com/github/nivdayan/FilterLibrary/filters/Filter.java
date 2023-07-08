@@ -3,7 +3,7 @@ package com.github.nivdayan.FilterLibrary.filters;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import bitmap_implementations.Bitmap;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
 
 public abstract class Filter {
 	
