@@ -1,7 +1,9 @@
 
 package com.github.nivdayan.FilterLibrary.filters;
 
-public class BasicInfiniFilter extends QuotientFilter {
+import java.io.Serializable;
+
+public class BasicInfiniFilter extends QuotientFilter implements Serializable {
 
 	protected long empty_fingerprint;
 	int num_void_entries = 0;
@@ -11,8 +13,10 @@ public class BasicInfiniFilter extends QuotientFilter {
 	public void set_fpr_style(FingerprintGrowthStrategy.FalsePositiveRateExpansion val) {
 		fprStyle = val;
 	}
-	
-	BasicInfiniFilter(int power_of_two, int bits_per_entry) {
+
+	public BasicInfiniFilter() {}
+
+	public BasicInfiniFilter(int power_of_two, int bits_per_entry) {
 		super(power_of_two, bits_per_entry);
 		max_entries_before_expansion = (long)(Math.pow(2, power_of_two_size) * expansion_threshold);
 		set_empty_fingerprint(fingerprintLength);

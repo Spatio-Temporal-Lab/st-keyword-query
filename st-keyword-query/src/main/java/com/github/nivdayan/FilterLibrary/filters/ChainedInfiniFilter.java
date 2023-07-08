@@ -1,5 +1,6 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /*
@@ -37,14 +38,16 @@ import java.util.ArrayList;
  * 22			25		13				14			11
 */
 
-public class ChainedInfiniFilter extends BasicInfiniFilter {
+public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializable {
 
 	ArrayList<BasicInfiniFilter> chain;
 	BasicInfiniFilter secondary_IF = null;
 	//int count_until_replacing_former = 0;
 	//int count_until_expanding_former = 0;
 	//int former_phase = 0;
-	
+
+	public ChainedInfiniFilter() {}
+
 	public ChainedInfiniFilter(int power_of_two, int bits_per_entry) {
 		super(power_of_two, bits_per_entry);
 		chain = new ArrayList<BasicInfiniFilter>();
@@ -132,15 +135,15 @@ public class ChainedInfiniFilter extends BasicInfiniFilter {
 	// The hash function is being computed here for each filter 
 	// However, it's not such an expensive function, so it's probably not a performance issue. 
 	public boolean search(long input) {
-		
+
 		if (super.search(input)) {
 			return true;
 		}
-		
+
 		if (secondary_IF != null && secondary_IF.search(input)) {
 			return true;
 		}
-		
+
 		for (QuotientFilter qf : chain) {
 			if (qf.search(input)) {
 				return true;

@@ -1,6 +1,5 @@
 package com.START.STKQ.processor;
 
-import com.START.STKQ.constant.QueryType;
 import com.START.STKQ.io.HBaseQueryProcessor;
 import com.START.STKQ.keyGenerator.AbstractSTKeyGenerator;
 import com.START.STKQ.model.Location;
@@ -11,7 +10,6 @@ import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 //TODO: set spatial key generator type

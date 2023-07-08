@@ -1,6 +1,8 @@
 package com.github.nivdayan.FilterLibrary.bitmap_implementations;
 
-public abstract class Bitmap {
+import java.io.Serializable;
+
+public abstract class Bitmap implements Serializable {
 	
 	public abstract long size();
 	public abstract void set(long bit_index, boolean value);

@@ -29,7 +29,9 @@ It is provided "as is" without expressed or implied warranty.
  */
 package com.github.nivdayan.FilterLibrary.bitmap_implementations;
 
-public class QuickBitVector extends Object {
+import java.io.Serializable;
+
+public class QuickBitVector extends Object implements Serializable {
 	protected final static int ADDRESS_BITS_PER_UNIT = 6; // 64=2^6
 	protected final static int BITS_PER_UNIT = 64; // = 1 << ADDRESS_BITS_PER_UNIT
 	protected final static int BIT_INDEX_MASK = 63; // = BITS_PER_UNIT - 1;

@@ -1,23 +1,11 @@
 package com.github.nivdayan.FilterLibrary.infiniFilter_experiments;
 
+import com.github.nivdayan.FilterLibrary.filters.QuotientFilter;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-
-import com.github.nivdayan.FilterLibrary.filters.FingerprintSacrifice;
-import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import com.github.nivdayan.FilterLibrary.filters.CuckooFilter;
-import com.github.nivdayan.FilterLibrary.filters.Filter;
-import com.github.nivdayan.FilterLibrary.filters.FingerprintGrowthStrategy;
-import com.github.nivdayan.FilterLibrary.filters.BasicInfiniFilter;
-import com.github.nivdayan.FilterLibrary.filters.Chaining;
-import com.github.nivdayan.FilterLibrary.filters.QuotientFilter;
+import java.util.*;
 
 public class InfiniFilterExperiments {
 

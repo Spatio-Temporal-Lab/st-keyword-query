@@ -3,11 +3,14 @@ package com.START.STKQ.exp;
 import com.START.STKQ.constant.QueryType;
 import com.START.STKQ.keyGenerator.AbstractSTKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialFirstSTKeyGenerator;
+import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.processor.QueryProcessor;
 import com.START.STKQ.util.QueryGenerator;
+import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
+import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -18,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Map;
 
 public class TestQueryTweet {
 
@@ -51,15 +54,15 @@ public class TestQueryTweet {
 
     public static void main(String[] args) throws ParseException, InterruptedException, IOException, ClassNotFoundException {
 
-        String tableName = "testTweetSample";
-        String bloomPath = "/usr/data/bloom/multiBloom/sample/";
-        String outPathName = "/usr/data/log/querySampleBloomLog.txt";
-        ArrayList<Query> queries = QueryGenerator.getQueries("queriesForSample.csv");
-
-//        String tableName = "testTweet";
-//        String bloomPath = "/usr/data/bloom/multiBloom/all/";
-//        String outPathName = "/usr/data/log/queryBloomLog.txt";
-//        ArrayList<Query> queries = QueryGenerator.getQueries();
+//        String tableName = "testTweetSample";
+//        String bloomPath = "/usr/data/bloom/multiBloom/sample/";
+//        String outPathName = "/usr/data/log/querySampleBloomLog.txt";
+//        ArrayList<Query> queries = QueryGenerator.getQueries("queriesForSample.csv");
+//
+        String tableName = "testTweet";
+        String bloomPath = "/usr/data/bloom/multiBloom/all/";
+        String outPathName = "/usr/data/log/queryBloomLog.txt";
+        ArrayList<Query> queries = QueryGenerator.getQueries();
 
         ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
         for (int i = 0; i < 3; ++i) {
@@ -68,16 +71,19 @@ public class TestQueryTweet {
             bloomFilters.add((BloomFilter<byte[]>) oi.readObject());
         }
 
-
         AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
         keyGenerator.setBloomFilter(bloomFilters.get(0));
 
+        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
+        keyGenerator1.setLoadFilterDynamically(true);
+
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
-                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
-                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
-                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
+                new QueryProcessor(tableName, keyGenerator1, true, true, parallel),
+//                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
+//                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
+//                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
         };
 
         ArrayList<ArrayList<ArrayList<STObject>>> results = new ArrayList<>(processors.length);
@@ -113,6 +119,12 @@ public class TestQueryTweet {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        System.out.println(keyGenerator1.getFilters().size());
+        for (Map.Entry<BytesKey, Filter> entry : keyGenerator1.getFilters().entrySet()) {
+            System.out.println(RamUsageEstimator.humanSizeOf(entry.getValue()));
+        }
+        System.out.println(RamUsageEstimator.humanSizeOf(keyGenerator1.getFilters()));
 
 //        for (ArrayList<ArrayList<STObject>> result_ : results) {
 //            for (ArrayList<STObject> result : result_) {

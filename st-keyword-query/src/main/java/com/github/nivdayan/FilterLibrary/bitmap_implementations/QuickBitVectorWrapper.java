@@ -1,6 +1,8 @@
 package com.github.nivdayan.FilterLibrary.bitmap_implementations;
 
-public class QuickBitVectorWrapper extends Bitmap {
+import java.io.Serializable;
+
+public class QuickBitVectorWrapper extends Bitmap implements Serializable {
 
 	long[] bs;
 	

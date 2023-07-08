@@ -1,17 +1,17 @@
 package com.START.STKQ.keyGenerator;
 
 import com.START.STKQ.constant.QueryType;
+import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
+import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,6 +22,9 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     protected final int SPATIAL_BYTE_COUNT = 4;
 
     protected BloomFilter<byte[]> bloomFilter;
+
+    protected Map<BytesKey, Filter> filters = new Hashtable<>();
+    protected boolean loadFilterDynamically = false;
     private static final long serialVersionUID = 6529685098267757693L;
 
     public AbstractSTKeyGenerator() {
@@ -38,6 +41,10 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         this.bloomFilter = bloomFilter;
     }
 
+    public void setLoadFilterDynamically(boolean b) {
+        this.loadFilterDynamically = b;
+    }
+
     public SpatialKeyGenerator getSpatialKeyGenerator() {
         return spatialKeyGenerator;
     }
@@ -48,6 +55,10 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     public int getByteCount() {
         return 0;
+    }
+
+    public Map<BytesKey, Filter> getFilters() {
+        return filters;
     }
 
     @Override
@@ -82,6 +93,42 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return true;
     }
 
+    public boolean checkInFilter(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) throws IOException, ClassNotFoundException {
+        //4 byte for spatial key and 3 byte for time key
+        //long sIDForBf = sID >>> 16;
+        //int tIDForBf = tID >>> 8;
+        long sIDForBf = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 16;
+        int tIDForBf = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 8;
+        BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
+
+        Filter filter = filters.get(bfID);
+
+        if (filter == null) {
+            FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bfID + ".txt");
+            ObjectInputStream oIn = new ObjectInputStream(fIn);
+            filter = (Filter) oIn.readObject();
+            filters.put(bfID, filter);
+        }
+
+        switch (queryType) {
+            case CONTAIN_ONE:
+                for (byte[] keyPre : keyPres) {
+                    if (filter.search(ByteUtil.concat(keyPre, key))) {
+                        return true;
+                    }
+                }
+                return false;
+            case CONTAIN_ALL:
+                for (byte[] keyPre : keyPres) {
+                    if (!filter.search(ByteUtil.concat(keyPre, key))) {
+                        return false;
+                    }
+                }
+                return true;
+        }
+        return true;
+    }
+
     public ArrayList<Range<byte[]>> keysToRanges(Stream<byte[]> keys) {
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
         List<Long> keysLong = keys.map(ByteUtil::toLong).sorted().collect(Collectors.toList());
@@ -103,7 +150,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     }
 
     public ArrayList<Range<byte[]>> toFilteredKeyRanges(Query query) {
-        if (bloomFilter == null) {
+        if (bloomFilter == null && !loadFilterDynamically) {
             return new ArrayList<>();
         }
 
@@ -125,9 +172,22 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             wordKeys.add(Bytes.toBytes(s.hashCode()));
         }
 
-        Stream<byte[]> filteredKeys = keysBefore.stream().parallel().filter(
-                key -> checkInBF(key, wordKeys, queryType)
-        );
+        Stream<byte[]> filteredKeys = null;
+        if (!loadFilterDynamically) {
+            filteredKeys = keysBefore.stream().parallel().filter(
+                    key -> checkInBF(key, wordKeys, queryType)
+            );
+        } else {
+            filteredKeys = keysBefore.stream().parallel().filter(
+                    key -> {
+                        try {
+                            return checkInFilter(key, wordKeys, queryType);
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
+        }
 
         filteredKeys = filteredKeys.parallel().map(
                 key -> {

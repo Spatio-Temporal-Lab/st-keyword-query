@@ -61,6 +61,8 @@ public class QuotientFilter extends Filter {
 		//measure_num_bits_per_entry();
 	}
 
+	public QuotientFilter() {}
+
 	//nuevo
 	void update(long init_size)
 	{

@@ -5,6 +5,8 @@ import com.START.STKQ.model.*;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 import com.START.STKQ.util.KeywordCounter;
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
+import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -297,7 +299,6 @@ public class DataReader {
 
             boolean first = true;
 
-//            int n = 0;
             while ((line = br.readLine()) != null) {
                 if (first) {
                     first = false;
@@ -305,7 +306,6 @@ public class DataReader {
                 }
 
                 STObject cur = getSTObject(line);
-//                System.out.println(cur);
                 if (cur == null) {
                     continue;
                 }
@@ -329,9 +329,6 @@ public class DataReader {
                     initEnd = cur.getDate();
                 }
 
-//                if (++n > 5) {
-//                    break;
-//                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -345,6 +342,87 @@ public class DataReader {
         System.out.println(initEnd);
 
         return bloomFilter;
+    }
+
+    public Map<BytesKey, ChainedInfiniFilter> generateSTDividedFilter(String path) throws ParseException {
+        double maxLat = -100.0;
+        double minLat = 100.0;
+        double maxLon = -200.0;
+        double minLon = 200.0;
+
+        Map<BytesKey, ChainedInfiniFilter> map = new HashMap<>();
+
+        //实现对象读取
+        String dateString = "1900-02-23 00:00";
+        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
+        Date initFrom = new Date();
+
+        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+
+//                long sIDForBf = sID >>> 12;
+//                int tIDForBf = tID >>> 6;
+
+                long sIDForBf = sID >>> 16;
+                int tIDForBf = tID >>> 8;
+
+                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
+
+                ChainedInfiniFilter filter;
+                if (map.get(bfID) == null) {
+                    filter = new ChainedInfiniFilter(3, 10);
+                    filter.set_expand_autonomously(true);
+                    map.put(bfID, filter);
+                } else {
+                    filter = map.get(bfID);
+                }
+                for (String keyword : cur.getKeywords()) {
+                    byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
+                    filter.insert(insertValue, false);
+                }
+
+                minLat = Math.min(minLat, cur.getLat());
+                minLon = Math.min(minLon, cur.getLon());
+                maxLat = Math.max(maxLat, cur.getLat());
+                maxLon = Math.max(maxLon, cur.getLon());
+                if (cur.getDate().before(initFrom)) {
+                    initFrom = cur.getDate();
+                }
+                if (cur.getDate().after(initEnd)) {
+                    initEnd = cur.getDate();
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        System.out.println(minLat);
+        System.out.println(minLon);
+        System.out.println(maxLat);
+        System.out.println(maxLon);
+        System.out.println(initFrom);
+        System.out.println(initEnd);
+
+        return map;
     }
 
     public ArrayList<BloomFilter<byte[]>> generateBloomFilters(String path, int size, double p) throws ParseException {
