@@ -51,15 +51,15 @@ public class TestQueryTweet {
 
     public static void main(String[] args) throws ParseException, InterruptedException, IOException, ClassNotFoundException {
 
-//        String tableName = "testTweetSample";
-//        String bloomPath = "/usr/data/bloom/multiBloom/sample/";
-//        String outPathName = "/usr/data/log/querySampleBloomLog.txt";
-//        ArrayList<Query> queries = QueryGenerator.getQueries("queriesForSample.csv");
+        String tableName = "testTweetSample";
+        String bloomPath = "/usr/data/bloom/multiBloom/sample/";
+        String outPathName = "/usr/data/log/querySampleBloomLog.txt";
+        ArrayList<Query> queries = QueryGenerator.getQueries("queriesForSample.csv");
 
-        String tableName = "testTweet";
-        String bloomPath = "/usr/data/bloom/multiBloom/all/";
-        String outPathName = "/usr/data/log/queryBloomLog.txt";
-        ArrayList<Query> queries = QueryGenerator.getQueries();
+//        String tableName = "testTweet";
+//        String bloomPath = "/usr/data/bloom/multiBloom/all/";
+//        String outPathName = "/usr/data/log/queryBloomLog.txt";
+//        ArrayList<Query> queries = QueryGenerator.getQueries();
 
         ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
         for (int i = 0; i < 3; ++i) {
@@ -94,7 +94,7 @@ public class TestQueryTweet {
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
                     ArrayList<STObject> result = processors[i].getResult(query);
-                    results.get(i).add(result);
+//                    results.get(i).add(result);
                     long endTime = System.currentTimeMillis();
                     timeMethod += endTime - startTime;
                 }
@@ -114,21 +114,21 @@ public class TestQueryTweet {
             throw new RuntimeException(e);
         }
 
-        for (ArrayList<ArrayList<STObject>> result_ : results) {
-            for (ArrayList<STObject> result : result_) {
-                Collections.sort(result);
-            }
-        }
-
-        for (int i = 0; i < processors.length; ++i) {
-            for (int j = i + 1; j < processors.length; ++j) {
-                if (!equals(results.get(i), results.get(j))) {
-                    System.out.println("result not equal: " + i + " " + j);
-                }
-                if (results.get(i).size() != results.get(j).size()) {
-                    System.out.println("count not equal: " + i + " " + j);
-                }
-            }
-        }
+//        for (ArrayList<ArrayList<STObject>> result_ : results) {
+//            for (ArrayList<STObject> result : result_) {
+//                Collections.sort(result);
+//            }
+//        }
+//
+//        for (int i = 0; i < processors.length; ++i) {
+//            for (int j = i + 1; j < processors.length; ++j) {
+//                if (!equals(results.get(i), results.get(j))) {
+//                    System.out.println("result not equal: " + i + " " + j);
+//                }
+//                if (results.get(i).size() != results.get(j).size()) {
+//                    System.out.println("count not equal: " + i + " " + j);
+//                }
+//            }
+//        }
     }
 }
