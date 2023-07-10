@@ -2,20 +2,37 @@ package com.START.STKQ.exp;
 
 import com.START.STKQ.io.DataReader;
 import com.START.STKQ.model.BytesKey;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
+import com.github.nivdayan.FilterLibrary.filters.BasicInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
+import com.github.nivdayan.FilterLibrary.filters.FingerprintGrowthStrategy;
+import com.github.nivdayan.FilterLibrary.filters.HashType;
 import com.google.common.hash.BloomFilter;
-import scala.util.control.Exception;
+import org.apache.lucene.util.RamUsageEstimator;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class TestWriteBloomToTxt {
-    public static void main(String[] args) throws ParseException, IOException, ClassNotFoundException {
+    public static void main(String[] args) throws Exception {
 
 //        main1();
-        main2();
+//        main2();
+//        main3();
+        main4();
 
 //        DataReader dataReader = new DataReader();
 //        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetSample.csv", 50000, 0.001);
@@ -37,7 +54,7 @@ public class TestWriteBloomToTxt {
         }
     }
 
-    public static void main2() throws ParseException, IOException, ClassNotFoundException {
+    public static void main2() throws ParseException, IOException {
         DataReader dataReader = new DataReader();
         dataReader.setLimit(100);
         Map<BytesKey, ChainedInfiniFilter> filters = dataReader.generateSTDividedFilter("/usr/data/tweetAll.csv");
@@ -49,5 +66,28 @@ public class TestWriteBloomToTxt {
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(entry.getValue());
         }
+    }
+
+    public static void main3() {
+        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 10);
+        filter.set_expand_autonomously(true);
+
+        for (int i = 0; i < 1000_0000; ++i) {
+            filter.insert(i, false);
+        }
+
+        System.out.println(RamUsageEstimator.humanSizeOf(filter));
+    }
+
+    public static void main4() throws ParseException, IOException {
+        DataReader dataReader = new DataReader();
+        dataReader.setLimit(100);
+        Map<BytesKey, Long> map = dataReader.generateCount("/usr/data/tweetAll.csv");
+        System.out.println(map.size());
+
+        String outputPath = "/usr/data/count.txt";
+        FileOutputStream f = new FileOutputStream(outputPath);
+        ObjectOutputStream o = new ObjectOutputStream(f);
+        o.writeObject(map);
     }
 }

@@ -18,7 +18,8 @@ public class HBaseQueryProcessor {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static {
         hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("192.168.137.204");
+//        hBaseUtil.init("192.168.137.204");
+        hBaseUtil.init("192.168.137.207");
     }
     private static CountDownLatch cdl;
 

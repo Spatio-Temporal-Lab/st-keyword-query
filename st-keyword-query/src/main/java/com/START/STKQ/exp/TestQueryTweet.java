@@ -7,6 +7,7 @@ import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.processor.QueryProcessor;
+import com.START.STKQ.util.FilterManager;
 import com.START.STKQ.util.QueryGenerator;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 public class TestQueryTweet {
@@ -64,6 +66,8 @@ public class TestQueryTweet {
         String outPathName = "/usr/data/log/queryBloomLog.txt";
         ArrayList<Query> queries = QueryGenerator.getQueries();
 
+        FilterManager.loadCount();
+
         ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
         for (int i = 0; i < 3; ++i) {
             FileInputStream fi = new FileInputStream(bloomPath + i + ".txt");
@@ -72,15 +76,17 @@ public class TestQueryTweet {
         }
 
         AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
+//        AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator();
         keyGenerator.setBloomFilter(bloomFilters.get(0));
 
         AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
+//        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
         keyGenerator1.setLoadFilterDynamically(true);
 
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
+                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
                 new QueryProcessor(tableName, keyGenerator1, true, true, parallel),
-//                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
@@ -100,7 +106,7 @@ public class TestQueryTweet {
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
                     ArrayList<STObject> result = processors[i].getResult(query);
-//                    results.get(i).add(result);
+                    results.get(i).add(result);
                     long endTime = System.currentTimeMillis();
                     timeMethod += endTime - startTime;
                 }
@@ -120,27 +126,23 @@ public class TestQueryTweet {
             throw new RuntimeException(e);
         }
 
-        System.out.println(keyGenerator1.getFilters().size());
-        for (Map.Entry<BytesKey, Filter> entry : keyGenerator1.getFilters().entrySet()) {
-            System.out.println(RamUsageEstimator.humanSizeOf(entry.getValue()));
-        }
-        System.out.println(RamUsageEstimator.humanSizeOf(keyGenerator1.getFilters()));
 
-//        for (ArrayList<ArrayList<STObject>> result_ : results) {
-//            for (ArrayList<STObject> result : result_) {
-//                Collections.sort(result);
-//            }
-//        }
-//
-//        for (int i = 0; i < processors.length; ++i) {
-//            for (int j = i + 1; j < processors.length; ++j) {
-//                if (!equals(results.get(i), results.get(j))) {
-//                    System.out.println("result not equal: " + i + " " + j);
-//                }
-//                if (results.get(i).size() != results.get(j).size()) {
-//                    System.out.println("count not equal: " + i + " " + j);
-//                }
-//            }
-//        }
+        for (ArrayList<ArrayList<STObject>> result_ : results) {
+            for (ArrayList<STObject> result : result_) {
+                Collections.sort(result);
+            }
+        }
+
+        for (int i = 0; i < processors.length; ++i) {
+            for (int j = i + 1; j < processors.length; ++j) {
+                if (!equals(results.get(i), results.get(j))) {
+                    System.out.println("result not equal: " + i + " " + j);
+                }
+                if (results.get(i).size() != results.get(j).size()) {
+                    System.out.println("count not equal: " + i + " " + j);
+                }
+            }
+        }
+
     }
 }

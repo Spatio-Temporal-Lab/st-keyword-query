@@ -6,11 +6,13 @@ import com.START.STKQ.model.Query;
 import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
+import com.START.STKQ.util.FilterManager;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,8 +24,6 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     protected final int SPATIAL_BYTE_COUNT = 4;
 
     protected BloomFilter<byte[]> bloomFilter;
-
-    protected Map<BytesKey, Filter> filters = new Hashtable<>();
     protected boolean loadFilterDynamically = false;
     private static final long serialVersionUID = 6529685098267757693L;
 
@@ -55,10 +55,6 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     public int getByteCount() {
         return 0;
-    }
-
-    public Map<BytesKey, Filter> getFilters() {
-        return filters;
     }
 
     @Override
@@ -101,13 +97,9 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         int tIDForBf = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 8;
         BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
 
-        Filter filter = filters.get(bfID);
-
+        Filter filter = FilterManager.getFilter(bfID);
         if (filter == null) {
-            FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bfID + ".txt");
-            ObjectInputStream oIn = new ObjectInputStream(fIn);
-            filter = (Filter) oIn.readObject();
-            filters.put(bfID, filter);
+            return false;
         }
 
         switch (queryType) {
@@ -172,7 +164,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             wordKeys.add(Bytes.toBytes(s.hashCode()));
         }
 
-        Stream<byte[]> filteredKeys = null;
+        Stream<byte[]> filteredKeys;
         if (!loadFilterDynamically) {
             filteredKeys = keysBefore.stream().parallel().filter(
                     key -> checkInBF(key, wordKeys, queryType)
@@ -217,6 +209,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
                             keys.add(ByteUtil.concat(sKey, tKey));
                         }
                     }
+
                     return keys;
                 }
         ).flatMap(ArrayList::stream);

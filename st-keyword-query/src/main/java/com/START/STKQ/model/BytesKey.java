@@ -1,8 +1,9 @@
 package com.START.STKQ.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class BytesKey {
+public class BytesKey implements Serializable {
     private final byte[] array;
 
     public BytesKey(byte[] array) {

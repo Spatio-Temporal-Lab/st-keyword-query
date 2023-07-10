@@ -425,6 +425,74 @@ public class DataReader {
         return map;
     }
 
+    public Map<BytesKey, Long> generateCount(String path) throws ParseException {
+        double maxLat = -100.0;
+        double minLat = 100.0;
+        double maxLon = -200.0;
+        double minLon = 200.0;
+
+        Map<BytesKey, Long> map = new HashMap<>();
+
+        //实现对象读取
+        String dateString = "1900-02-23 00:00";
+        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
+        Date initFrom = new Date();
+
+        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+
+                long sIDForBf = sID >>> 16;
+                int tIDForBf = tID >>> 8;
+
+                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
+
+                map.merge(bfID, 1L, Long::sum);
+
+                minLat = Math.min(minLat, cur.getLat());
+                minLon = Math.min(minLon, cur.getLon());
+                maxLat = Math.max(maxLat, cur.getLat());
+                maxLon = Math.max(maxLon, cur.getLon());
+                if (cur.getDate().before(initFrom)) {
+                    initFrom = cur.getDate();
+                }
+                if (cur.getDate().after(initEnd)) {
+                    initEnd = cur.getDate();
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        System.out.println(minLat);
+        System.out.println(minLon);
+        System.out.println(maxLat);
+        System.out.println(maxLon);
+        System.out.println(initFrom);
+        System.out.println(initEnd);
+
+        System.out.println(map);
+        return map;
+    }
+
     public ArrayList<BloomFilter<byte[]>> generateBloomFilters(String path, int size, double p) throws ParseException {
 
         double maxLat = -100.0;

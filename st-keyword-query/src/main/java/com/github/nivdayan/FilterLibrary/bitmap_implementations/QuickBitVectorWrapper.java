@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class QuickBitVectorWrapper extends Bitmap implements Serializable {
 
 	long[] bs;
-	
+
 	public QuickBitVectorWrapper(int bits_per_entry, long num_entries) {
 		bs = QuickBitVector.makeBitVector(num_entries, bits_per_entry);
 	}
