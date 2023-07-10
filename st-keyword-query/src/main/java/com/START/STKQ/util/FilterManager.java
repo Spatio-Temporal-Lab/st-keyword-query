@@ -13,14 +13,17 @@ import java.util.concurrent.locks.ReentrantLock;
 class FilterWithHotness implements Comparable<FilterWithHotness> {
     Filter filter;
     long hotness;
+    BytesKey bytesKey;
 
-    FilterWithHotness(Filter filter, long hotness) {
+    FilterWithHotness(Filter filter, BytesKey bytesKey, long hotness) {
         this.filter = filter;
+        this.bytesKey = bytesKey;
         this.hotness = hotness;
     }
 
-    FilterWithHotness(Filter filter) {
+    FilterWithHotness(Filter filter, BytesKey bytesKey) {
         this.filter = filter;
+        this.bytesKey = bytesKey;
     }
 
     @Override
@@ -65,9 +68,9 @@ public class FilterManager {
             if (filter == null) {
                 try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt");
                         ObjectInputStream oIn = new ObjectInputStream(fIn)) {
-                    filter = new FilterWithHotness((Filter) oIn.readObject());
-                    filters.put(bytesKey, filter);
+                    filter = new FilterWithHotness((Filter) oIn.readObject(), bytesKey);
 
+                    filters.put(bytesKey, filter);
                     set.add(filter);
 
                     long size = RamUsageEstimator.shallowSizeOf(filter);
@@ -77,11 +80,9 @@ public class FilterManager {
                     }
                 }
             } else {
-//                System.out.println("set before: " + set);
                 set.remove(filter);
                 filter.hotness += countForThisGrid;
                 set.add(filter);
-//                System.out.println("set now: " + set);
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -95,6 +96,7 @@ public class FilterManager {
     public static void reAllocate() {
         for (FilterWithHotness filter : set) {
             set.remove(filter);
+            filters.remove(filter.bytesKey);
             break;
         }
     }
