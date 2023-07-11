@@ -1,20 +1,20 @@
 package com.START.STKQ.util;
 
 import com.START.STKQ.io.DataReader;
-import com.START.STKQ.model.Location;
-import com.START.STKQ.model.MBR;
-import com.START.STKQ.model.Query;
-import com.START.STKQ.model.STObject;
+import com.START.STKQ.model.*;
+import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.io.*;
 import java.text.ParseException;
 import java.util.*;
 
 public class QueryGenerator {
+
+    private static ArrayList<String> keywords;
     private static final Random random = new Random();
 
     private static ArrayList<String> getRandomKeywords() {
-        ArrayList<String> keywords = KeywordCounter.getKeywords();
+//        ArrayList<String> keywords = KeywordCounter.getKeywords();
         int n = keywords.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
         Set<String> set = new HashSet<>();
@@ -111,10 +111,97 @@ public class QueryGenerator {
         }
     }
 
+    public static void generateZipfQueries(int size, double skew) {
+
+        ArrayList<BytesKey> sKeySortByObjectCount;
+        ArrayList<BytesKey> tKeySortByObjectCount;
+
+        try(FileInputStream fin = new FileInputStream("/usr/data/count0.txt");
+            ObjectInputStream ois = new ObjectInputStream(fin)
+        ) {
+            Map<BytesKey, Integer> spatialDistribution = (Map<BytesKey, Integer>) ois.readObject();
+            sKeySortByObjectCount = MapUtil.sortByValue(spatialDistribution);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        try(FileInputStream fin = new FileInputStream("/usr/data/count1.txt");
+            ObjectInputStream ois = new ObjectInputStream(fin)
+        ) {
+            Map<BytesKey, Integer> timeDistribution = (Map<BytesKey, Integer>) ois.readObject();
+            tKeySortByObjectCount = MapUtil.sortByValue(timeDistribution);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        ZipfGenerator sKeyGenerator = new ZipfGenerator(sKeySortByObjectCount.size(), skew);
+        ZipfGenerator tKeyGenerator = new ZipfGenerator(tKeySortByObjectCount.size(), skew);
+        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
+        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+
+        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
+        System.out.println(path);
+        File file = new File(path);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+
+            int writeCount = 0;
+            while (writeCount < size) {
+
+                int sKeyId = sKeySortByObjectCount.size() - sKeyGenerator.next();
+                int tKeyId = tKeySortByObjectCount.size() - tKeyGenerator.next();
+
+                byte[] sBytesKey = sKeySortByObjectCount.get(sKeyId).getArray();
+                byte[] latKey = Arrays.copyOfRange(sBytesKey, 0, 2);
+                byte[] lonKey = Arrays.copyOfRange(sBytesKey, 2, 4);
+                System.out.println(Arrays.toString(sBytesKey));
+                System.out.println(Arrays.toString(latKey) + " " + Arrays.toString(lonKey));
+                double lat = normalizedLat.denormalize(ByteUtil.toInt(latKey));
+                double lon = normalizedLon.denormalize(ByteUtil.toInt(lonKey));
+                System.out.println(ByteUtil.toInt(latKey));
+                System.out.println(lat);
+                System.out.println(ByteUtil.toInt(lonKey));
+                System.out.println(lon);
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
+                writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
+                writer.write(",");
+                writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
+                writer.write(",");
+
+                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKeySortByObjectCount.get(tKeyId).getArray()));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
+                writer.write(",");
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
+                ArrayList<String> keywords;
+
+                keywords = getRandomKeywords();
+
+                for (String keyword : keywords) {
+                    writer.write("," + keyword);
+                }
+                writer.newLine();
+                ++writeCount;
+                System.out.println(writeCount);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args) throws IOException, ParseException {
-        DataReader dataReader = new DataReader();
+//        DataReader dataReader = new DataReader();
+//        dataReader.getSTObjects("/usr/data/tweetAll.csv");
 //        dataReader.setRate(0.001);
-        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
-        generateQueries(objects);
+//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
+//        generateQueries(objects);
+
+        try(FileInputStream fin = new FileInputStream("/usr/data/keywords.txt");
+            ObjectInputStream ois = new ObjectInputStream(fin)
+        ) {
+            keywords = new ArrayList<>((Set<String>) ois.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        generateZipfQueries(2000, 1.2);
     }
 }

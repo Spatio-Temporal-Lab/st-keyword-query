@@ -10,6 +10,7 @@ import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -571,5 +572,71 @@ public class DataReader {
         bloomFilters.add(bloomFilter2);
 
         return bloomFilters;
+    }
+
+    public ArrayList<Map<BytesKey, Integer>> generateDistribution(String path) {
+        Map<BytesKey, Integer> mapS = new HashMap<>();
+        Map<BytesKey, Integer> mapT = new HashMap<>();
+        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+
+        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
+        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+                Location location = cur.getLocation();
+                mapS.merge(new BytesKey(
+                        ByteUtil.concat(ByteUtil.getKByte(normalizedLat.normalize(location.getLat()), 2),
+                        ByteUtil.getKByte(normalizedLon.normalize(location.getLon()), 2))), 1, Integer::sum);
+
+                mapT.merge(new BytesKey(timeKeyGenerator.toKey(cur.getDate())), 1, Integer::sum);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        ArrayList<Map<BytesKey, Integer>> result = new ArrayList<>();
+        result.add(mapS);
+        result.add(mapT);
+
+        return result;
+    }
+
+    public Set<String> generateKeywords(String path) {
+        Set<String> set = new TreeSet<>();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+                set.addAll(cur.getKeywords());
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        return set;
     }
 }

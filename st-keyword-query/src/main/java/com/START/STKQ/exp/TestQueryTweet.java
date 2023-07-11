@@ -64,7 +64,8 @@ public class TestQueryTweet {
         String tableName = "testTweet";
         String bloomPath = "/usr/data/bloom/multiBloom/all/";
         String outPathName = "/usr/data/log/queryBloomLog.txt";
-        ArrayList<Query> queries = QueryGenerator.getQueries();
+//        ArrayList<Query> queries = QueryGenerator.getQueries();
+        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
 
         FilterManager.loadCount();
 

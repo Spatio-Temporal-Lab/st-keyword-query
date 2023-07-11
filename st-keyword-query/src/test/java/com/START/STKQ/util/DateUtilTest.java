@@ -18,6 +18,12 @@ public class DateUtilTest extends TestCase {
         assertEquals(24, DateUtil.getHours(date1, date4));
     }
 
+    public void testGetDateAfterHours() {
+        for (int i = 0; i < 25; ++i) {
+            System.out.println(DateUtil.getDateAfter(i));
+        }
+    }
+
     public void testLastDayOfMonth() throws ParseException {
         Date date = DateUtil.getDate("2000-02-01 00:00:00");
         System.out.println(DateUtil.lastDayOfMonth(date));

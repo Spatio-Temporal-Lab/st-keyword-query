@@ -6,7 +6,6 @@ import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -33,6 +32,11 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
 
     public Integer getNumber(Date d) {
         return DateUtil.getHours(d);
+    }
+
+    public Date keyToTime(byte[] key) {
+        //TODO
+        return null;
     }
 
     @Override
