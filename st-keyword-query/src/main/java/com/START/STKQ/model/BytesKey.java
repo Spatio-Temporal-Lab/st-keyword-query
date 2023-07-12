@@ -34,9 +34,11 @@ public class BytesKey implements Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        for (byte b : array) {
-            builder.append(b);
+        int n = array.length;
+        for (int i = 0; i < n - 1; ++i) {
+            builder.append(array[i]).append("_");
         }
+        builder.append(array[array.length - 1]);
         return builder.toString();
     }
 }

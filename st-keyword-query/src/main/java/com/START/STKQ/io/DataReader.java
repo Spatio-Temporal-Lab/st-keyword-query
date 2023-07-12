@@ -1,5 +1,6 @@
 package com.START.STKQ.io;
 
+import com.START.STKQ.constant.Constant;
 import com.START.STKQ.keyGenerator.*;
 import com.START.STKQ.model.*;
 import com.START.STKQ.util.ByteUtil;
@@ -11,6 +12,7 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.locationtech.geomesa.curve.NormalizedDimension;
+import scala.collection.immutable.Stream;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -377,16 +379,22 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
+//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
 
 //                long sIDForBf = sID >>> 12;
 //                int tIDForBf = tID >>> 6;
 
-                long sIDForBf = sID >>> 16;
-                int tIDForBf = tID >>> 8;
+//                long sIDForBf = sID >>> 16;
+//                int tIDForBf = tID >>> 8;
+                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
+                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
 
-                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
+                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
+                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
+                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
 
                 ChainedInfiniFilter filter;
                 if (map.get(bfID) == null) {
@@ -396,6 +404,7 @@ public class DataReader {
                 } else {
                     filter = map.get(bfID);
                 }
+
                 for (String keyword : cur.getKeywords()) {
                     byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
                     filter.insert(insertValue, false);
@@ -458,13 +467,20 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
+//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
 
-                long sIDForBf = sID >>> 16;
-                int tIDForBf = tID >>> 8;
+//                long sIDForBf = sID >>> 16;
+//                int tIDForBf = tID >>> 8;
+                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
+                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
 
-                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
+                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
+                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
+                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
+//                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
 
                 map.merge(bfID, 1L, Long::sum);
 

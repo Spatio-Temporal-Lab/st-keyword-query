@@ -2,12 +2,15 @@ package com.START.STKQ.util;
 
 import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
-import com.google.common.collect.TreeMultiset;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.TreeMultiset;
 import org.apache.lucene.util.RamUsageEstimator;
 
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 class FilterWithHotness implements Comparable<FilterWithHotness> {
@@ -38,9 +41,8 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
 }
 
 public class FilterManager {
-    // assume that we max use ram for 128MB
-    private static final int MAX_RAM_USAGE = 128 * 1024;
-    private static int totalSize;
+    private static final int MAX_FILTER_COUNT = 128;
+    private static int filterCount;
     private static final Map<BytesKey, FilterWithHotness> filters = new Hashtable<>();
     private static Map<BytesKey, Long> count = new Hashtable<>();
     private static final Multiset<FilterWithHotness> set = TreeMultiset.create();
@@ -58,13 +60,13 @@ public class FilterManager {
 
     public static Filter getFilter(BytesKey bytesKey) {
         FilterWithHotness filter;
+        long countForThisGrid = count.getOrDefault(bytesKey, -1L);
+        if (countForThisGrid == -1) {
+            return null;
+        }
         lock.lock();
         try {
             filter = filters.get(bytesKey);
-            long countForThisGrid = count.getOrDefault(bytesKey, 0L);
-            if (countForThisGrid == 0) {
-                return null;
-            }
             if (filter == null) {
                 try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt");
                         ObjectInputStream oIn = new ObjectInputStream(fIn)) {
@@ -73,9 +75,7 @@ public class FilterManager {
                     filters.put(bytesKey, filter);
                     set.add(filter);
 
-                    long size = RamUsageEstimator.shallowSizeOf(filter);
-                    totalSize += size;
-                    if (totalSize > MAX_RAM_USAGE) {
+                    if (++filterCount > MAX_FILTER_COUNT) {
                         reAllocate();
                     }
                 }
@@ -97,6 +97,7 @@ public class FilterManager {
         for (FilterWithHotness filter : set) {
             set.remove(filter);
             filters.remove(filter.bytesKey);
+            --filterCount;
             break;
         }
     }
@@ -105,4 +106,12 @@ public class FilterManager {
         count.merge(bytesKey, 1L, Long::sum);
     }
 
+    public static void showSize() {
+        System.out.println(RamUsageEstimator.humanSizeOf(filters));
+        System.out.println(RamUsageEstimator.humanSizeOf(set));
+        for (FilterWithHotness filter : filters.values()) {
+            System.out.println(RamUsageEstimator.humanSizeOf(filter));
+        }
+        System.out.println("filter count: " + filters.size());
+    }
 }

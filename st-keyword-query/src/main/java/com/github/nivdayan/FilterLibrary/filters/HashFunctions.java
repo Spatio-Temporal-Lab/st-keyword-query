@@ -1,11 +1,10 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
-import java.math.BigInteger;  
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;  
-import java.security.NoSuchAlgorithmException;  
-
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 // Java program to calculate SHA hash value  
 
@@ -53,7 +52,7 @@ public class HashFunctions {
 	public static long xxhash(long input){
 		return XxHash.xxHash64(input, 0L);
 	}
-	
+
 	public static long xxhash(long input, long seed){
 		return XxHash.xxHash64(input, seed);
 	}

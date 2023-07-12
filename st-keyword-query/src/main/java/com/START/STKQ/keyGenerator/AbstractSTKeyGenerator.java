@@ -74,6 +74,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
                     if (bloomFilter.mightContain(ByteUtil.concat(keyPre, key))) {
+//                        System.out.println("key pre: " + Arrays.toString(keyPre));
                         return true;
                     }
                 }
@@ -106,6 +107,33 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
                     if (filter.search(ByteUtil.concat(keyPre, key))) {
+                        return true;
+                    }
+                }
+                return false;
+            case CONTAIN_ALL:
+                for (byte[] keyPre : keyPres) {
+                    if (!filter.search(ByteUtil.concat(keyPre, key))) {
+                        return false;
+                    }
+                }
+                return true;
+        }
+        return true;
+    }
+
+    public boolean checkInFilter(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType, Filter filter) {
+        if (filter == null) {
+            return false;
+        }
+//        System.out.println("temporal int: " + ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)));
+        switch (queryType) {
+            case CONTAIN_ONE:
+                for (byte[] keyPre : keyPres) {
+                    if (filter.search(ByteUtil.concat(keyPre, key))) {
+//                        System.out.println("pass for: " + Arrays.toString(key));
+//                        System.out.println("spatial long: " + ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)));
+//                        System.out.println("temporal int: " + ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)));
                         return true;
                     }
                 }

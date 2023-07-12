@@ -39,4 +39,9 @@ public class Range<T> {
     public void setHigh(T high) {
         this.high = high;
     }
+
+    @Override
+    public String toString() {
+        return low.toString() + " " + high.toString();
+    }
 }

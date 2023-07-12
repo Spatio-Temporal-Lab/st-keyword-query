@@ -151,6 +151,24 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 		}
 		return false;
 	}
+
+	public boolean search(byte[] input) {
+
+		if (super.search(input)) {
+			return true;
+		}
+
+		if (secondary_IF != null && secondary_IF.search(input)) {
+			return true;
+		}
+
+		for (QuotientFilter qf : chain) {
+			if (qf.search(input)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	void create_secondary(int power, int FP_size) {
 		power = Math.max(power, 3);
