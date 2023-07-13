@@ -65,15 +65,16 @@ public class QueryGenerator {
         return queries;
     }
 
-    public static void generateQueries(ArrayList<STObject> objects) throws IOException {
-//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
-        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesForSample.csv";
+    public static void generateQueries(ArrayList<STObject> objects, int count) throws IOException {
+        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
+//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesForSample.csv";
         System.out.println(path);
+        int half = count / 2;
         File file = new File(path);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             int n = objects.size();
             int writeCount = 0;
-            while (writeCount < 2000) {
+            while (writeCount < count) {
                 STObject object = objects.get(random.nextInt(n));
                 if (object.getLat() > 179 || object.getLat() < -179) {
                     continue;
@@ -96,7 +97,7 @@ public class QueryGenerator {
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
-                if (writeCount <= 1000) {
+                if (writeCount < half) {
                     keywords = getRandomKeywords();
                 } else {
                     keywords = getRandomKeywords(object.getKeywords());
@@ -188,12 +189,6 @@ public class QueryGenerator {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-//        DataReader dataReader = new DataReader();
-//        dataReader.getSTObjects("/usr/data/tweetAll.csv");
-//        dataReader.setRate(0.001);
-//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
-//        generateQueries(objects);
-
         try(FileInputStream fin = new FileInputStream("/usr/data/keywords.txt");
             ObjectInputStream ois = new ObjectInputStream(fin)
         ) {
@@ -202,6 +197,13 @@ public class QueryGenerator {
             throw new RuntimeException(e);
         }
 
-        generateZipfQueries(2000, 1.2);
+//        DataReader dataReader = new DataReader();
+
+//        dataReader.setRate(0.1);
+//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
+//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetAll.csv"));
+//        generateQueries(objects, 1_0000);
+//
+        generateZipfQueries(10000, 0.8);
     }
 }

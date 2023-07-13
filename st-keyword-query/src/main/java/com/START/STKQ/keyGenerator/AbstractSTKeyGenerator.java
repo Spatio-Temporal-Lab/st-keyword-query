@@ -1,5 +1,6 @@
 package com.START.STKQ.keyGenerator;
 
+import com.START.STKQ.constant.FlushStrategy;
 import com.START.STKQ.constant.QueryType;
 import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
@@ -7,6 +8,7 @@ import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.FilterManager;
+import com.START.STKQ.util.QueueFilterManager;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -25,6 +27,8 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     protected BloomFilter<byte[]> bloomFilter;
     protected boolean loadFilterDynamically = false;
+
+    protected FlushStrategy flushStrategy;
     private static final long serialVersionUID = 6529685098267757693L;
 
     public AbstractSTKeyGenerator() {
@@ -51,6 +55,14 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     public TimeKeyGenerator getTimeKeyGenerator() {
         return timeKeyGenerator;
+    }
+
+    public FlushStrategy getFlushStrategy() {
+        return flushStrategy;
+    }
+
+    public void setFlushStrategy(FlushStrategy flushStrategy) {
+        this.flushStrategy = flushStrategy;
     }
 
     public int getByteCount() {
@@ -98,7 +110,12 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         int tIDForBf = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 8;
         BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
 
-        Filter filter = FilterManager.getFilter(bfID);
+        Filter filter = null;
+        switch (flushStrategy) {
+            case HOTNESS: filter = FilterManager.getFilter(bfID); break;
+            case FIRST: filter = QueueFilterManager.getFilter(bfID); break;
+            case RANDOM: break;
+        }
         if (filter == null) {
             return false;
         }

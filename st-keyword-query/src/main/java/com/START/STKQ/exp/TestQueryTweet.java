@@ -1,5 +1,6 @@
 package com.START.STKQ.exp;
 
+import com.START.STKQ.constant.FlushStrategy;
 import com.START.STKQ.constant.QueryType;
 import com.START.STKQ.keyGenerator.AbstractSTKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialFirstSTKeyGenerator;
@@ -7,10 +8,7 @@ import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.processor.QueryProcessor;
-import com.START.STKQ.util.ByteUtil;
-import com.START.STKQ.util.DateUtil;
-import com.START.STKQ.util.FilterManager;
-import com.START.STKQ.util.QueryGenerator;
+import com.START.STKQ.util.*;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.lucene.util.RamUsageEstimator;
@@ -67,11 +65,12 @@ public class TestQueryTweet {
         String tableName = "testTweet";
         String bloomPath = "/usr/data/bloom/multiBloom/all/";
         String outPathName = "/usr/data/log/queryBloomLog.txt";
-        ArrayList<Query> queries = QueryGenerator.getQueries();
+//        ArrayList<Query> queries = QueryGenerator.getQueries();
 //        ArrayList<Query> queries = new ArrayList<>(QueryGenerator.getQueries().subList(1032, 1033));
-//        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
 
-        FilterManager.loadCount();
+        FilterManager.init();
+        QueueFilterManager.init();
 
         long start = 0;
         long end = 0;
@@ -92,13 +91,20 @@ public class TestQueryTweet {
         AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
 //        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
         keyGenerator1.setLoadFilterDynamically(true);
+        keyGenerator1.setFlushStrategy(FlushStrategy.FIRST);
+
+        AbstractSTKeyGenerator keyGenerator2 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
+//        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
+        keyGenerator2.setLoadFilterDynamically(true);
+        keyGenerator2.setFlushStrategy(FlushStrategy.HOTNESS);
 
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
-                new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-//                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
+                new QueryProcessor(tableName, keyGenerator2, true, false, parallel),
+                new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
+                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
         };
 
@@ -136,6 +142,22 @@ public class TestQueryTweet {
             throw new RuntimeException(e);
         }
 
+        switch (keyGenerator1.getFlushStrategy()) {
+            case HOTNESS:
+                System.out.println("reallocate count for 11: " + FilterManager.getReAllocateCount());
+                break;
+            case FIRST:
+                System.out.println("reallocate count for 12: " + QueueFilterManager.getReAllocateCount());
+                break;
+        }
+        switch (keyGenerator2.getFlushStrategy()) {
+            case HOTNESS:
+                System.out.println("reallocate count for 21: " + FilterManager.getReAllocateCount());
+                break;
+            case FIRST:
+                System.out.println("reallocate count for 22: " + QueueFilterManager.getReAllocateCount());
+                break;
+        }
 
         for (ArrayList<ArrayList<STObject>> result_ : results) {
             for (ArrayList<STObject> result : result_) {
@@ -155,7 +177,6 @@ public class TestQueryTweet {
             }
         }
 
-        FilterManager.showSize();
-
+//        FilterManager.showSize();
     }
 }

@@ -9,6 +9,7 @@ import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.BfUtil;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.FilterManager;
+import com.START.STKQ.util.QueueFilterManager;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -188,7 +189,12 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
             for (Long idS : sLongSet) {
                 for (Integer idT : tIntSet) {
                     BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(idS, needByteCountForS), ByteUtil.getKByte(idT, needByteCountForT))));
-                    Filter filter = FilterManager.getFilter(bfID);
+                    Filter filter = null;
+                    switch (flushStrategy) {
+                        case HOTNESS: filter = FilterManager.getFilter(bfID); break;
+                        case FIRST: filter = QueueFilterManager.getFilter(bfID); break;
+                        case RANDOM: break;
+                    }
                     if (filter != null) {
                         filters.put(bfID, filter);
                     }

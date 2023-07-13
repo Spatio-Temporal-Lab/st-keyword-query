@@ -18,13 +18,13 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
     long hotness;
     BytesKey bytesKey;
 
-    FilterWithHotness(Filter filter, BytesKey bytesKey, long hotness) {
+    public FilterWithHotness(Filter filter, BytesKey bytesKey, long hotness) {
         this.filter = filter;
         this.bytesKey = bytesKey;
         this.hotness = hotness;
     }
 
-    FilterWithHotness(Filter filter, BytesKey bytesKey) {
+    public FilterWithHotness(Filter filter, BytesKey bytesKey) {
         this.filter = filter;
         this.bytesKey = bytesKey;
     }
@@ -40,15 +40,17 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
     }
 }
 
-public class FilterManager {
+public class FilterManager extends AbstractFilterManager {
     private static final int MAX_FILTER_COUNT = 128;
     private static int filterCount;
     private static final Map<BytesKey, FilterWithHotness> filters = new Hashtable<>();
     private static Map<BytesKey, Long> count = new Hashtable<>();
+    private static final Map<BytesKey, Long> hotnessMap = new Hashtable<>();
     private static final Multiset<FilterWithHotness> set = TreeMultiset.create();
     private static final ReentrantLock lock = new ReentrantLock();
+    private static int reAllocateCount = 0;
 
-    public static void loadCount() {
+    public static void init() {
         String path = "/usr/data/count.txt";
         try(FileInputStream fIn = new FileInputStream(path);
             ObjectInputStream o = new ObjectInputStream(fIn);) {
@@ -70,18 +72,20 @@ public class FilterManager {
             if (filter == null) {
                 try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt");
                         ObjectInputStream oIn = new ObjectInputStream(fIn)) {
-                    filter = new FilterWithHotness((Filter) oIn.readObject(), bytesKey);
-
-                    filters.put(bytesKey, filter);
-                    set.add(filter);
-
                     if (++filterCount > MAX_FILTER_COUNT) {
                         reAllocate();
                     }
+
+                    hotnessMap.merge(bytesKey, countForThisGrid, Long::sum);
+                    filter = new FilterWithHotness((Filter) oIn.readObject(), bytesKey, hotnessMap.get(bytesKey));
+
+                    filters.put(bytesKey, filter);
+                    set.add(filter);
                 }
             } else {
                 set.remove(filter);
                 filter.hotness += countForThisGrid;
+                hotnessMap.put(bytesKey, filter.hotness);
                 set.add(filter);
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -98,6 +102,7 @@ public class FilterManager {
             set.remove(filter);
             filters.remove(filter.bytesKey);
             --filterCount;
+            ++reAllocateCount;
             break;
         }
     }
@@ -109,9 +114,13 @@ public class FilterManager {
     public static void showSize() {
         System.out.println(RamUsageEstimator.humanSizeOf(filters));
         System.out.println(RamUsageEstimator.humanSizeOf(set));
+        System.out.println("filter count: " + filters.size());
         for (FilterWithHotness filter : filters.values()) {
             System.out.println(RamUsageEstimator.humanSizeOf(filter));
         }
-        System.out.println("filter count: " + filters.size());
+    }
+
+    public static int getReAllocateCount() {
+        return reAllocateCount;
     }
 }
