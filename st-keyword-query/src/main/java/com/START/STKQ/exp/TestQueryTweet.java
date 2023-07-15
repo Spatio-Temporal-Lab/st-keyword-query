@@ -101,8 +101,8 @@ public class TestQueryTweet {
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator2, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator2, true, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
                 new QueryProcessor(tableName, keyGenerator, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
@@ -122,7 +122,7 @@ public class TestQueryTweet {
                     query.setQueryType(QueryType.CONTAIN_ONE);
                     long startTime = System.currentTimeMillis();
                     ArrayList<STObject> result = processors[i].getResult(query);
-                    results.get(i).add(result);
+//                    results.get(i).add(result);
                     long endTime = System.currentTimeMillis();
                     timeMethod += endTime - startTime;
                 }
@@ -159,23 +159,23 @@ public class TestQueryTweet {
                 break;
         }
 
-        for (ArrayList<ArrayList<STObject>> result_ : results) {
-            for (ArrayList<STObject> result : result_) {
-                Collections.sort(result);
-            }
-        }
-
-        for (int i = 0; i < processors.length; ++i) {
-            for (int j = i + 1; j < processors.length; ++j) {
-                if (!equals(results.get(i), results.get(j))) {
-                    System.out.println(results);
-                    System.out.println("result not equal: " + i + " " + j);
-                }
-                if (results.get(i).size() != results.get(j).size()) {
-                    System.out.println("count not equal: " + i + " " + j);
-                }
-            }
-        }
+//        for (ArrayList<ArrayList<STObject>> result_ : results) {
+//            for (ArrayList<STObject> result : result_) {
+//                Collections.sort(result);
+//            }
+//        }
+//
+//        for (int i = 0; i < processors.length; ++i) {
+//            for (int j = i + 1; j < processors.length; ++j) {
+//                if (!equals(results.get(i), results.get(j))) {
+//                    System.out.println(results);
+//                    System.out.println("result not equal: " + i + " " + j);
+//                }
+//                if (results.get(i).size() != results.get(j).size()) {
+//                    System.out.println("count not equal: " + i + " " + j);
+//                }
+//            }
+//        }
 
 //        FilterManager.showSize();
     }

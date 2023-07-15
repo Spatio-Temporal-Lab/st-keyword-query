@@ -23,7 +23,7 @@ class FilterWithKey {
 public class QueueFilterManager extends AbstractFilterManager {
     static Queue<FilterWithKey> queue;
     static Map<BytesKey, Filter> filters = new Hashtable<>();
-    private static final int MAX_FILTER_COUNT = 128;
+    private static final int MAX_FILTER_COUNT = 512;
     private static int filterCount;
     private static Map<BytesKey, Long> count = new Hashtable<>();
     private static final ReentrantLock lock = new ReentrantLock();

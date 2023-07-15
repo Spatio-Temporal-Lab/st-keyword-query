@@ -1,7 +1,11 @@
 package com.START.STKQ.util;
 
 import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.HBaseUtil;
 import com.START.STKQ.model.*;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.davidmoten.hilbert.HilbertCurve;
+import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.io.*;
@@ -112,33 +116,37 @@ public class QueryGenerator {
         }
     }
 
+    public static ArrayList<String> getRandomKeywords(byte[] st) {
+        ArrayList<String> keywords = new ArrayList<>();
+
+        return keywords;
+    }
+
     public static void generateZipfQueries(int size, double skew) {
+        ArrayList<BytesKey> stKeySortByObjectCount;
+        Map<BytesKey, Set<String>> key2Words;
 
-        ArrayList<BytesKey> sKeySortByObjectCount;
-        ArrayList<BytesKey> tKeySortByObjectCount;
-
-        try(FileInputStream fin = new FileInputStream("/usr/data/count0.txt");
+        try(FileInputStream fin = new FileInputStream("/usr/data/st2Count.txt");
             ObjectInputStream ois = new ObjectInputStream(fin)
         ) {
-            Map<BytesKey, Integer> spatialDistribution = (Map<BytesKey, Integer>) ois.readObject();
-            sKeySortByObjectCount = MapUtil.sortByValue(spatialDistribution);
+            stKeySortByObjectCount = MapUtil.sortByValue((Map<BytesKey, Integer>) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
 
-        try(FileInputStream fin = new FileInputStream("/usr/data/count1.txt");
+        try(FileInputStream fin = new FileInputStream("/usr/data/st2Words.txt");
             ObjectInputStream ois = new ObjectInputStream(fin)
         ) {
-            Map<BytesKey, Integer> timeDistribution = (Map<BytesKey, Integer>) ois.readObject();
-            tKeySortByObjectCount = MapUtil.sortByValue(timeDistribution);
+            key2Words = (Map<BytesKey, Set<String>>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
 
-        ZipfGenerator sKeyGenerator = new ZipfGenerator(sKeySortByObjectCount.size(), skew);
-        ZipfGenerator tKeyGenerator = new ZipfGenerator(tKeySortByObjectCount.size(), skew);
+        ZipfGenerator stKeyGenerator = new ZipfGenerator(stKeySortByObjectCount.size(), skew);
+
         NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+        SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
         String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
         System.out.println(path);
@@ -148,33 +156,35 @@ public class QueryGenerator {
             int writeCount = 0;
             while (writeCount < size) {
 
-                int sKeyId = sKeySortByObjectCount.size() - sKeyGenerator.next();
-                int tKeyId = tKeySortByObjectCount.size() - tKeyGenerator.next();
+                int stId = stKeySortByObjectCount.size() - stKeyGenerator.next();
+                BytesKey bytesKey = stKeySortByObjectCount.get(stId);
+                byte[] bytesKeyArray = bytesKey.getArray();
+                byte[] sKey = Arrays.copyOfRange(bytesKeyArray, 0, 4);
 
-                byte[] sBytesKey = sKeySortByObjectCount.get(sKeyId).getArray();
-                byte[] latKey = Arrays.copyOfRange(sBytesKey, 0, 2);
-                byte[] lonKey = Arrays.copyOfRange(sBytesKey, 2, 4);
-                System.out.println(Arrays.toString(sBytesKey));
-                System.out.println(Arrays.toString(latKey) + " " + Arrays.toString(lonKey));
-                double lat = normalizedLat.denormalize(ByteUtil.toInt(latKey));
-                double lon = normalizedLon.denormalize(ByteUtil.toInt(lonKey));
-                System.out.println(ByteUtil.toInt(latKey));
-                System.out.println(lat);
-                System.out.println(ByteUtil.toInt(lonKey));
-                System.out.println(lon);
+                byte[] tKey = Arrays.copyOfRange(bytesKeyArray, 4, 7);
+
+                long sKeyLong = ByteUtil.toLong(sKey);
+                long[] originS = curve.point(sKeyLong);
+                double lat = normalizedLat.denormalize((int) originS[0]);
+                double lon = normalizedLon.denormalize((int) originS[1]);
+
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
                 writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
                 writer.write(",");
                 writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
                 writer.write(",");
 
-                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKeySortByObjectCount.get(tKeyId).getArray()));
+                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
 
-                keywords = getRandomKeywords();
+                if (random.nextDouble() < 0.5) {
+                    keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));
+                } else {
+                    keywords = getRandomKeywords();
+                }
 
                 for (String keyword : keywords) {
                     writer.write("," + keyword);

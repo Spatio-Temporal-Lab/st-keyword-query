@@ -11,6 +11,8 @@ import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.davidmoten.hilbert.HilbertCurve;
+import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 import scala.collection.immutable.Stream;
 
@@ -467,20 +469,16 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
                 int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
 
-//                long sIDForBf = sID >>> 16;
-//                int tIDForBf = tID >>> 8;
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
 
                 int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
                 int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
                 BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
-//                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));
 
                 map.merge(bfID, 1L, Long::sum);
 
@@ -590,14 +588,14 @@ public class DataReader {
         return bloomFilters;
     }
 
-    public ArrayList<Map<BytesKey, Integer>> generateDistribution(String path) {
-        Map<BytesKey, Integer> mapS = new HashMap<>();
-        Map<BytesKey, Integer> mapT = new HashMap<>();
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+    public ArrayList<Map> generateDistribution(String path) {
+        Map<BytesKey, Integer> st2Count = new HashMap<>();
+        Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
 
-        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
-        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        Random random = new Random();
+
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
             String line;
@@ -612,21 +610,27 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-                Location location = cur.getLocation();
-                mapS.merge(new BytesKey(
-                        ByteUtil.concat(ByteUtil.getKByte(normalizedLat.normalize(location.getLat()), 2),
-                        ByteUtil.getKByte(normalizedLon.normalize(location.getLon()), 2))), 1, Integer::sum);
 
-                mapT.merge(new BytesKey(timeKeyGenerator.toKey(cur.getDate())), 1, Integer::sum);
+                if (random.nextDouble() < 0.1) {
+                    BytesKey bytesKey = new BytesKey(ByteUtil.concat(
+                            spatialKeyGenerator.toKey(cur.getLocation()),
+                            timeKeyGenerator.toKey(cur.getDate())
+                    ));
+                    st2Count.merge(bytesKey, 1, Integer::sum);
+                    if (st2Keywords.containsKey(bytesKey)) {
+                        st2Keywords.get(bytesKey).addAll(cur.getKeywords());
+                    } else {
+                        st2Keywords.put(bytesKey, new HashSet<>(cur.getKeywords()));
+                    }
+                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
-        ArrayList<Map<BytesKey, Integer>> result = new ArrayList<>();
-        result.add(mapS);
-        result.add(mapT);
-
+        ArrayList<Map> result = new ArrayList<>();
+        result.add(st2Count);
+        result.add(st2Keywords);
         return result;
     }
 

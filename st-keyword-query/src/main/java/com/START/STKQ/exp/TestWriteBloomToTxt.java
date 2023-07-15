@@ -33,9 +33,9 @@ import java.util.Set;
 public class TestWriteBloomToTxt {
     public static void main(String[] args) throws Exception {
 
-        writeInfiniFilter();
+//        writeInfiniFilter();
 //        writeSTCount();
-//        writeDistribution();
+        writeDistribution();
 //        writeKeywords();
 
 //        DataReader dataReader = new DataReader();
@@ -95,16 +95,17 @@ public class TestWriteBloomToTxt {
 
     public static void writeDistribution() throws ParseException, IOException {
         DataReader dataReader = new DataReader();
-        ArrayList<Map<BytesKey, Integer>> map = dataReader.generateDistribution("/usr/data/tweetAll.csv");
-        System.out.println("spatial count: " + map.get(0).size());
-        System.out.println("temporal count: " + map.get(1).size());
+        ArrayList<Map> maps = dataReader.generateDistribution("/usr/data/tweetAll.csv");
+        System.out.println("st count: " + maps.get(0).size());
+        System.out.println("st count: " + maps.get(1).size());
 
-        int n = map.size();
-        for (int i = 0; i < n; ++i) {
-            String outputPath = "/usr/data/count" + i + ".txt";
-            FileOutputStream f = new FileOutputStream(outputPath);
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(map.get(i));
+        try(FileOutputStream f = new FileOutputStream("/usr/data/st2Count.txt");
+            ObjectOutputStream o = new ObjectOutputStream(f)) {
+            o.writeObject(maps.get(0));
+        }
+        try(FileOutputStream f = new FileOutputStream("/usr/data/st2Words.txt");
+            ObjectOutputStream o = new ObjectOutputStream(f)) {
+            o.writeObject(maps.get(1));
         }
     }
 

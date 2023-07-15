@@ -31,7 +31,7 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
     }
 
     public Integer getNumber(Date d) {
-        return DateUtil.getHours(d);
+        return DateUtil.getHours(d) / hourPerBin;
     }
 
     public Date keyToTime(byte[] key) {

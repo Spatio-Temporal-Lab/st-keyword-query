@@ -41,7 +41,7 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
 }
 
 public class FilterManager extends AbstractFilterManager {
-    private static final int MAX_FILTER_COUNT = 128;
+    private static final int MAX_FILTER_COUNT = 512;
     private static int filterCount;
     private static final Map<BytesKey, FilterWithHotness> filters = new Hashtable<>();
     private static Map<BytesKey, Long> count = new Hashtable<>();
