@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements Serializable {
     private final int BIT_COUNT = 14;
     private final int BYTE_COUNT = 4;
-    private final int MAX_RANGE_COUNT = 4;
+    private final int MAX_RANGE_COUNT = 32;
     NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(BIT_COUNT);
     NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(BIT_COUNT);
     private SmallHilbertCurve curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);

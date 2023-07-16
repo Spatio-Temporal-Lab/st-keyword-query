@@ -1,9 +1,13 @@
-
 package com.github.nivdayan.FilterLibrary.filters;
+
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 
 import java.io.Serializable;
 
-public class BasicInfiniFilter extends QuotientFilter implements Serializable {
+public class BasicInfiniFilter extends QuotientFilter implements Serializable
+{
 
 	protected long empty_fingerprint;
 	int num_void_entries = 0;
@@ -14,9 +18,9 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable {
 		fprStyle = val;
 	}
 
-	public BasicInfiniFilter() {}
+	BasicInfiniFilter() {super();}
 
-	public BasicInfiniFilter(int power_of_two, int bits_per_entry) {
+	BasicInfiniFilter(int power_of_two, int bits_per_entry) {
 		super(power_of_two, bits_per_entry);
 		max_entries_before_expansion = (long)(Math.pow(2, power_of_two_size) * expansion_threshold);
 		set_empty_fingerprint(fingerprintLength);
@@ -240,6 +244,110 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable {
 		System.out.println("is full: " + is_full);
 		System.out.println("original fingerprint size: " + original_fingerprint_size);
 		System.out.println("num expansions : " + num_expansions);
+	}
+
+	protected void writeTo(Output output) {
+//		Output output = new Output(os);
+		output.writeLong(empty_fingerprint);
+		output.writeInt(num_void_entries);
+		output.writeInt(num_distinct_void_entries);
+		output.writeInt(bitPerEntry);
+		output.writeInt(power_of_two_size);
+		output.writeInt(num_extension_slots);
+		output.writeInt(num_existing_entries);
+
+		QuickBitVectorWrapper quickBitVectorWrapper = (QuickBitVectorWrapper) filter;
+		output.writeInt(quickBitVectorWrapper.bs.length);
+//		System.out.println("length output = " + quickBitVectorWrapper.bs.length);
+		if (quickBitVectorWrapper.bs.length > 0) {
+			output.writeLongs(quickBitVectorWrapper.bs, 0, quickBitVectorWrapper.bs.length);
+		}
+
+		output.writeLong(last_empty_slot);
+		output.writeLong(last_cluster_start);
+		output.writeLong(backward_steps);
+		output.writeDouble(expansion_threshold);
+		output.writeLong(max_entries_before_expansion);
+		output.writeBoolean(expand_autonomously);
+		output.writeBoolean(is_full);
+		output.writeLong(num_runs);
+		output.writeLong(num_clusters);
+		output.writeDouble(avg_run_length);
+		output.writeDouble(avg_cluster_length);
+		output.writeInt(original_fingerprint_size);
+		output.writeInt(num_expansions);
+//		System.out.println("output num_expansions: " + num_expansions);
+	}
+
+	protected BasicInfiniFilter read(Input input) {
+		BasicInfiniFilter result = new BasicInfiniFilter(3, 10);
+//		BasicInfiniFilter result = new BasicInfiniFilter();
+//		Input input = new Input(is);
+
+		result.empty_fingerprint = input.readLong();
+		result.num_void_entries = input.readInt();
+		result.num_distinct_void_entries = input.readInt();
+		result.bitPerEntry = input.readInt();
+		result.power_of_two_size = input.readInt();
+		result.num_extension_slots = input.readInt();
+		result.num_existing_entries = input.readInt();
+
+		int length = input.readInt();
+		result.filter = new QuickBitVectorWrapper();
+//		System.out.println("length input = " + length);
+		if (length > 0) {
+			((QuickBitVectorWrapper) (result.filter)).bs = input.readLongs(length);
+		}
+
+		result.last_empty_slot = input.readLong();
+		result.last_cluster_start = input.readLong();
+		result.backward_steps = input.readLong();
+		result.expansion_threshold = input.readDouble();
+		result.max_entries_before_expansion = input.readLong();
+		result.expand_autonomously = input.readBoolean();
+		result.is_full = input.readBoolean();
+		result.num_runs = input.readLong();
+		result.num_clusters = input.readLong();
+		result.avg_run_length = input.readDouble();
+		result.avg_cluster_length = input.readDouble();
+		result.original_fingerprint_size = input.readInt();
+		result.num_expansions = input.readInt();
+//		System.out.println("input num_expansions: " + result.num_expansions);
+
+		return result;
+	}
+
+	protected void read(Input input, ChainedInfiniFilter result) {
+		result.empty_fingerprint = input.readLong();
+		result.num_void_entries = input.readInt();
+		result.num_distinct_void_entries = input.readInt();
+		result.bitPerEntry = input.readInt();
+		result.power_of_two_size = input.readInt();
+		result.num_extension_slots = input.readInt();
+		result.num_existing_entries = input.readInt();
+
+		int length = input.readInt();
+//		System.out.println("length input = " + length);
+		result.filter = new QuickBitVectorWrapper();
+
+		if (length > 0) {
+			((QuickBitVectorWrapper) (result.filter)).bs = input.readLongs(length);
+		}
+
+		result.last_empty_slot = input.readLong();
+		result.last_cluster_start = input.readLong();
+		result.backward_steps = input.readLong();
+		result.expansion_threshold = input.readDouble();
+		result.max_entries_before_expansion = input.readLong();
+		result.expand_autonomously = input.readBoolean();
+		result.is_full = input.readBoolean();
+		result.num_runs = input.readLong();
+		result.num_clusters = input.readLong();
+		result.avg_run_length = input.readDouble();
+		result.avg_cluster_length = input.readDouble();
+		result.original_fingerprint_size = input.readInt();
+		result.num_expansions = input.readInt();
+//		System.out.println("input num_expansions: " + result.num_expansions);
 	}
 	
 	/*public void print_filter_summary() {	

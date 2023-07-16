@@ -1,5 +1,10 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -38,7 +43,8 @@ import java.util.ArrayList;
  * 22			25		13				14			11
 */
 
-public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializable {
+public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializable
+{
 
 	ArrayList<BasicInfiniFilter> chain;
 	BasicInfiniFilter secondary_IF = null;
@@ -46,7 +52,7 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 	//int count_until_expanding_former = 0;
 	//int former_phase = 0;
 
-	public ChainedInfiniFilter() {}
+	ChainedInfiniFilter() {super();}
 
 	public ChainedInfiniFilter(int power_of_two, int bits_per_entry) {
 		super(power_of_two, bits_per_entry);
@@ -61,6 +67,68 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 	long slot_mask = 0;
 	long fingerprint_mask = 0;
 	long unary_mask = 0;
+
+	public void writeTo(OutputStream os) {
+		Output output = new Output(os);
+		output.writeLong(slot_mask);
+		output.writeLong(fingerprint_mask);
+		output.writeLong(unary_mask);
+//		System.out.println(slot_mask + " " + fingerprint_mask + " " + unary_mask);
+
+		this.writeTo(output);
+
+//		System.out.println("chain size output: " + chain.size());
+		output.writeInt(chain.size());
+		for (BasicInfiniFilter basicInfiniFilter : chain) {
+			basicInfiniFilter.writeTo(output);
+		}
+
+		if (secondary_IF != null) {
+			output.writeByte(1);
+			secondary_IF.writeTo(output);
+		} else {
+			output.writeByte(0);
+		}
+		output.flush();
+		output.close();
+	}
+
+	public ChainedInfiniFilter read(InputStream is) {
+		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter(3, 10);
+//		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter();
+
+		Input input = new Input(is);
+		long slot_mask = input.readLong();
+		long fingerprint_mask = input.readLong();
+		long unary_mask = input.readLong();
+//		System.out.println(slot_mask + " " + fingerprint_mask + " " + unary_mask);
+
+		BasicInfiniFilter temp = new BasicInfiniFilter();
+
+//		infiniFilter = (ChainedInfiniFilter) temp.read(input);
+		infiniFilter.slot_mask = slot_mask;
+		infiniFilter.fingerprint_mask = fingerprint_mask;
+		infiniFilter.unary_mask = unary_mask;
+		temp.read(input, infiniFilter);
+
+		int chainSize = input.readInt();
+//		System.out.println("chain size input: " + chainSize);
+		infiniFilter.chain = new ArrayList<>();
+		if (chainSize > 0) {
+			for (int i = 0; i < chainSize; ++i) {
+				infiniFilter.chain.add(temp.read(input));
+			}
+		}
+
+		byte b = input.readByte();
+		if (b != 0) {
+			infiniFilter.secondary_IF = temp.read(input);
+		}
+
+		infiniFilter.hash_type = HashType.xxh;
+		input.close();
+		return infiniFilter;
+	}
 	
 	void prep_masks() {
 		if (secondary_IF == null) {
@@ -136,6 +204,7 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 	// However, it's not such an expensive function, so it's probably not a performance issue. 
 	public boolean search(long input) {
 
+
 		if (super.search(input)) {
 			return true;
 		}
@@ -143,7 +212,7 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 		if (secondary_IF != null && secondary_IF.search(input)) {
 			return true;
 		}
-
+		
 		for (QuotientFilter qf : chain) {
 			if (qf.search(input)) {
 				return true;

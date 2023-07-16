@@ -33,9 +33,9 @@ import java.util.Set;
 public class TestWriteBloomToTxt {
     public static void main(String[] args) throws Exception {
 
-//        writeInfiniFilter();
+        writeInfiniFilter();
 //        writeSTCount();
-        writeDistribution();
+//        writeDistribution();
 //        writeKeywords();
 
 //        DataReader dataReader = new DataReader();
@@ -65,9 +65,10 @@ public class TestWriteBloomToTxt {
 
         for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
             String outputPath = "/usr/data/bloom/dynamicBloom/all/" + entry.getKey() + ".txt";
-            FileOutputStream f = new FileOutputStream(outputPath);
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(entry.getValue());
+            entry.getValue().writeTo(Files.newOutputStream(Paths.get(outputPath)));
+//            FileOutputStream f = new FileOutputStream(outputPath);
+//            ObjectOutputStream o = new ObjectOutputStream(f);
+//            o.writeObject(entry.getValue());
         }
     }
 

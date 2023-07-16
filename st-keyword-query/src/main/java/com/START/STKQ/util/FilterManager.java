@@ -1,6 +1,7 @@
 package com.START.STKQ.util;
 
 import com.START.STKQ.model.BytesKey;
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
@@ -49,6 +50,8 @@ public class FilterManager extends AbstractFilterManager {
     private static final Multiset<FilterWithHotness> set = TreeMultiset.create();
     private static final ReentrantLock lock = new ReentrantLock();
     private static int reAllocateCount = 0;
+    private static ChainedInfiniFilter filterForLoad = new ChainedInfiniFilter(3, 10);
+    private static long time;
 
     public static void init() {
         String path = "/usr/data/count.txt";
@@ -61,6 +64,7 @@ public class FilterManager extends AbstractFilterManager {
     }
 
     public static Filter getFilter(BytesKey bytesKey) {
+        long begin = System.nanoTime();
         FilterWithHotness filter;
         long countForThisGrid = count.getOrDefault(bytesKey, -1L);
         if (countForThisGrid == -1) {
@@ -70,14 +74,16 @@ public class FilterManager extends AbstractFilterManager {
         try {
             filter = filters.get(bytesKey);
             if (filter == null) {
-                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt");
-                        ObjectInputStream oIn = new ObjectInputStream(fIn)) {
+                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt")) {
                     if (++filterCount > MAX_FILTER_COUNT) {
                         reAllocate();
                     }
 
                     hotnessMap.merge(bytesKey, countForThisGrid, Long::sum);
-                    filter = new FilterWithHotness((Filter) oIn.readObject(), bytesKey, hotnessMap.get(bytesKey));
+
+                    ChainedInfiniFilter cFilter = filterForLoad.read(fIn);
+//                    System.out.println(cFilter == null);
+                    filter = new FilterWithHotness(cFilter, bytesKey, hotnessMap.get(bytesKey));
 
                     filters.put(bytesKey, filter);
                     set.add(filter);
@@ -88,12 +94,13 @@ public class FilterManager extends AbstractFilterManager {
                 hotnessMap.put(bytesKey, filter.hotness);
                 set.add(filter);
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             lock.unlock();
         }
 
+        time += System.nanoTime() - begin;
         return filter.filter;
     }
 
@@ -122,5 +129,9 @@ public class FilterManager extends AbstractFilterManager {
 
     public static int getReAllocateCount() {
         return reAllocateCount;
+    }
+
+    public static long getTime() {
+        return time;
     }
 }
