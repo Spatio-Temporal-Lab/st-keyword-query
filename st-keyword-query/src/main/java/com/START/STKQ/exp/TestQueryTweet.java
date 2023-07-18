@@ -100,9 +100,10 @@ public class TestQueryTweet {
 
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
-                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator2, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
+                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
+                new QueryProcessor(tableName, keyGenerator2, true, true, parallel),
+                new QueryProcessor(tableName, keyGenerator1, true, true, parallel),
+//                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
@@ -129,6 +130,7 @@ public class TestQueryTweet {
                 System.out.println("method " + i + " time: " + timeMethod);
                 System.out.println("method " + i + " query hbase time: " + processors[i].getQueryHBaseTime());
                 System.out.println("method " + i + " query bloom time: " + processors[i].getQueryBloomTime());
+                System.out.println("method " + i + " filter time: " + processors[i].getFilterTime() / 100_0000);
                 System.out.println("origin size: " + processors[i].getAllSize());
                 System.out.println("origin count: " + processors[i].getAllCount());
 
@@ -165,8 +167,8 @@ public class TestQueryTweet {
             }
         }
 
-        System.out.println("load time hotness: " + FilterManager.getTime());
-        System.out.println("load time queue: " + QueueFilterManager.getTime());
+        System.out.println("load time hotness: " + FilterManager.getTime() / 100_0000);
+        System.out.println("load time queue: " + QueueFilterManager.getTime() / 100_0000);
 
         for (int i = 0; i < processors.length; ++i) {
             for (int j = i + 1; j < processors.length; ++j) {

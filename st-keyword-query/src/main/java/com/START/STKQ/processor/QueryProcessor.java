@@ -32,6 +32,10 @@ public class QueryProcessor {
         return queryBloomTime;
     }
 
+    public long getFilterTime() {
+        return generator.getFilterTime();
+    }
+
     public long getAllSize() {
         return allSize;
     }

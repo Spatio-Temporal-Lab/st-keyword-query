@@ -76,59 +76,85 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     public ArrayList<byte[]> toKeys(Query query, ArrayList<Range<byte[]>> sRanges, ArrayList<Range<byte[]>> tRanges) {
         ArrayList<byte[]> keys = new ArrayList<>();
 
-        ArrayList<String> keywords = query.getKeywords();
-        QueryType queryType = query.getQueryType();
+//        ArrayList<String> keywords = query.getKeywords();
+//        QueryType queryType = query.getQueryType();
+//
+//        if (sBf != null && tBf != null) {
+//            ArrayList<byte[]> sCodes = new ArrayList<>();
+//            ArrayList<byte[]> tCodes = new ArrayList<>();
+//
+//            for (Range<byte[]> spatialRange : sRanges) {
+//                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+//                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+//
+//                for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
+//                    if (BfUtil.check(sBf, ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT), keywords, queryType)) {
+//                        sCodes.add(ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT));
+//                    }
+//                }
+//            }
+//
+//            int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
+//            int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
+//
+//            for (int i = timeRangeStart; i <= timeRangeEnd; ++i) {
+//                if (BfUtil.check(tBf, ByteUtil.getKByte(i, TIME_BYTE_COUNT), keywords, queryType)) {
+//                    tCodes.add(ByteUtil.getKByte(i, TIME_BYTE_COUNT));
+//                }
+//            }
+//
+//            for (byte[] sCode : sCodes) {
+//                for (byte[] tCode : tCodes) {
+//                    keys.add(ByteUtil.concat(sCode, tCode));
+//                }
+//            }
+//
+//        } else {
+//            for (Range<byte[]> spatialRange : sRanges) {
+//                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+//                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+//                for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
+//                    byte[] now = ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT);
+//                    int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
+//                    int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
+//                    for (int j = timeRangeStart; j <= timeRangeEnd; ++j) {
+//                        keys.add(ByteUtil.concat(now, ByteUtil.getKByte(j, TIME_BYTE_COUNT)));
+//                    }
+//                }
+//            }
+//        }
 
-        if (sBf != null && tBf != null) {
-            ArrayList<byte[]> sCodes = new ArrayList<>();
-            ArrayList<byte[]> tCodes = new ArrayList<>();
-
-            for (Range<byte[]> spatialRange : sRanges) {
-//                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> 4;
-//                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> 4;
-                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-
-                for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
-                    if (BfUtil.check(sBf, ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT), keywords, queryType)) {
-                        sCodes.add(ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT));
-                    }
+        LinkedList<Long> sKeys = new LinkedList<>();
+        for (Range<byte[]> spatialRange : sRanges) {
+            long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+            long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+            for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
+                if (sKeys.isEmpty() || i != sKeys.getLast()) {
+                    sKeys.add(i);
                 }
             }
+        }
 
-//            int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> 2;
-//            int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> 2;
-            int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
-            int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
+        int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
+        int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
+        int tKeySize = timeRangeEnd - timeRangeStart + 1;
+        byte[][] timeKeys = new byte[tKeySize][TIME_BYTE_COUNT];
 
-            for (int i = timeRangeStart; i <= timeRangeEnd; ++i) {
-                if (BfUtil.check(tBf, ByteUtil.getKByte(i, TIME_BYTE_COUNT), keywords, queryType)) {
-                    tCodes.add(ByteUtil.getKByte(i, TIME_BYTE_COUNT));
-                }
-            }
+        int pos = 0;
+        for (int j = timeRangeStart; j <= timeRangeEnd; ++j) {
+            timeKeys[pos] = ByteUtil.getKByte(j, TIME_BYTE_COUNT);
+            ++pos;
+        }
 
-            for (byte[] sCode : sCodes) {
-                for (byte[] tCode : tCodes) {
-                    keys.add(ByteUtil.concat(sCode, tCode));
-                }
-            }
-
-        } else {
-            for (Range<byte[]> spatialRange : sRanges) {
-//                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> 4;
-//                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> 4;
-                long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-                long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-                for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
-                    byte[] now = ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT);
-//                    int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> 2;
-//                    int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> 2;
-                    int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
-                    int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
-                    for (int j = timeRangeStart; j <= timeRangeEnd; ++j) {
-                        keys.add(ByteUtil.concat(now, ByteUtil.getKByte(j, TIME_BYTE_COUNT)));
-                    }
-                }
+        for (Long i : sKeys) {
+            byte[] now = ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT);
+//            int timeRangeStart = ByteUtil.toInt(tRanges.get(0).getLow()) >>> Constant.FILTER_ITEM_LEVEL;
+//            int timeRangeEnd = ByteUtil.toInt(tRanges.get(0).getHigh()) >>> Constant.FILTER_ITEM_LEVEL;
+//            for (int j = timeRangeStart; j <= timeRangeEnd; ++j) {
+//                keys.add(ByteUtil.concat(now, ByteUtil.getKByte(j, TIME_BYTE_COUNT)));
+//            }
+            for (int j = 0; j < tKeySize; ++j) {
+                keys.add(ByteUtil.concat(now, timeKeys[j]));
             }
         }
 
@@ -140,16 +166,24 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
             return new ArrayList<>();
         }
 
+
+        long begin;
+
+//        begin = System.nanoTime();
         ArrayList<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
         ArrayList<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
-
+        
         List<Range<Long>> sRangesLong = sRanges.stream().map(
                 key -> new Range<>(ByteUtil.toLong(key.getLow()), ByteUtil.toLong(key.getHigh()))).collect(Collectors.toList());
         Range<Integer> tRangesInt = new Range<>(
                 ByteUtil.toInt(tRanges.get(0).getLow()), ByteUtil.toInt(tRanges.get(0).getHigh())
         );
 
+        int sRangeSize = sRangesLong.size();
+
         ArrayList<byte[]> keysBefore = toKeys(query, sRanges, tRanges);
+
+//        filterTime += System.nanoTime() - begin;
 
         QueryType queryType = query.getQueryType();
 
@@ -159,12 +193,15 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
         }
 
         Stream<byte[]> filteredKeys;
+
         if (!loadFilterDynamically) {
+            begin = System.nanoTime();
             filteredKeys = keysBefore.stream().parallel().filter(
                     key -> checkInBF(key, wordKeys, queryType)
             );
         } else {
             // get the filter id, since the keys are sorted, so we use list rather than set
+
             LinkedList<Long> sLongSet = new LinkedList<>();
             for (Range<Long> sRangeLong : sRangesLong) {
                 long filterIdStart = sRangeLong.getLow() >>> (Constant.FILTER_LEVEL << 1);
@@ -201,7 +238,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
                 }
             }
 
-
+            begin = System.nanoTime();
             filteredKeys = keysBefore.stream().parallel().filter(
                     key -> {
                         long sIDForBf = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
@@ -225,10 +262,13 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
                     ArrayList<byte[]> sKeys = new ArrayList<>();
                     ArrayList<byte[]> tKeys = new ArrayList<>();
 
+                    int pos = 0;
                     for (long i = sCode << shiftForS; i <= (sCode << shiftForS | maxShiftForS); ++i) {
-                        for (Range<Long> sRange : sRangesLong) {
-                            if (i >= sRange.getLow() && i <= sRange.getHigh()) {
+                        for (int j = pos; j < sRangeSize; ++j) {
+                            Range<Long> range = sRangesLong.get(j);
+                            if (i >= range.getLow() && i <= range.getHigh()) {
                                 sKeys.add(ByteUtil.getKByte(i, SPATIAL_BYTE_COUNT));
+                                pos = j;
                                 break;
                             }
                         }
@@ -250,6 +290,9 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
                 }
         ).flatMap(ArrayList::stream);
 
-        return keysToRanges(filteredKeys);
+        ArrayList<Range<byte[]>> ranges = keysToRanges(filteredKeys);
+        filterTime += System.nanoTime() - begin;
+        return ranges;
+//        return keysToRanges(filteredKeys);
     }
 }

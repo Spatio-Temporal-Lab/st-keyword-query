@@ -252,6 +252,7 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 		output.writeInt(num_void_entries);
 		output.writeInt(num_distinct_void_entries);
 		output.writeInt(bitPerEntry);
+		output.writeInt(fingerprintLength);
 		output.writeInt(power_of_two_size);
 		output.writeInt(num_extension_slots);
 		output.writeInt(num_existing_entries);
@@ -280,14 +281,15 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 	}
 
 	protected BasicInfiniFilter read(Input input) {
-		BasicInfiniFilter result = new BasicInfiniFilter(3, 10);
-//		BasicInfiniFilter result = new BasicInfiniFilter();
+//		BasicInfiniFilter result = new BasicInfiniFilter(3, 10);
+		BasicInfiniFilter result = new BasicInfiniFilter();
 //		Input input = new Input(is);
 
 		result.empty_fingerprint = input.readLong();
 		result.num_void_entries = input.readInt();
 		result.num_distinct_void_entries = input.readInt();
 		result.bitPerEntry = input.readInt();
+		result.fingerprintLength = input.readInt();
 		result.power_of_two_size = input.readInt();
 		result.num_extension_slots = input.readInt();
 		result.num_existing_entries = input.readInt();
@@ -322,6 +324,7 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 		result.num_void_entries = input.readInt();
 		result.num_distinct_void_entries = input.readInt();
 		result.bitPerEntry = input.readInt();
+		result.fingerprintLength = input.readInt();
 		result.power_of_two_size = input.readInt();
 		result.num_extension_slots = input.readInt();
 		result.num_existing_entries = input.readInt();

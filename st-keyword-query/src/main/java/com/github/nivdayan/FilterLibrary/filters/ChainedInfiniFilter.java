@@ -94,8 +94,8 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 	}
 
 	public ChainedInfiniFilter read(InputStream is) {
-		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter(3, 10);
-//		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter();
+//		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter(3, 10);
+		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter();
 
 		Input input = new Input(is);
 		long slot_mask = input.readLong();

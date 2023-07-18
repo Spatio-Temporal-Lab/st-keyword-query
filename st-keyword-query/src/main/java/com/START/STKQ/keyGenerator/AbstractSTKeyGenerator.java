@@ -30,6 +30,11 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     protected FlushStrategy flushStrategy;
     private static final long serialVersionUID = 6529685098267757693L;
+    protected long filterTime = 0;
+
+    public long getFilterTime() {
+        return filterTime;
+    }
 
     public AbstractSTKeyGenerator() {
         spatialKeyGenerator = new HilbertSpatialKeyGenerator();
@@ -167,8 +172,11 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     }
 
     public ArrayList<Range<byte[]>> keysToRanges(Stream<byte[]> keys) {
+
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+//        long begin = System.nanoTime();
         List<Long> keysLong = keys.map(ByteUtil::toLong).sorted().collect(Collectors.toList());
+//        filterTime += System.nanoTime() - begin;
 
         int n = keysLong.size();
 
@@ -215,7 +223,9 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
                     key -> checkInBF(key, wordKeys, queryType)
             );
         } else {
-            filteredKeys = keysBefore.stream().parallel().filter(
+            filteredKeys = keysBefore.stream()
+                    .parallel()
+                    .filter(
                     key -> {
                         try {
                             return checkInFilter(key, wordKeys, queryType);
@@ -226,7 +236,9 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             );
         }
 
-        filteredKeys = filteredKeys.parallel().map(
+        filteredKeys = filteredKeys
+                .parallel()
+                .map(
                 key -> {
                     ArrayList<byte[]> keys = new ArrayList<>();
                     long sCode = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4));
