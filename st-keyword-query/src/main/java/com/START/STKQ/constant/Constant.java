@@ -11,4 +11,5 @@ public class Constant {
     */
     public static final int FILTER_LEVEL = 8;
     public static final int FILTER_ITEM_LEVEL = 2;
+//    public static final int FILTER_ITEM_LEVEL = 1;
 }

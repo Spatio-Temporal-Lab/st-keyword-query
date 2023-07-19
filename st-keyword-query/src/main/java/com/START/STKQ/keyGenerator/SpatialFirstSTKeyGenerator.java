@@ -6,15 +6,13 @@ import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
-import com.START.STKQ.util.BfUtil;
 import com.START.STKQ.util.ByteUtil;
-import com.START.STKQ.util.FilterManager;
-import com.START.STKQ.util.QueueFilterManager;
+import com.START.STKQ.util.FilterManager.FilterManager;
+import com.START.STKQ.util.FilterManager.QueueFilterManager;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

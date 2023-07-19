@@ -16,6 +16,9 @@ import java.util.concurrent.Executors;
 public class HBaseQueryProcessor {
     private final static HBaseUtil hBaseUtil;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    static ExecutorService service = Executors.newCachedThreadPool();
+
     static {
         hBaseUtil = new HBaseUtil();
 //        hBaseUtil.init("192.168.137.204");
@@ -114,14 +117,13 @@ public class HBaseQueryProcessor {
 
         if (parallel) {
             cdl = new CountDownLatch(ranges.size());
-            ExecutorService service = Executors.newFixedThreadPool(8);
             for (Range<byte[]> range : ranges) {
                 service.submit(new ScanThread(tableName, useBfInHBase,
                             ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
                             ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
             }
             cdl.await();
-            service.shutdown();
+//            service.shutdown();
         }
         else {
             for (Range<byte[]> range : ranges) {
@@ -132,6 +134,10 @@ public class HBaseQueryProcessor {
             }
         }
         return result;
+    }
+
+    public static void close() {
+        service.shutdown();
     }
 
 }

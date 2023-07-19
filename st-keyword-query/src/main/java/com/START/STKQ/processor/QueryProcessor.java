@@ -122,4 +122,8 @@ public class QueryProcessor {
 
         return result;
     }
+
+    public void close() {
+        HBaseQueryProcessor.close();
+    }
 }

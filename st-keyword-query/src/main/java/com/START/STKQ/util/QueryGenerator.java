@@ -1,9 +1,6 @@
 package com.START.STKQ.util;
 
-import com.START.STKQ.io.DataReader;
-import com.START.STKQ.io.HBaseUtil;
 import com.START.STKQ.model.*;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;

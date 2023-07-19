@@ -1,10 +1,6 @@
 package com.START.STKQ;
 
-import com.START.STKQ.model.BytesKey;
-import com.START.STKQ.util.ByteUtil;
-import com.START.STKQ.util.FilterManager;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import jdk.nashorn.internal.ir.debug.ClassHistogramElement;
 import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.START.STKQ.util;
+package com.START.STKQ.util.FilterManager;
 
 import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.Filter;

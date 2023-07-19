@@ -2,16 +2,16 @@ package com.START.STKQ.exp;
 
 import com.START.STKQ.constant.FlushStrategy;
 import com.START.STKQ.constant.QueryType;
+import com.START.STKQ.io.HBaseQueryProcessor;
 import com.START.STKQ.keyGenerator.AbstractSTKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialFirstSTKeyGenerator;
-import com.START.STKQ.model.BytesKey;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.processor.QueryProcessor;
 import com.START.STKQ.util.*;
-import com.github.nivdayan.FilterLibrary.filters.Filter;
+import com.START.STKQ.util.FilterManager.FilterManager;
+import com.START.STKQ.util.FilterManager.QueueFilterManager;
 import com.google.common.hash.BloomFilter;
-import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 
 public class TestQueryTweet {
 
@@ -63,46 +61,44 @@ public class TestQueryTweet {
 //        ArrayList<Query> queries = QueryGenerator.getQueries("queriesForSample.csv");
 //
         String tableName = "testTweet";
-        String bloomPath = "/usr/data/bloom/multiBloom/all/";
+        String bloomPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
         String outPathName = "/usr/data/log/queryBloomLog.txt";
-//        ArrayList<Query> queries = QueryGenerator.getQueries();
+        ArrayList<Query> queries = QueryGenerator.getQueries();
 //        ArrayList<Query> queries = new ArrayList<>(QueryGenerator.getQueries().subList(1032, 1033));
-        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+//        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
 
         FilterManager.init();
         QueueFilterManager.init();
 
         long start = 0;
         long end = 0;
-        ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
-        for (int i = 0; i < 3; ++i) {
-            if (i == 0) start = System.currentTimeMillis();
-            FileInputStream fi = new FileInputStream(bloomPath + i + ".txt");
-            ObjectInputStream oi = new ObjectInputStream(fi);
-            bloomFilters.add((BloomFilter<byte[]>) oi.readObject());
-            if (i == 0) end = System.currentTimeMillis();
-        }
+        start = System.currentTimeMillis();
+        BloomFilter<byte[]> bloomFilter;
+
+        FileInputStream fi = new FileInputStream(bloomPath);
+        ObjectInputStream oi = new ObjectInputStream(fi);
+        bloomFilter = (BloomFilter<byte[]>) oi.readObject();
+        oi.close();
+
+        end = System.currentTimeMillis();
         System.out.println(end - start);
 
-        AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
-//        AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator();
-        keyGenerator.setBloomFilter(bloomFilters.get(0));
+        AbstractSTKeyGenerator keyGenerator = new SpatialFirstSTKeyGenerator();
+        keyGenerator.setBloomFilter(bloomFilter);
 
-        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
-//        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
+        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
         keyGenerator1.setLoadFilterDynamically(true);
         keyGenerator1.setFlushStrategy(FlushStrategy.FIRST);
 
-        AbstractSTKeyGenerator keyGenerator2 = new SpatialFirstSTKeyGenerator(bloomFilters.get(1), bloomFilters.get(2));
-//        AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
+        AbstractSTKeyGenerator keyGenerator2 = new SpatialFirstSTKeyGenerator();
         keyGenerator2.setLoadFilterDynamically(true);
         keyGenerator2.setFlushStrategy(FlushStrategy.HOTNESS);
 
         boolean parallel = true;
         QueryProcessor[] processors = new QueryProcessor[]{
-                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
-                new QueryProcessor(tableName, keyGenerator2, true, true, parallel),
-                new QueryProcessor(tableName, keyGenerator1, true, true, parallel),
+//                new QueryProcessor(tableName, keyGenerator, true, true, parallel),
+                new QueryProcessor(tableName, keyGenerator2, true, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator1, true, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, false, parallel),
@@ -139,6 +135,7 @@ public class TestQueryTweet {
                 writer.write("method " + i + " query bloom time: " + processors[i].getQueryBloomTime() + "\n");
                 writer.write("origin size: " + processors[i].getAllSize() + "\n");
                 writer.write("origin count: " + processors[i].getAllCount() + "\n");
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -161,26 +158,28 @@ public class TestQueryTweet {
                 break;
         }
 
-        for (ArrayList<ArrayList<STObject>> result_ : results) {
-            for (ArrayList<STObject> result : result_) {
-                Collections.sort(result);
-            }
-        }
-
         System.out.println("load time hotness: " + FilterManager.getTime() / 100_0000);
         System.out.println("load time queue: " + QueueFilterManager.getTime() / 100_0000);
 
-        for (int i = 0; i < processors.length; ++i) {
-            for (int j = i + 1; j < processors.length; ++j) {
-                if (!equals(results.get(i), results.get(j))) {
-                    System.out.println(results);
-                    System.out.println("result not equal: " + i + " " + j);
-                }
-                if (results.get(i).size() != results.get(j).size()) {
-                    System.out.println("count not equal: " + i + " " + j);
-                }
-            }
-        }
+//        for (ArrayList<ArrayList<STObject>> result_ : results) {
+//            for (ArrayList<STObject> result : result_) {
+//                Collections.sort(result);
+//            }
+//        }
+//
+//        for (int i = 0; i < processors.length; ++i) {
+//            for (int j = i + 1; j < processors.length; ++j) {
+//                if (!equals(results.get(i), results.get(j))) {
+//                    System.out.println(results);
+//                    System.out.println("result not equal: " + i + " " + j);
+//                }
+//                if (results.get(i).size() != results.get(j).size()) {
+//                    System.out.println("count not equal: " + i + " " + j);
+//                }
+//            }
+//        }
+
+        HBaseQueryProcessor.close();
 
 //        FilterManager.showSize();
     }

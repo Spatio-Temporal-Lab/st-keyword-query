@@ -314,8 +314,8 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
                             ByteUtil.getKByte(sID, 4),
@@ -381,16 +381,10 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
                 int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
 
-//                long sIDForBf = sID >>> 12;
-//                int tIDForBf = tID >>> 6;
-
-//                long sIDForBf = sID >>> 16;
-//                int tIDForBf = tID >>> 8;
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
 
@@ -544,8 +538,8 @@ public class DataReader {
                 if (cur == null) {
                     continue;
                 }
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> 4;
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> 2;
+                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
                             ByteUtil.getKByte(sID, 4),

@@ -2,41 +2,26 @@ package com.START.STKQ.exp;
 
 import com.START.STKQ.io.DataReader;
 import com.START.STKQ.model.BytesKey;
-import com.START.STKQ.util.ByteUtil;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
-import com.github.nivdayan.FilterLibrary.filters.BasicInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import com.github.nivdayan.FilterLibrary.filters.FingerprintGrowthStrategy;
-import com.github.nivdayan.FilterLibrary.filters.HashType;
 import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
 import org.apache.lucene.util.RamUsageEstimator;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTObjectInput;
-import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-public class TestWriteBloomToTxt {
+public class TestFileIO {
     public static void main(String[] args) throws Exception {
 
-        writeInfiniFilter();
+//        writeInfiniFilter();
 //        writeSTCount();
 //        writeDistribution();
 //        writeKeywords();
+        writeBf();
 
 //        DataReader dataReader = new DataReader();
 //        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetSample.csv", 50000, 0.001);
@@ -48,14 +33,15 @@ public class TestWriteBloomToTxt {
 
     public static void writeBf() throws ParseException, IOException {
         DataReader dataReader = new DataReader();
-        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilters("/usr/data/tweetAll.csv", 50_000_000, 0.001);
-        int n = bloomFilters.size();
-        for (int i = 0; i < n; ++i) {
-            String outputPath = "/usr/data/bloom/multiBloom/all/" + i + ".txt";
-            FileOutputStream f = new FileOutputStream(outputPath);
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(bloomFilters.get(i));
-        }
+//        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilters("/usr/data/tweetAll.csv", 50_000_000, 0.001);
+        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetAll.csv", 50_000_000, 0.001);
+//        int n = bloomFilters.size();
+//        for (int i = 0; i < n; ++i) {
+        String outputPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
+        FileOutputStream f = new FileOutputStream(outputPath);
+        ObjectOutputStream o = new ObjectOutputStream(f);
+        o.writeObject(bloomFilter);
+//        }
     }
 
     public static void writeInfiniFilter() throws ParseException, IOException {
@@ -64,7 +50,7 @@ public class TestWriteBloomToTxt {
         System.out.println(filters.size());
 
         for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
-            String outputPath = "/usr/data/bloom/dynamicBloom/all/" + entry.getKey() + ".txt";
+            String outputPath = "/usr/data/bloom/dynamicBloom/all1/" + entry.getKey() + ".txt";
             entry.getValue().writeTo(Files.newOutputStream(Paths.get(outputPath)));
 //            FileOutputStream f = new FileOutputStream(outputPath);
 //            ObjectOutputStream o = new ObjectOutputStream(f);
