@@ -1,11 +1,8 @@
 package com.START.STKQ.exp;
 
-import com.START.STKQ.constant.QueryType;
 import com.START.STKQ.io.HBaseUtil;
-import com.START.STKQ.util.ByteUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 
 import java.io.IOException;
@@ -16,7 +13,7 @@ public class TestCompact {
         hBaseUtil.init("192.168.137.204");
         String tableName = "test01";
         hBaseUtil.deleteTable(tableName);
-        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS);
+        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
 
         hBaseUtil.put(tableName, new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 "attr", "keywords", "a b");

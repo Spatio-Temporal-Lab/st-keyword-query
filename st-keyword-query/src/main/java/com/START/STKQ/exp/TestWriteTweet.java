@@ -24,14 +24,14 @@ public class TestWriteTweet {
     public static void main(String[] args) throws IOException, ParseException {
 
         HBaseUtil hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("192.168.137.204");
+        hBaseUtil.init("192.168.137.207");
 
         String tableName = "testTweet";
 
         if (hBaseUtil.existsTable(tableName)) {
             hBaseUtil.truncateTable(tableName);
         } else {
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7, 256 * 1012 * 1024);
+            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1012 * 1024);
         }
 
         String inPathName = "/usr/data/tweetAll.csv";

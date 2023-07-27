@@ -143,7 +143,7 @@ public class HBaseUtil {
             ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
                     ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
             columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
-            if (bloomType.equals(BloomType.ROWPREFIX_WITH_KEYWORDS)) {
+            if (bloomType.equals(BloomType.ROWPREFIX_FIXED_LENGTH)) {
                 columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(7));
             }
             builder.setColumnFamily(columnFamilyDescriptorBuilder.build());

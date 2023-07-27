@@ -1,5 +1,6 @@
 package com.START.STKQ.util.FilterManager;
 
+import com.START.STKQ.constant.Constant;
 import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
@@ -51,6 +52,7 @@ public class FilterManager extends AbstractFilterManager {
     private static final ReentrantLock lock = new ReentrantLock();
     private static int reAllocateCount = 0;
     private static final ChainedInfiniFilter filterForLoad = new ChainedInfiniFilter(3, 10);
+    private static final String DIR_NAME = "/usr/data/bloom/dynamicBloom/all" + Constant.S_FILTER_ITEM_LEVEL + Constant.T_FILTER_ITEM_LEVEL + "/";
     private static long time;
 
     public static void init() {
@@ -74,8 +76,7 @@ public class FilterManager extends AbstractFilterManager {
         try {
             filter = filters.get(bytesKey);
             if (filter == null) {
-//                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all1/" + bytesKey + ".txt")) {
-                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt")) {
+                try (FileInputStream fIn = new FileInputStream(DIR_NAME + bytesKey + ".txt")) {
                     if (++filterCount > MAX_FILTER_COUNT) {
                         reAllocate();
                     }

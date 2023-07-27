@@ -35,7 +35,7 @@ public class TestWriteTweetAllWithRepeat {
 
         String tableName = "testTweetSample";
         hBaseUtil.deleteTable(tableName);
-        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_WITH_KEYWORDS, 7, 256 * 1012 * 1024);
+        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1012 * 1024);
 
         String inPathName = "/usr/data/tweetSample.csv";
 

@@ -42,8 +42,9 @@ public class QueueFilterManager extends AbstractFilterManager {
         try {
             filter = filters.get(bytesKey);
             if (filter == null) {
-//                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all1/" + bytesKey + ".txt")) {
-                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt")) {
+                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all1/" + bytesKey + ".txt")) {
+//                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all/" + bytesKey + ".txt")) {
+//                try (FileInputStream fIn = new FileInputStream("/usr/data/bloom/dynamicBloom/all12/" + bytesKey + ".txt")) {
                     if (++filterCount > MAX_FILTER_COUNT) {
                         reAllocate();
                     }

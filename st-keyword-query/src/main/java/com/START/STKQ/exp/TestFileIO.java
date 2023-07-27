@@ -1,5 +1,6 @@
 package com.START.STKQ.exp;
 
+import com.START.STKQ.constant.Constant;
 import com.START.STKQ.io.DataReader;
 import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
@@ -17,11 +18,11 @@ import java.util.Set;
 public class TestFileIO {
     public static void main(String[] args) throws Exception {
 
-//        writeInfiniFilter();
+        writeInfiniFilter();
 //        writeSTCount();
 //        writeDistribution();
 //        writeKeywords();
-        writeBf();
+//        writeBf();
 
 //        DataReader dataReader = new DataReader();
 //        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetSample.csv", 50000, 0.001);
@@ -44,18 +45,26 @@ public class TestFileIO {
 //        }
     }
 
-    public static void writeInfiniFilter() throws ParseException, IOException {
+    public static void writeInfiniFilters() throws ParseException, IOException {
         DataReader dataReader = new DataReader();
         Map<BytesKey, ChainedInfiniFilter> filters = dataReader.generateSTDividedFilter("/usr/data/tweetAll.csv");
         System.out.println(filters.size());
 
         for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
-            String outputPath = "/usr/data/bloom/dynamicBloom/all1/" + entry.getKey() + ".txt";
+            String outputPath = "/usr/data/bloom/dynamicBloom/all" + Constant.S_FILTER_ITEM_LEVEL + Constant.T_FILTER_ITEM_LEVEL + "/" + entry.getKey() + ".txt";
             entry.getValue().writeTo(Files.newOutputStream(Paths.get(outputPath)));
 //            FileOutputStream f = new FileOutputStream(outputPath);
 //            ObjectOutputStream o = new ObjectOutputStream(f);
 //            o.writeObject(entry.getValue());
         }
+    }
+
+    public static void writeInfiniFilter() throws ParseException, IOException {
+        DataReader dataReader = new DataReader();
+        ChainedInfiniFilter filter = dataReader.generateOneFilter("/usr/data/tweetAll.csv");
+        System.out.println(RamUsageEstimator.humanSizeOf(filter));
+        String outputPath = "/usr/data/bloom/dynamicBloom/00.txt";
+        filter.writeTo(Files.newOutputStream(Paths.get(outputPath)));
     }
 
     public static void testSizeofInfiniFilter() {
