@@ -108,7 +108,7 @@ public class TestQueryTweet {
                 new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-                new QueryProcessor(tableName, keyGenerator1, false, false, parallel),
+//                new QueryProcessor(tableName, keyGenerator1, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
         };
         //3553 2508 909
