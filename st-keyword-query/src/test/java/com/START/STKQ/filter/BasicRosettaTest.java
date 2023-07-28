@@ -1,11 +1,9 @@
 package com.START.STKQ.filter;
 
+import com.START.STKQ.model.Range;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import com.START.STKQ.model.Range;
-
-import javax.validation.constraints.AssertTrue;
 import java.util.Random;
 
 public class BasicRosettaTest extends TestCase {
