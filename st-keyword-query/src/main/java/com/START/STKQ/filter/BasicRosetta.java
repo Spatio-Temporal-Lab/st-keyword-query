@@ -4,6 +4,11 @@ package com.START.STKQ.filter;
 import com.START.STKQ.model.Range;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class BasicRosetta {
@@ -21,9 +26,32 @@ public class BasicRosetta {
     }
 
     public BasicRosetta() {
+        n = 3;
+    }
+
+    public void writeTo(String fileNamePre) throws IOException {
+        for (int i = 0; i < n; ++i) {
+            OutputStream output = Files.newOutputStream(Paths.get(fileNamePre + "_" + i));
+            for (ChainedInfiniFilter filter : filters) {
+                filter.writeTo(output);
+            }
+        }
+    }
+
+    public BasicRosetta read(String fileNamePre, int n) throws IOException {
+        this.n = n;
+        this.filters = new ArrayList<>(n);
+        ChainedInfiniFilter temp = new ChainedInfiniFilter();
+        for (int i = 0; i < n; ++i) {
+            InputStream in = Files.newInputStream(Paths.get(fileNamePre + "_" + i));
+            filters.add(temp.read(in));
+        }
+        return this;
     }
 
     public ArrayList<Long> filter(Range<Integer> tRange, Range<Long> sRange) { return new ArrayList<>(); }
+
+    public ArrayList<Range<byte[]>> filter(ArrayList<Range<Long>> sRanges, Range<Integer> tRange, ArrayList<byte[]> keyPre) {return new ArrayList<>();}
 
 //    public ArrayList<Long> filter(Range<Long> range) {
 //
