@@ -1,5 +1,6 @@
 package com.START.STKQ.exp;
 
+import com.START.STKQ.constant.Constant;
 import com.START.STKQ.constant.FilterType;
 import com.START.STKQ.constant.FlushStrategy;
 import com.START.STKQ.constant.QueryType;
@@ -64,14 +65,16 @@ public class TestQueryTweet {
 //
         String tableName = "testTweet";
 //        String bloomPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
-        String filterPath = "/usr/data/bloom/dynamicBloom/00.txt";
-        String outPathName = "/usr/data/log/queryBloomLog.txt";
+//        String filterPath = "/usr/data/bloom/dynamicBloom/00.txt";
+//        String outPathName = "/usr/data/log/queryBloomLog.txt";
+        String filterPath = Constant.DATA_DIR + "\\blooms\\00.txt";
+        String outPathName = Constant.DATA_DIR + "queryLog.txt";
         ArrayList<Query> queries = QueryGenerator.getQueries();
 //        ArrayList<Query> queries = new ArrayList<>(QueryGenerator.getQueries().subList(1032, 1033));
 //        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
 
-        FilterManager.init();
-        QueueFilterManager.init();
+//        FilterManager.init();
+//        QueueFilterManager.init();
 
         long start;
         long end;
@@ -93,7 +96,7 @@ public class TestQueryTweet {
 //        keyGenerator.setBloomFilter(bloomFilter);
 
         AbstractSTKeyGenerator keyGenerator1 = new SpatialFirstSTKeyGenerator();
-        keyGenerator1.setFilterType(FilterType.DYNAMIC);
+//        keyGenerator1.setFilterType(FilterType.DYNAMIC);
         keyGenerator1.setFilter(chainedInfiniFilter);
 //        keyGenerator1.setFlushStrategy(FlushStrategy.FIRST);
 
@@ -111,10 +114,6 @@ public class TestQueryTweet {
 //                new QueryProcessor(tableName, keyGenerator1, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
         };
-        //3553 2508 909
-        //3662 2565 958
-        //3663 2535 992
-        //11611 16486
 
         ArrayList<ArrayList<ArrayList<STObject>>> results = new ArrayList<>(processors.length);
         for (int i = 0; i < processors.length; ++i) {

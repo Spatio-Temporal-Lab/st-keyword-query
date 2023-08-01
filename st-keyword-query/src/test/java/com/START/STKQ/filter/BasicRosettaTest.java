@@ -12,11 +12,13 @@ public class BasicRosettaTest extends TestCase {
     @Test
     public void testFilter() {
 
-        BasicRosetta basicRosetta = new BasicRosetta(3);
+        BasicRosetta basicRosetta = new BasicRosetta(5);
+//        BasicRosetta basicRosetta = new BasicRosetta(2);
         int n = 100_0000;
         for (int i = -n; i <= n; ++i) {
             basicRosetta.insert(i);
         }
+        System.out.println(basicRosetta);
 
         long t1 = System.currentTimeMillis();
         for (int i = 0; i < n; ++i) {
@@ -34,7 +36,7 @@ public class BasicRosettaTest extends TestCase {
         for (int i = 0; i < n; ++i) {
             ++all;
             int low = random.nextInt(n) + n + 1;
-            int high = low + random.nextInt(10);
+            int high = low + random.nextInt(100);
             if (basicRosetta.filter(new Range<>((long) low, (long) high)).size() > 0) {
                 ++error;
             }

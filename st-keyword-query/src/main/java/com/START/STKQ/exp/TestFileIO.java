@@ -1,11 +1,12 @@
 package com.START.STKQ.exp;
 
 import com.START.STKQ.constant.Constant;
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.google.common.hash.BloomFilter;
 import org.apache.lucene.util.RamUsageEstimator;
+import scala.collection.immutable.Stream;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -18,8 +19,8 @@ import java.util.Set;
 public class TestFileIO {
     public static void main(String[] args) throws Exception {
 
-        writeInfiniFilter();
-//        writeSTCount();
+//        writeInfiniFilter();
+        writeSTCount();
 //        writeDistribution();
 //        writeKeywords();
 //        writeBf();
@@ -33,9 +34,9 @@ public class TestFileIO {
     }
 
     public static void writeBf() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
+        DataProcessor dataProcessor = new DataProcessor();
 //        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilters("/usr/data/tweetAll.csv", 50_000_000, 0.001);
-        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetAll.csv", 50_000_000, 0.001);
+        BloomFilter<byte[]> bloomFilter = dataProcessor.generateBloomFilter("/usr/data/tweetAll.csv", 50_000_000, 0.001);
 //        int n = bloomFilters.size();
 //        for (int i = 0; i < n; ++i) {
         String outputPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
@@ -46,8 +47,8 @@ public class TestFileIO {
     }
 
     public static void writeInfiniFilters() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
-        Map<BytesKey, ChainedInfiniFilter> filters = dataReader.generateSTDividedFilter("/usr/data/tweetAll.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+        Map<BytesKey, ChainedInfiniFilter> filters = dataProcessor.generateSTDividedFilter("/usr/data/tweetAll.csv");
         System.out.println(filters.size());
 
         for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
@@ -60,10 +61,12 @@ public class TestFileIO {
     }
 
     public static void writeInfiniFilter() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
-        ChainedInfiniFilter filter = dataReader.generateOneFilter("/usr/data/tweetAll.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+//        ChainedInfiniFilter filter = dataProcessor.generateOneFilter("/usr/data/tweetAll.csv");
+        ChainedInfiniFilter filter = dataProcessor.generateOneFilter(Constant.TWEET_DIR);
         System.out.println(RamUsageEstimator.humanSizeOf(filter));
-        String outputPath = "/usr/data/bloom/dynamicBloom/00.txt";
+//        String outputPath = "/usr/data/bloom/dynamicBloom/00.txt";
+        String outputPath = Constant.DATA_DIR + "\\blooms\\00.txt";
         filter.writeTo(Files.newOutputStream(Paths.get(outputPath)));
     }
 
@@ -79,19 +82,21 @@ public class TestFileIO {
     }
 
     public static void writeSTCount() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
-        Map<BytesKey, Long> map = dataReader.generateCount("/usr/data/tweetAll.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+//        Map<BytesKey, Long> map = dataProcessor.generateCount("/usr/data/tweetAll.csv");
+        Map<BytesKey, Long> map = dataProcessor.generateCount(Constant.TWEET_DIR);
         System.out.println(map.size());
 
 //        String outputPath = "/usr/data/count.txt";
-//        FileOutputStream f = new FileOutputStream(outputPath);
-//        ObjectOutputStream o = new ObjectOutputStream(f);
-//        o.writeObject(map);
+        String outputPath = Constant.DATA_DIR + "\\count.txt";
+        FileOutputStream f = new FileOutputStream(outputPath);
+        ObjectOutputStream o = new ObjectOutputStream(f);
+        o.writeObject(map);
     }
 
     public static void writeDistribution() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
-        ArrayList<Map> maps = dataReader.generateDistribution("/usr/data/tweetAll.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+        ArrayList<Map> maps = dataProcessor.generateDistribution("/usr/data/tweetAll.csv");
         System.out.println("st count: " + maps.get(0).size());
         System.out.println("st count: " + maps.get(1).size());
 
@@ -106,8 +111,8 @@ public class TestFileIO {
     }
 
     public static void writeKeywords() throws ParseException, IOException {
-        DataReader dataReader = new DataReader();
-        Set<String> ss = dataReader.generateKeywords("/usr/data/tweetAll.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+        Set<String> ss = dataProcessor.generateKeywords("/usr/data/tweetAll.csv");
 
         String outputPath = "/usr/data/keywords.txt";
         FileOutputStream f = new FileOutputStream(outputPath);

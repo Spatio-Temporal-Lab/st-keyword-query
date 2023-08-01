@@ -3,7 +3,7 @@ package com.START.STKQ.app;
 import com.START.STKQ.model.Location;
 import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -47,17 +47,17 @@ public class DataDistribution {
 
     public static void main(String[] args) throws ParseException {
 
-        DataReader dataReader = new DataReader();
+        DataProcessor dataProcessor = new DataProcessor();
 
         double minLat = 38.5;
         double minLon = -90.1;
         double maxLat = 38.6;
         double maxLon = -90;
-        dataReader.setLocationRange(new Range<>(new Location(minLat, minLon), new Location(maxLat, maxLon)));
+        dataProcessor.setLocationRange(new Range<>(new Location(minLat, minLon), new Location(maxLat, maxLon)));
 //        ArrayList<STObject> objects = dataReader.getSTObjects("E:\\data\\yelp.csv");
         ArrayList<STObject> objects = new ArrayList<>();
         for (int i = 1; i <= 4; ++i) {
-            objects.addAll(dataReader.getSTObjects("E:\\data\\tweet\\" + "tweet_" + i + ".csv"));
+            objects.addAll(dataProcessor.getSTObjects("E:\\data\\tweet\\" + "tweet_" + i + ".csv"));
         }
 
         // time distribution

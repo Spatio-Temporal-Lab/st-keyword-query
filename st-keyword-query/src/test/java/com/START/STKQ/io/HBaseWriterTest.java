@@ -19,11 +19,11 @@ public class HBaseWriterTest extends TestCase {
         hBaseUtil.createTable(tableName, new String[]{"attr"});
         AbstractSTKeyGenerator keyGenerator = new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator());
         HBaseWriter hBaseWriter = new HBaseWriter(keyGenerator);
-        DataReader dataReader = new DataReader();
-        dataReader.setRate(0.01);
+        DataProcessor dataProcessor = new DataProcessor();
+        dataProcessor.setRate(0.01);
         ArrayList<STObject> objects = new ArrayList<>();
         for (int i = 1; i <= 1; ++i) {
-            objects.addAll(dataReader.getSTObjects("E:\\data\\tweet\\" + "tweet_" + i + ".csv"));
+            objects.addAll(dataProcessor.getSTObjects("E:\\data\\tweet\\" + "tweet_" + i + ".csv"));
         }
         hBaseWriter.putObjects(tableName, objects, 5000);
     }

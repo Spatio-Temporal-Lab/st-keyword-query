@@ -7,14 +7,9 @@ import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.DateUtil;
 import com.START.STKQ.util.KeywordCounter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import com.github.nivdayan.FilterLibrary.filters.Filter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.davidmoten.hilbert.HilbertCurve;
-import org.davidmoten.hilbert.SmallHilbertCurve;
-import org.locationtech.geomesa.curve.NormalizedDimension;
-import scala.collection.immutable.Stream;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -22,7 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class DataReader {
+public class DataProcessor {
     private int limit;
     private double rate;
     private Range<Location> locationRange;
@@ -33,21 +28,21 @@ public class DataReader {
 
     String DELIMITER = ",";
 
-    public DataReader() throws ParseException {
+    public DataProcessor() throws ParseException {
         limit = 10000_0000;
         rate = 1.0;
         locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));
         timeRange = new Range<>(DateUtil.getDate("2000-01-01 00:00:00"), DateUtil.getDate("2023-12-31 23:59:59"));
     }
 
-    public DataReader(int limit, double rate) throws ParseException {
+    public DataProcessor(int limit, double rate) throws ParseException {
         this.limit = limit;
         this.rate = rate;
         locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));
         timeRange = new Range<>(DateUtil.getDate("2000-01-01 00:00:00"), DateUtil.getDate("2023-12:31 23:59:59"));
     }
 
-    public DataReader(int limit, double rate, String path) throws ParseException {
+    public DataProcessor(int limit, double rate, String path) throws ParseException {
         this.limit = limit;
         this.rate = rate;
         locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));

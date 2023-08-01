@@ -1,6 +1,6 @@
 package com.START.STKQ.exp;
 
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 import com.START.STKQ.io.HBaseUtil;
 import com.START.STKQ.keyGenerator.HilbertSpatialKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialKeyGenerator;
@@ -73,7 +73,7 @@ public class TestWriteTweetAllWithRepeat {
 
                     double lat;
                     double lon;
-                    if (DataReader.isNumeric(columns[2]) && (DataReader.isNumeric(columns[3]))) {
+                    if (DataProcessor.isNumeric(columns[2]) && (DataProcessor.isNumeric(columns[3]))) {
                         lat = Double.parseDouble(columns[2]);
                         lon = Double.parseDouble(columns[3]);
                     } else
@@ -88,7 +88,7 @@ public class TestWriteTweetAllWithRepeat {
                     int len = keywordStr.length();
                     StringBuilder builder = new StringBuilder();
                     for (int j = 0; j < len; ++j) {
-                        if (DataReader.isAlphabet(keywordStr.charAt(j))) {
+                        if (DataProcessor.isAlphabet(keywordStr.charAt(j))) {
                             builder.append(keywordStr.charAt(j));
                         } else if (builder.length() != 0) {
                             keywords.add(builder.toString());

@@ -1,6 +1,6 @@
 package com.START.STKQ.exp;
 
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 import com.START.STKQ.io.HBaseUtil;
 import com.START.STKQ.io.HBaseWriter;
 import com.START.STKQ.keyGenerator.*;
@@ -31,8 +31,8 @@ public class TestWrite {
                 new SpatialFirstSTKeyGenerator(new HilbertSpatialKeyGenerator(), new TimeKeyGenerator()),
                 new ShardSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator())
         };
-        DataReader dataReader = new DataReader();
-        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects(inPathName));
+        DataProcessor dataProcessor = new DataProcessor();
+        ArrayList<STObject> objects = new ArrayList<>(dataProcessor.getSTObjects(inPathName));
 
         int MAX_TEST_COUNT = 3;
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {

@@ -1,6 +1,6 @@
 package com.START.STKQ.exp;
 
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 import com.START.STKQ.io.HBaseUtil;
 import com.START.STKQ.keyGenerator.HilbertSpatialKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialKeyGenerator;
@@ -23,8 +23,9 @@ public class TestWriteTweet {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        HBaseUtil hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("192.168.137.207");
+//        HBaseUtil hBaseUtil = new HBaseUtil();
+//        hBaseUtil.init("192.168.137.207");
+        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
         String tableName = "testTweet";
 
@@ -34,7 +35,8 @@ public class TestWriteTweet {
             hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1012 * 1024);
         }
 
-        String inPathName = "/usr/data/tweetAll.csv";
+//        String inPathName = "/usr/data/tweetAll.csv";
+        String inPathName = "E:\\data\\tweet\\tweetAll.csv";
 
         SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
@@ -67,7 +69,7 @@ public class TestWriteTweet {
 
                     double lat;
                     double lon;
-                    if (DataReader.isNumeric(columns[2]) && (DataReader.isNumeric(columns[3]))) {
+                    if (DataProcessor.isNumeric(columns[2]) && (DataProcessor.isNumeric(columns[3]))) {
                         lat = Double.parseDouble(columns[2]);
                         lon = Double.parseDouble(columns[3]);
                     } else
@@ -82,7 +84,7 @@ public class TestWriteTweet {
                     int len = keywordStr.length();
                     StringBuilder builder = new StringBuilder();
                     for (int j = 0; j < len; ++j) {
-                        if (DataReader.isAlphabet(keywordStr.charAt(j))) {
+                        if (DataProcessor.isAlphabet(keywordStr.charAt(j))) {
                             builder.append(keywordStr.charAt(j));
                         } else if (builder.length() != 0) {
                             keywords.add(builder.toString());

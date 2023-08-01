@@ -20,9 +20,10 @@ public class HBaseQueryProcessor {
     static ExecutorService service = Executors.newCachedThreadPool();
 
     static {
-        hBaseUtil = new HBaseUtil();
+        hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
+//        hBaseUtil = new HBaseUtil();
 //        hBaseUtil.init("192.168.137.204");
-        hBaseUtil.init("192.168.137.207");
+//        hBaseUtil.init("192.168.137.207");
     }
     private static CountDownLatch cdl;
 

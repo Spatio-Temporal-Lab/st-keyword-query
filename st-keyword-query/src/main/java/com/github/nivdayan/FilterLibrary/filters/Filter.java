@@ -1,11 +1,10 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
-import com.START.STKQ.util.ByteUtil;
-import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
 
 public abstract class Filter implements Serializable {
 	
@@ -116,5 +115,4 @@ public abstract class Filter implements Serializable {
 	public void pretty_print() {
 
 	}
-
 }

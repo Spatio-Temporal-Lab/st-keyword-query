@@ -1,6 +1,6 @@
 package com.START.STKQ.exp;
 
-import com.START.STKQ.io.DataReader;
+import com.START.STKQ.io.DataProcessor;
 import com.START.STKQ.keyGenerator.HilbertSpatialKeyGenerator;
 import com.START.STKQ.keyGenerator.SpatialKeyGenerator;
 import com.START.STKQ.model.MBR;
@@ -41,9 +41,9 @@ public class TestSpatialIndex {
         SpatialKeyGenerator keyGenerator1 = new SpatialKeyGenerator();
         HilbertSpatialKeyGenerator keyGenerator2 = new HilbertSpatialKeyGenerator();
 
-        DataReader dataReader = new DataReader();
-        dataReader.setLimit(10_00000);
-        ArrayList<STObject> stObjects = dataReader.getSTObjects("E:\\data\\tweet\\tweet_2.csv");
+        DataProcessor dataProcessor = new DataProcessor();
+        dataProcessor.setLimit(10_00000);
+        ArrayList<STObject> stObjects = dataProcessor.getSTObjects("E:\\data\\tweet\\tweet_2.csv");
 
         long size1Sum = 0;
         long size2Sum = 0;

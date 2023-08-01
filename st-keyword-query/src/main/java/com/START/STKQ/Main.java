@@ -24,6 +24,7 @@ public class Main {
 //        System.out.println(filter.search(ByteUtil.concat(keypre2, ss, tt)));
 //        System.out.println(filter.search(new byte[]{-81, 67, -120, -24, 0, -33, -26, 84, 0, 108, -65}));
 
+
         ChainedInfiniFilter filter1 = new ChainedInfiniFilter(20, 10);
         filter1.set_expand_autonomously(true);
         System.out.println(RamUsageEstimator.humanSizeOf(filter1));

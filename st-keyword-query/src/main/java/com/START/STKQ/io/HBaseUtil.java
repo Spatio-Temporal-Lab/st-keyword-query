@@ -47,7 +47,8 @@ public class HBaseUtil {
 
     public static HBaseUtil getDefaultHBaseUtil() {
         HBaseUtil hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("master,slave1,slave2");
+        hBaseUtil.init("192.168.110.32");
+//        hBaseUtil.init("master,slave1,slave2");
         return hBaseUtil;
     }
 

@@ -3,6 +3,7 @@ package com.START.STKQ.filter;
 
 import com.START.STKQ.model.Range;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
+import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -149,5 +150,15 @@ public class BasicRosetta {
         for (int i = 0; i < n; ++i) {
             filters.get(i).insert(x >> (n - i - 1), false);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(n);
+        for (int i = 0; i < n; ++i) {
+            builder.append(" ").append(RamUsageEstimator.humanSizeOf(filters.get(i)));
+        }
+        return builder.toString();
     }
 }
