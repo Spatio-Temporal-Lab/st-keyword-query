@@ -52,4 +52,11 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
 
         return ranges;
     }
+
+    public Range<Integer> toRanges(Query query) {
+        int ds = getNumber(query.getS());
+        int dt = getNumber(query.getT());
+
+        return new Range<>(ds / hourPerBin, dt / hourPerBin);
+    }
 }

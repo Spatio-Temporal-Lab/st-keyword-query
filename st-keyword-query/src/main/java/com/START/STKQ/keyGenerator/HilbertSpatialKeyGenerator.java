@@ -53,6 +53,19 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         return ranges;
     }
 
+    public ArrayList<Range<Long>> toRanges(Query query) {
+        ArrayList<Range<Long>> ranges = new ArrayList<>();
+
+        long[] point1 = new long[] {normalizedLat.normalize(query.getUp()), normalizedLon.normalize(query.getLeft())};
+        long[] point2 = new long[] {normalizedLat.normalize(query.getDown()), normalizedLon.normalize(query.getRight())};
+        Ranges rangesCurve = curve.query(point1, point2, MAX_RANGE_COUNT);
+
+        for (org.davidmoten.hilbert.Range range : rangesCurve) {
+            ranges.add(new Range<>(range.low(), range.high()));
+        }
+        return ranges;
+    }
+
     public Long getNumber(Location pt) {
         return curve.index(normalizedLat.normalize(pt.getLat()), normalizedLon.normalize(pt.getLon()));
     }

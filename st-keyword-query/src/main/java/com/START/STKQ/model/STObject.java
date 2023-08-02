@@ -2,9 +2,10 @@ package com.START.STKQ.model;
 
 import com.START.STKQ.util.DateUtil;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class STObject implements Comparable<STObject> {
+public class STObject implements Serializable, Comparable<STObject> {
     private final Location place;
     private final Date date;
     private final ArrayList<String> keywords;

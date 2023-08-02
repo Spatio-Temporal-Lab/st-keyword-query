@@ -32,7 +32,7 @@ public class TestWriteTweet {
         if (hBaseUtil.existsTable(tableName)) {
             hBaseUtil.truncateTable(tableName);
         } else {
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1012 * 1024);
+            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
         }
 
 //        String inPathName = "/usr/data/tweetAll.csv";

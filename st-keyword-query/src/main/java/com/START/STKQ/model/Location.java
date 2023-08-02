@@ -1,6 +1,8 @@
 package com.START.STKQ.model;
 
-public class Location {
+import java.io.Serializable;
+
+public class Location implements Serializable {
     private final double lat;
     private final double lon;
 

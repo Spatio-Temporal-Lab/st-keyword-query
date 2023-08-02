@@ -1,10 +1,13 @@
 package com.START.STKQ;
 
+import com.START.STKQ.model.BytesKey;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main {
 
@@ -23,7 +26,6 @@ public class Main {
 //        System.out.println(filter.search(ByteUtil.concat(keypre1, ss, tt)));
 //        System.out.println(filter.search(ByteUtil.concat(keypre2, ss, tt)));
 //        System.out.println(filter.search(new byte[]{-81, 67, -120, -24, 0, -33, -26, 84, 0, 108, -65}));
-
 
         ChainedInfiniFilter filter1 = new ChainedInfiniFilter(20, 10);
         filter1.set_expand_autonomously(true);
@@ -70,13 +72,5 @@ public class Main {
         System.out.println(RamUsageEstimator.humanSizeOf(filter1));
         System.out.println(RamUsageEstimator.humanSizeOf(filter2));
         System.out.println(RamUsageEstimator.humanSizeOf(filter3));
-
-
-//        TestWriteBloomToTxt.main(args);
-//        TestQueryTweet.main(args);
-//        TestWriteTweetAll.main(args);
-//        TestBloomMemory.main(args);
-//        TestWrite.main(args);
-//        TestQuery.main(args);
     }
 }

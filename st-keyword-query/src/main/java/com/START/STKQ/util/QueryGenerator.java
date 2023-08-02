@@ -1,11 +1,17 @@
 package com.START.STKQ.util;
 
+import com.START.STKQ.keyGenerator.HilbertSpatialKeyGenerator;
+import com.START.STKQ.keyGenerator.SpatialKeyGenerator;
+import com.START.STKQ.keyGenerator.TimeKeyGenerator;
 import com.START.STKQ.model.*;
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
+import scala.util.control.Exception;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 
@@ -195,8 +201,87 @@ public class QueryGenerator {
         }
     }
 
+    public static void generateZipfQueries(ArrayList<STObject> objects, int size, double skew) {
+        ArrayList<BytesKey> stKeySortByObjectCount;
+        Map<BytesKey, Set<String>> key2Words = new HashMap<>();
+        Map<BytesKey, Integer> key2Count = new HashMap<>();
+
+
+        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+        for (STObject object : objects) {
+            BytesKey key = new BytesKey(ByteUtil.concat(
+                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getDate())));
+            key2Count.merge(key, 1, Integer::sum);
+
+            Set<String> set = key2Words.get(key);
+            if (set == null) {
+                set = new HashSet<>(object.getKeywords());
+                key2Words.put(key, set);
+            } else {
+                set.addAll(object.getKeywords());
+            }
+        }
+        stKeySortByObjectCount = MapUtil.sortByValue(key2Count);
+
+        ZipfGenerator stKeyGenerator = new ZipfGenerator(stKeySortByObjectCount.size(), skew);
+
+        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
+        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+        SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
+
+        String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSample.csv";
+        System.out.println(path);
+        File file = new File(path);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+
+            int writeCount = 0;
+            while (writeCount < size) {
+
+                int stId = stKeySortByObjectCount.size() - stKeyGenerator.next();
+                BytesKey bytesKey = stKeySortByObjectCount.get(stId);
+                byte[] bytesKeyArray = bytesKey.getArray();
+                byte[] sKey = Arrays.copyOfRange(bytesKeyArray, 0, 4);
+
+                byte[] tKey = Arrays.copyOfRange(bytesKeyArray, 4, 7);
+
+                long sKeyLong = ByteUtil.toLong(sKey);
+                long[] originS = curve.point(sKeyLong);
+                double lat = normalizedLat.denormalize((int) originS[0]);
+                double lon = normalizedLon.denormalize((int) originS[1]);
+
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
+                writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
+                writer.write(",");
+                writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
+                writer.write(",");
+
+                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
+                writer.write(",");
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
+                ArrayList<String> keywords;
+
+                if (random.nextDouble() < 0.5) {
+                    keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));
+                } else {
+                    keywords = getRandomKeywords();
+                }
+
+                for (String keyword : keywords) {
+                    writer.write("," + keyword);
+                }
+                writer.newLine();
+                ++writeCount;
+                System.out.println(writeCount);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args) throws IOException, ParseException {
-        try(FileInputStream fin = new FileInputStream("/usr/data/keywords.txt");
+        try(FileInputStream fin = new FileInputStream("src/main/resources/keywords.txt");
             ObjectInputStream ois = new ObjectInputStream(fin)
         ) {
             keywords = new ArrayList<>((Set<String>) ois.readObject());
@@ -211,6 +296,17 @@ public class QueryGenerator {
 //        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetAll.csv"));
 //        generateQueries(objects, 1_0000);
 //
-        generateZipfQueries(10000, 0.8);
+//        generateZipfQueries(10000, 0.8);
+
+
+        ArrayList<STObject> objects;
+        String path = "src/main/resources/tweetSample.txt";
+        try(InputStream is = Files.newInputStream(Paths.get(path));
+            ObjectInputStream ois = new ObjectInputStream(is)) {
+            objects = (ArrayList<STObject>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        generateZipfQueries(objects, 10000, 0.8);
     }
 }

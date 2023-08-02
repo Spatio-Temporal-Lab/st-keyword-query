@@ -20,9 +20,9 @@ public class TestFileIO {
     public static void main(String[] args) throws Exception {
 
 //        writeInfiniFilter();
-        writeSTCount();
+//        writeSTCount();
 //        writeDistribution();
-//        writeKeywords();
+        writeKeywords();
 //        writeBf();
 
 //        DataReader dataReader = new DataReader();
@@ -112,9 +112,9 @@ public class TestFileIO {
 
     public static void writeKeywords() throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
-        Set<String> ss = dataProcessor.generateKeywords("/usr/data/tweetAll.csv");
+        Set<String> ss = dataProcessor.generateKeywords(Constant.TWEET_DIR);
 
-        String outputPath = "/usr/data/keywords.txt";
+        String outputPath = "src/main/resources/keywords.txt";
         FileOutputStream f = new FileOutputStream(outputPath);
         ObjectOutputStream o = new ObjectOutputStream(f);
         o.writeObject(ss);
