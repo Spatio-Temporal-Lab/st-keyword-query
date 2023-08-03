@@ -3,13 +3,11 @@ package com.START.STKQ.keyGenerator;
 import com.START.STKQ.model.Location;
 import com.START.STKQ.util.ByteUtil;
 import junit.framework.TestCase;
-import org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.RamDiskReplicaTracker;
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.Assert.assertNotEquals;

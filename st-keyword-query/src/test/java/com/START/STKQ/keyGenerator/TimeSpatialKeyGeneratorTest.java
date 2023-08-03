@@ -2,7 +2,6 @@ package com.START.STKQ.keyGenerator;
 
 import com.START.STKQ.model.Location;
 import com.START.STKQ.model.Query;
-import com.START.STKQ.model.Range;
 import com.START.STKQ.util.DateUtil;
 import junit.framework.TestCase;
 

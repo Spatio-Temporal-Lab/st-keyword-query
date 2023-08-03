@@ -1,24 +1,24 @@
 import com.START.STKQ.constant.Constant;
+import com.START.STKQ.constant.QueryType;
+import com.START.STKQ.filter.BaseFilter;
+import com.START.STKQ.filter.CIFilter;
+import com.START.STKQ.filter.SetFilter;
 import com.START.STKQ.io.DataProcessor;
-import com.START.STKQ.keyGenerator.*;
-import com.START.STKQ.model.BytesKey;
+import com.START.STKQ.keyGenerator.HilbertSpatialKeyGenerator;
+import com.START.STKQ.keyGenerator.SpatialKeyGenerator;
+import com.START.STKQ.keyGenerator.TimeKeyGenerator;
 import com.START.STKQ.model.Query;
 import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.QueryGenerator;
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import org.apache.lucene.util.RamUsageEstimator;
-import scala.util.control.Exception;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.Arrays;
 
 public class testFPR {
 
@@ -47,14 +47,16 @@ public class testFPR {
     }
 
     public static void main(String[] args) {
-        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 12);
-        filter.set_expand_autonomously(true);
 
         SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
         ArrayList<STObject> objects = getSampleData();
-        Set<BytesKey> set = new HashSet<>();
+
+        BaseFilter[] filters = new BaseFilter[]{
+                new SetFilter(),
+                new CIFilter()
+        };
 
         for (STObject object : objects) {
             for (String s : object.getKeywords()) {
@@ -62,57 +64,62 @@ public class testFPR {
                         ByteUtil.getKByte(s.hashCode(), 4),
                         spatialKeyGenerator.toKey(object.getLocation()),
                         timeKeyGenerator.toKey(object.getDate()));
-                filter.insert(key, false);
-                set.add(new BytesKey(key));
+                for (BaseFilter filter : filters) {
+                    filter.insert(key);
+                }
             }
         }
 
-        int exact = 0;
-        int real = 0;
+        int[] sizes = new int[filters.length];
+        ArrayList<ArrayList<ArrayList<byte[]>>> results = new ArrayList<>(filters.length);
+        for (int i = 0; i < filters.length; ++i) {
+            results.add(new ArrayList<>());
+        }
 
         ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipfSample.csv");
         for (Query query : queries) {
 
-            Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
             ArrayList<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
+            Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
+            ArrayList<String> keywords = query.getKeywords();
+            QueryType queryType = QueryType.CONTAIN_ONE;
 
-            int tStart = timeRange.getLow();
-            int tEnd = timeRange.getHigh();
-            for (Range<Long> spatialRange : spatialRanges) {
-                long spatialRangeStart = spatialRange.getLow();
-                long spatialRangeEnd = spatialRange.getHigh();
-
-                for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
-                    for (int j = tStart; j <= tEnd; ++j) {
-
-                        boolean containOneForFilter = false;
-                        boolean containOne = false;
-
-                        for (String s : query.getKeywords()) {
-                            byte[] key = ByteUtil.concat(
-                                    ByteUtil.getKByte(s.hashCode(), 4),
-                                    ByteUtil.getKByte(i, 4),
-                                    ByteUtil.getKByte(j, 3)
-                                    );
-                            if (filter.search(key)) {
-                                containOneForFilter = true;
-                            }
-                            if (set.contains(new BytesKey(key))) {
-                                containOne = true;
-                            }
-                        }
-
-                        if (containOne) ++exact;
-                        if (containOneForFilter) ++real;
-                    }
-                }
+            int n = filters.length;
+            for (int i = 0; i < n; ++i) {
+                ArrayList<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, queryType);
+                sizes[i] += filterResult.size();
+                results.get(i).add(filterResult);
             }
-
         }
 
-        System.out.println("exact = " +  exact);
-        System.out.println("real = " + real);
-        System.out.println("filter size = " + RamUsageEstimator.humanSizeOf(filter));
-        System.out.println("set size = " + RamUsageEstimator.humanSizeOf(set));
+
+        // ensure no false negative
+        ArrayList<ArrayList<byte[]>> trueResults = results.get(0);
+        int queryLength = queries.size();
+        for (int i = 1; i < filters.length; ++i) {
+            ArrayList<ArrayList<byte[]>> approximateResults = results.get(i);
+            for (int j = 0; j < queryLength; ++j) {
+                boolean flag = true;
+                for (byte[] code : trueResults.get(j)) {
+                    boolean find = false;
+                    for (byte[] aCode : approximateResults.get(j)) {
+                        if (Arrays.equals(aCode, code)) {
+                            find = true;
+                            break;
+                        }
+                    }
+                    if (!find) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    System.err.println("error for query" + j);
+                }
+            }
+        }
+
+
+        System.out.println(Arrays.toString(sizes));
     }
 }

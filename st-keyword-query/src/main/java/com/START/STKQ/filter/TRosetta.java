@@ -126,5 +126,4 @@ public class TRosetta extends BasicRosetta {
 
         return toRanges(s, result);
     }
-
 }
