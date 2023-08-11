@@ -12,6 +12,7 @@ import com.START.STKQ.model.Range;
 import com.START.STKQ.model.STObject;
 import com.START.STKQ.util.ByteUtil;
 import com.START.STKQ.util.QueryGenerator;
+import org.junit.Test;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -28,22 +29,26 @@ public class testFPR {
         ArrayList<STObject> objects = processor.getSTObjects(Constant.TWEET_DIR);
         System.out.println(objects.size());
 
-
-        String path = "src/main/resources/tweetSample.txt";
-        try(OutputStream os = Files.newOutputStream(Paths.get(path));
-            ObjectOutputStream oos = new ObjectOutputStream(os)) {
-            oos.writeObject(objects);
+        String path = "src/main/resources/tweetSample.csv";
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(path))) {
+            for (STObject object : objects) {
+                out.write(object.toVSCLine() + '\n');
+            }
         }
     }
 
     static ArrayList<STObject> getSampleData() {
-        String path = "src/main/resources/tweetSample.txt";
-        try(InputStream is = Files.newInputStream(Paths.get(path));
-            ObjectInputStream ois = new ObjectInputStream(is)) {
-            return (ArrayList<STObject>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        String path = "src/main/resources/tweetSample.csv";
+        ArrayList<STObject> objects = new ArrayList<>();
+        try(BufferedReader in = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                objects.add(new STObject(line));
+            }
+        } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
+        return objects;
     }
 
     public static void main(String[] args) {
@@ -58,6 +63,7 @@ public class testFPR {
                 new CIFilter()
         };
 
+        long start = System.currentTimeMillis();
         for (STObject object : objects) {
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
@@ -69,6 +75,8 @@ public class testFPR {
                 }
             }
         }
+        long end = System.currentTimeMillis();
+        System.out.println("insert time: " + (end - start));
 
         int[] sizes = new int[filters.length];
         ArrayList<ArrayList<ArrayList<byte[]>>> results = new ArrayList<>(filters.length);
@@ -77,6 +85,8 @@ public class testFPR {
         }
 
         ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipfSample.csv");
+
+        start = System.currentTimeMillis();
         for (Query query : queries) {
 
             ArrayList<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
@@ -118,8 +128,10 @@ public class testFPR {
                 }
             }
         }
-
+        end = System.currentTimeMillis();
+        System.out.println("query time: " + (end - start));
 
         System.out.println(Arrays.toString(sizes));
     }
+
 }

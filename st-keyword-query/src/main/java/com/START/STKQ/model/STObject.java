@@ -3,15 +3,16 @@ package com.START.STKQ.model;
 import com.START.STKQ.util.DateUtil;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.*;
 
 public class STObject implements Serializable, Comparable<STObject> {
     private final Location place;
     private final Date date;
     private final ArrayList<String> keywords;
-    private final String sentence;
+    private String sentence;
 
-    private final long ID;
+    private long ID;
 
     public STObject(long id, double lat, double lon, Date date, ArrayList<String> keywords) {
         ID = id;
@@ -27,6 +28,15 @@ public class STObject implements Serializable, Comparable<STObject> {
         this.date = date;
         this.keywords = new ArrayList<>(Arrays.asList(keywords));
         this.sentence = String.join(" ", keywords);
+    }
+
+    public STObject(String csvLine) throws ParseException {
+        String[] items = csvLine.split(",");
+        place = new Location(Double.parseDouble(items[0]), Double.parseDouble(items[1]));
+        date = DateUtil.getDate(items[2]);
+        keywords = new ArrayList<>();
+        int n = items.length;
+        keywords.addAll(Arrays.asList(items).subList(3, n));
     }
 
     public double getLat() {
@@ -67,6 +77,10 @@ public class STObject implements Serializable, Comparable<STObject> {
 
     public String toString() {
         return ID + " " + place.toString() + " " + DateUtil.format(date) + " " + keywords;
+    }
+
+    public String toVSCLine() {
+        return place.getLat() + "," + place.getLon() + "," + DateUtil.format(date) + "," + String.join(",", keywords);
     }
 
     public boolean equals(STObject other) {
