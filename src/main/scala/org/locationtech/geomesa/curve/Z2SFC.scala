@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.curve
 
-import com.START.STKQ.ZIndexRange
 import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
 import org.locationtech.geomesa.zorder.sfcurve.{IndexRange, Z2, ZRange}
+import org.urbcomp.startdb.stkq.ZIndexRange
 
 object Z2SFC extends Z2SFC(31)
 
