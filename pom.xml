@@ -3,10 +3,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>st-keyword-query</artifactId>
-    <groupId>groupID</groupId>
+    <groupId>org.urbcomp.startdb</groupId>
     <version>1.0.0</version>
-    <name>stk based on hbase</name>
-    <description>spatial temporal keyword query based on hbase</description>
+    <description>spatio-temporal keyword query over key-value data stores</description>
 
     <profiles>
         <profile>
@@ -49,35 +48,17 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
             <version>${hbase.version}</version>
-<!--            <scope>compile</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
             <version>${hbase.version}</version>
-<!--            <scope>compile</scope>-->
         </dependency>
-
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>4.0.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-common</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-client</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-auth</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>io.sgr</groupId>
             <artifactId>s2-geometry-library-java</artifactId>
