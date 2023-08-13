@@ -99,9 +99,9 @@ public class QueryGenerator {
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
                 Date date = object.getTime();
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
                 if (writeCount < half) {
                     keywords = getRandomKeywords();
@@ -176,10 +176,10 @@ public class QueryGenerator {
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
 
-                Date date = DateUtil.getDateAfterHours(ByteUtil.toInt(tKey));
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
+                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
 
                 if (random.nextDouble() < 0.5) {
@@ -255,10 +255,10 @@ public class QueryGenerator {
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
 
-                Date date = DateUtil.getDateAfterHours(ByteUtil.toInt(tKey));
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
+                Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
-                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
+                writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
                 ArrayList<String> keywords;
 
                 if (random.nextDouble() < 0.5) {

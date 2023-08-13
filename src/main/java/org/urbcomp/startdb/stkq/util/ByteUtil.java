@@ -43,9 +43,9 @@ public class ByteUtil {
         return allBytes;
     }
 
-    public static byte[] copy(byte[] b) {
-        byte[] result = new byte[b.length];
-        System.arraycopy(b, 0, result, 0, b.length);
+    public static byte[] tobyte(byte[] B) {
+        byte[] result = new byte[B.length];
+        System.arraycopy(B, 0, result, 0, B.length);
         return result;
     }
 
@@ -68,10 +68,10 @@ public class ByteUtil {
     }
 
     public static BigInteger toUnsignedLong(long value) {
-        return new BigInteger(1, copy(longToByte(value)));
+        return new BigInteger(1, tobyte(longToByte(value)));
     }
 
     public static BigInteger getValue(byte[] bytes) {
-        return new BigInteger(1, copy(bytes));
+        return new BigInteger(1, tobyte(bytes));
     }
 }
