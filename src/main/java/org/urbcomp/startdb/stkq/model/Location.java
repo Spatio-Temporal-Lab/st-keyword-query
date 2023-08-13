@@ -6,9 +6,9 @@ public class Location implements Serializable {
     private final double lat;
     private final double lon;
 
-    public Location(double a, double b) {
-        this.lat = a;
-        this.lon = b;
+    public Location(double lat, double lon) {
+        this.lat = lat;
+        this.lon = lon;
     }
 
     public Location(String str) {
@@ -30,8 +30,8 @@ public class Location implements Serializable {
     }
 
     public boolean in(MBR mbr) {
-        return lat >= mbr.getMinLatitude() && lat <= mbr.getMaxLatitude() &&
-                lon >= mbr.getMinLongitude() && lon <= mbr.getMaxLongitude();
+        return lat >= mbr.getMinLat() && lat <= mbr.getMaxLat() &&
+                lon >= mbr.getMinLon() && lon <= mbr.getMaxLon();
     }
 
     public boolean equals(Location other) {

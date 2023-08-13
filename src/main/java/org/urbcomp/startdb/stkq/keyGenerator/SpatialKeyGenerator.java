@@ -36,8 +36,8 @@ public class SpatialKeyGenerator implements IKeyGenerator<Location> {
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
 
         List<ZIndexRange> indexRangeList = (List<ZIndexRange>) scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
-                Tuple2.apply(query.getLeft(), query.getRight()),
-                Tuple2.apply(query.getUp(), query.getDown())
+                Tuple2.apply(query.getMinLon(), query.getMaxLon()),
+                Tuple2.apply(query.getMinLat(), query.getMaxLat())
         ));
 
         for (ZIndexRange indexRange : indexRangeList) {
@@ -53,8 +53,8 @@ public class SpatialKeyGenerator implements IKeyGenerator<Location> {
         ArrayList<Range<Long>> ranges = new ArrayList<>();
 
         List<ZIndexRange> indexRangeList = scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
-                Tuple2.apply(query.getLeft(), query.getRight()),
-                Tuple2.apply(query.getUp(), query.getDown())
+                Tuple2.apply(query.getMinLon(), query.getMaxLon()),
+                Tuple2.apply(query.getMinLat(), query.getMaxLat())
         ));
 
         for (ZIndexRange indexRange : indexRangeList) {

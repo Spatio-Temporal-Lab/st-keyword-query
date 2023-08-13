@@ -41,8 +41,8 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
 
     @Override
     public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        int ds = getNumber(query.getS());
-        int dt = getNumber(query.getT());
+        int ds = getNumber(query.getStartTime());
+        int dt = getNumber(query.getEndTime());
 
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
         ranges.add(new Range<>(
@@ -54,8 +54,8 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
     }
 
     public Range<Integer> toRanges(Query query) {
-        int ds = getNumber(query.getS());
-        int dt = getNumber(query.getT());
+        int ds = getNumber(query.getStartTime());
+        int dt = getNumber(query.getEndTime());
 
         return new Range<>(ds / hourPerBin, dt / hourPerBin);
     }

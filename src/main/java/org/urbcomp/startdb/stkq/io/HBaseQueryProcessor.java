@@ -76,7 +76,7 @@ public class HBaseQueryProcessor {
                 } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }
-                if (date.before(query.getS()) || date.after(query.getT())) {
+                if (date.before(query.getStartTime()) || date.after(query.getEndTime())) {
                     continue;
                 }
 

@@ -9,62 +9,31 @@ public class MBR implements Serializable {
     private final double minLon;
     private static final long serialVersionUID = 6529685098267757692L;
 
-    public MBR(double minLat, double maxLat, double minLgt, double maxLgt) {
+    public MBR(double minLat, double maxLat, double minLon, double maxLon) {
         this.minLat = minLat;
         this.maxLat = maxLat;
-        this.minLon = minLgt;
-        this.maxLon = maxLgt;
+        this.minLon = minLon;
+        this.maxLon = maxLon;
     }
 
-    public MBR(Range<Location> range) {
-        Location loc1 = range.getLow();
-        Location loc2 = range.getHigh();
-        this.minLat = loc1.getLat();
-        this.maxLat = loc2.getLat();
-        this.minLon = loc1.getLon();
-        this.maxLon = loc2.getLon();
-    }
-
-    public double getMaxLatitude() {
+    public double getMaxLat() {
         return maxLat;
     }
 
-    public double getMinLatitude() {
+    public double getMinLat() {
         return minLat;
     }
 
-    public double getMaxLongitude() {
+    public double getMaxLon() {
         return maxLon;
     }
 
-    public double getMinLongitude() {
+    public double getMinLon() {
         return minLon;
-    }
-
-    public Location getLeftUp() {
-        return new Location(minLat, minLon);
-    }
-
-    public Location getRightDown() {
-        return new Location(maxLat, maxLon);
     }
 
     public boolean check() {
         return minLon >= -180.0 && minLat >= -90.0 && maxLon <= 180.0 && maxLat <= 90.0;
-    }
-
-    public boolean intersects(MBR mbr) {
-        return !(minLat > mbr.getMaxLatitude() || minLon > mbr.getMaxLongitude() ||
-                maxLat < mbr.getMinLatitude() || maxLon < mbr.getMinLongitude());
-    }
-
-    public MBR getIntersection(MBR mbr) {
-        return new MBR(
-                Math.max(minLat, mbr.minLat),
-                Math.min(maxLat, mbr.maxLat),
-                Math.max(minLon, mbr.minLon),
-                Math.min(maxLon, mbr.maxLon)
-        );
     }
 
     public String toString() {

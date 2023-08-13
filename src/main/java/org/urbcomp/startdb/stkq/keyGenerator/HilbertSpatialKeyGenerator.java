@@ -40,8 +40,8 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
     public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
 
-        long[] point1 = new long[] {normalizedLat.normalize(query.getUp()), normalizedLon.normalize(query.getLeft())};
-        long[] point2 = new long[] {normalizedLat.normalize(query.getDown()), normalizedLon.normalize(query.getRight())};
+        long[] point1 = new long[] {normalizedLat.normalize(query.getMinLat()), normalizedLon.normalize(query.getMinLon())};
+        long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};
         Ranges rangesCurve = curve.query(point1, point2, MAX_RANGE_COUNT);
 
         for (org.davidmoten.hilbert.Range range : rangesCurve) {
@@ -56,8 +56,8 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
     public ArrayList<Range<Long>> toRanges(Query query) {
         ArrayList<Range<Long>> ranges = new ArrayList<>();
 
-        long[] point1 = new long[] {normalizedLat.normalize(query.getUp()), normalizedLon.normalize(query.getLeft())};
-        long[] point2 = new long[] {normalizedLat.normalize(query.getDown()), normalizedLon.normalize(query.getRight())};
+        long[] point1 = new long[] {normalizedLat.normalize(query.getMinLat()), normalizedLon.normalize(query.getMinLon())};
+        long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};
         Ranges rangesCurve = curve.query(point1, point2, MAX_RANGE_COUNT);
 
         for (org.davidmoten.hilbert.Range range : rangesCurve) {

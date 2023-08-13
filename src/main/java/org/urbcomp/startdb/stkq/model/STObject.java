@@ -15,7 +15,7 @@ public class STObject implements Serializable, Comparable<STObject> {
     private long ID;
 
     public STObject(long id, double lat, double lon, Date date, ArrayList<String> keywords) {
-        ID = id;
+        this.ID = id;
         this.place = new Location(lat, lon);
         this.date = date;
         this.keywords = new ArrayList<>(keywords);

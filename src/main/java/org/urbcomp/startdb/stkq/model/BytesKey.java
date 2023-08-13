@@ -19,7 +19,7 @@ public class BytesKey implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()){
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         BytesKey bytesKey = (BytesKey) o;

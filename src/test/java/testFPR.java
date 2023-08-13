@@ -20,33 +20,20 @@ import java.util.Arrays;
 
 public class testFPR {
 
+    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
+
     static void generateSampleData() throws ParseException, IOException {
         DataProcessor processor = new DataProcessor();
         processor.setLimit(10_0000);
         ArrayList<STObject> objects = processor.getSTObjects(Constant.TWEET_DIR);
-        System.out.println(objects.size());
 
-        String path = "src/main/resources/tweetSample.csv";
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(path))) {
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(TWEET_SAMPLE_FILE))) {
             for (STObject object : objects) {
                 out.write(object.toVSCLine() + '\n');
             }
         }
     }
 
-    static ArrayList<STObject> getSampleData() {
-        String path = "src/main/resources/tweetSample.csv";
-        ArrayList<STObject> objects = new ArrayList<>();
-        try(BufferedReader in = new BufferedReader(new FileReader(path))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                objects.add(new STObject(line));
-            }
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
-        return objects;
-    }
 
     public static void main(String[] args) {
 
@@ -131,4 +118,17 @@ public class testFPR {
         System.out.println(Arrays.toString(sizes));
     }
 
+
+    private static ArrayList<STObject> getSampleData() {
+        ArrayList<STObject> objects = new ArrayList<>();
+        try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                objects.add(new STObject(line));
+            }
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return objects;
+    }
 }

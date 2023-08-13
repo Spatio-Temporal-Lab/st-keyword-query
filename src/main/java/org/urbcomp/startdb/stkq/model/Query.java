@@ -7,31 +7,25 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Query {
-    private Date s;
-    private Date t;
-    private MBR mbr;
-    private ArrayList<String> keywords;
+    private final Date startTime;
+    private final Date endTime;
+    private final MBR mbr;
+    private final ArrayList<String> keywords;
     private QueryType queryType;
 
-    public Query(double lat1, double lat2, double lon1, double lon2, Date s, Date t, ArrayList<String> keywords) {
+    public Query(double minLat, double maxLat,
+                 double minLon, double maxLon,
+                 Date startTime, Date endTime, ArrayList<String> keywords) {
         this.keywords = new ArrayList<>(keywords);
-        this.s = s;
-        this.t = t;
-        this.mbr = new MBR(lat1, lat2, lon1, lon2);
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.mbr = new MBR(minLat, maxLat, minLon, maxLon);
     }
 
-    public Query(double lat1, double lat2, double lon1, double lon2, Date s, Date t, String keyword) {
-        this.keywords = new ArrayList<>();
-        this.keywords.add(keyword);
-        this.s = s;
-        this.t = t;
-        this.mbr = new MBR(lat1, lat2, lon1, lon2);
-    }
-
-    public Query(MBR mbr, Date s, Date t, ArrayList<String> keywords) {
+    public Query(MBR mbr, Date startTime, Date endTime, ArrayList<String> keywords) {
         this.keywords = new ArrayList<>(keywords);
-        this.s = s;
-        this.t = t;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.mbr = mbr;
     }
 
@@ -43,36 +37,28 @@ public class Query {
         return queryType;
     }
 
-    public Date getS() {
-        return s;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setS(Date d) {
-        s = d;
+    public Date getEndTime() {
+        return endTime;
     }
 
-    public void setT(Date d) {
-        t = d;
+    public double getMinLon() {
+        return mbr.getMinLon();
     }
 
-    public Date getT() {
-        return t;
+    public double getMinLat() {
+        return mbr.getMinLat();
     }
 
-    public double getLeft() {
-        return mbr.getMinLongitude();
+    public double getMaxLat() {
+        return mbr.getMaxLat();
     }
 
-    public double getUp() {
-        return mbr.getMinLatitude();
-    }
-
-    public double getDown() {
-        return mbr.getMaxLatitude();
-    }
-
-    public double getRight() {
-        return mbr.getMaxLongitude();
+    public double getMaxLon() {
+        return mbr.getMaxLon();
     }
 
     public ArrayList<String> getKeywords() {
@@ -83,16 +69,8 @@ public class Query {
         return mbr;
     }
 
-    public void setMbr(MBR mbr) {
-        this.mbr = mbr;
-    }
-
     public String toString() {
-        return mbr.toString() + " " + DateUtil.format(s) + " "
-                + DateUtil.format(t) + " " + keywords;
-    }
-
-    public void setKeywords(ArrayList<String> keywords) {
-        this.keywords = keywords;
+        return mbr.toString() + " " + DateUtil.format(startTime) + " "
+                + DateUtil.format(endTime) + " " + keywords;
     }
 }

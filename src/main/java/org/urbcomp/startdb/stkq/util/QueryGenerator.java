@@ -94,9 +94,9 @@ public class QueryGenerator {
                 double lat = object.getLat();
                 double lon = object.getLon();
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
-                writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
+                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
                 writer.write(",");
-                writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
+                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
                 Date date = object.getDate();
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
@@ -171,9 +171,9 @@ public class QueryGenerator {
                 double lon = normalizedLon.denormalize((int) originS[1]);
 
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
-                writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
+                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
                 writer.write(",");
-                writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
+                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
 
                 Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
@@ -250,9 +250,9 @@ public class QueryGenerator {
                 double lon = normalizedLon.denormalize((int) originS[1]);
 
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
-                writer.write(mbr.getMinLatitude() + "," + mbr.getMaxLatitude());
+                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
                 writer.write(",");
-                writer.write(mbr.getMinLongitude() + "," + mbr.getMaxLongitude());
+                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
 
                 Date date = DateUtil.getDateAfter(ByteUtil.toInt(tKey));
