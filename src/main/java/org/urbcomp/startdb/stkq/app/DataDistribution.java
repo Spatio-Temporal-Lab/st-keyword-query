@@ -66,7 +66,7 @@ public class DataDistribution {
             timeKeywords.add(new HashSet<>());
         }
         for (STObject object : objects) {
-            timeKeywords.get(object.getDate().getHours()).addAll(object.getKeywords());
+            timeKeywords.get(object.getTime().getHours()).addAll(object.getKeywords());
         }
         for (int i = 0; i < 24; ++i) {
             System.out.println(i + " to " + (i + 1) + ": " + timeKeywords.get(i).size());

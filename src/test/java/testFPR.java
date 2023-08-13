@@ -53,7 +53,7 @@ public class testFPR {
                 byte[] key = ByteUtil.concat(
                         ByteUtil.getKByte(s.hashCode(), 4),
                         spatialKeyGenerator.toKey(object.getLocation()),
-                        timeKeyGenerator.toKey(object.getDate()));
+                        timeKeyGenerator.toKey(object.getTime()));
                 for (BaseFilter filter : filters) {
                     filter.insert(key);
                 }

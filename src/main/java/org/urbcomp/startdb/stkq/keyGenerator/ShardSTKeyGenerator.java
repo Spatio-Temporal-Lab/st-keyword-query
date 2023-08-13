@@ -26,7 +26,7 @@ public class ShardSTKeyGenerator extends AbstractSTKeyGenerator {
     public byte[] toKey(STObject object) {
         byte[] shardKey = ByteUtil.getKByte(shard++ % MAX_SHARD, 1);
         byte[] objKey = ByteUtil.longToByte(object.getID());
-        byte[] timeKey = timeKeyGenerator.toKey(object.getDate());
+        byte[] timeKey = timeKeyGenerator.toKey(object.getTime());
         byte[] spatialKey = spatialKeyGenerator.toKey(object.getLocation());
         return ByteUtil.concat(shardKey, timeKey, spatialKey, objKey);
     }

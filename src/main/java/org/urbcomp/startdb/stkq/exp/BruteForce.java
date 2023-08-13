@@ -13,7 +13,7 @@ public class BruteForce {
             if (!object.getLocation().in(query.getMBR())) {
                 continue;
             }
-            if (object.getDate().before(query.getStartTime()) || object.getDate().after(query.getEndTime())) {
+            if (object.getTime().before(query.getStartTime()) || object.getTime().after(query.getEndTime())) {
                 continue;
             }
             if (query.getQueryType().equals(QueryType.CONTAIN_ALL)) {

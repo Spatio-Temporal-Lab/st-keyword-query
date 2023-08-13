@@ -50,7 +50,7 @@ public class TestSpatialIndex {
 
         ArrayList<Query> queries = new ArrayList<>();
         for (STObject object : stObjects) {
-            MBR mbr = GeoUtil.getMBRByCircle(object.getPlace(), 1000);
+            MBR mbr = GeoUtil.getMBRByCircle(object.getLocation(), 1000);
             queries.add(new Query(mbr, new Date(), new Date(), new ArrayList<>()));
         }
 

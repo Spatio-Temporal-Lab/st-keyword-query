@@ -58,7 +58,7 @@ public class HBaseWriter {
                 Put put = new Put(ByteUtil.tobyte(keyGenerator.toKey(object)));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(object.getID()));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(object.getLocation().toString()));
-                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(object.getDate())));
+                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(object.getTime())));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(object.getSentence()));
                 puts.add(put);
 

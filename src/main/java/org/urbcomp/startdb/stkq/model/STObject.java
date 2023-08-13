@@ -7,64 +7,52 @@ import java.text.ParseException;
 import java.util.*;
 
 public class STObject implements Serializable, Comparable<STObject> {
-    private final Location place;
-    private final Date date;
+    private final Location location;
+    private final Date time;
     private final ArrayList<String> keywords;
-    private String sentence;
 
     private long ID;
 
-    public STObject(long id, double lat, double lon, Date date, ArrayList<String> keywords) {
+    public STObject(long id, double lat, double lon, Date time, ArrayList<String> keywords) {
         this.ID = id;
-        this.place = new Location(lat, lon);
-        this.date = date;
+        this.location = new Location(lat, lon);
+        this.time = time;
         this.keywords = new ArrayList<>(keywords);
-        this.sentence = String.join(" ", keywords);
     }
 
-    public STObject(long id, double lat, double lon, Date date, String[] keywords) {
-        ID = id;
-        this.place = new Location(lat, lon);
-        this.date = date;
+    public STObject(long id, double lat, double lon, Date time, String[] keywords) {
+        this.ID = id;
+        this.location = new Location(lat, lon);
+        this.time = time;
         this.keywords = new ArrayList<>(Arrays.asList(keywords));
-        this.sentence = String.join(" ", keywords);
     }
 
     public STObject(String csvLine) throws ParseException {
         String[] items = csvLine.split(",");
-        place = new Location(Double.parseDouble(items[0]), Double.parseDouble(items[1]));
-        date = DateUtil.getDate(items[2]);
+        location = new Location(Double.parseDouble(items[0]), Double.parseDouble(items[1]));
+        time = DateUtil.getDate(items[2]);
         keywords = new ArrayList<>();
-        int n = items.length;
-        keywords.addAll(Arrays.asList(items).subList(3, n));
+        keywords.addAll(Arrays.asList(items).subList(3, items.length));
     }
 
     public double getLat() {
-        return this.place.getLat();
+        return this.location.getLat();
     }
 
     public double getLon() {
-        return this.place.getLon();
+        return this.location.getLon();
     }
 
     public Location getLocation() {
-        return place;
+        return location;
     }
 
-    public Date getDate() {
-        return this.date;
-    }
-
-    public Location getPlace() {
-        return place;
+    public Date getTime() {
+        return this.time;
     }
 
     public long getID() {
         return ID;
-    }
-
-    public double keywordCounts() {
-        return this.keywords.size();
     }
 
     public ArrayList<String> getKeywords() {
@@ -72,19 +60,19 @@ public class STObject implements Serializable, Comparable<STObject> {
     }
 
     public String getSentence() {
-        return sentence;
+        return String.join(" ", keywords);
     }
 
     public String toString() {
-        return ID + " " + place.toString() + " " + DateUtil.format(date) + " " + keywords;
+        return ID + " " + location.toString() + " " + DateUtil.format(time) + " " + keywords;
     }
 
     public String toVSCLine() {
-        return place.getLat() + "," + place.getLon() + "," + DateUtil.format(date) + "," + String.join(",", keywords);
+        return location.getLat() + "," + location.getLon() + "," + DateUtil.format(time) + "," + String.join(",", keywords);
     }
 
     public boolean equals(STObject other) {
-        if (!(place.equals(other.place) && date.equals(other.date))) {
+        if (!(location.equals(other.location) && time.equals(other.time))) {
             return false;
         }
         Set<String> s1 = new HashSet<>(keywords);

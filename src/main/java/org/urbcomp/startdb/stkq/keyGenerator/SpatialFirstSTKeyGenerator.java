@@ -42,7 +42,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
     @Override
     public byte[] toKey(STObject object) {
-        byte[] timeKey = timeKeyGenerator.toKey(object.getDate());
+        byte[] timeKey = timeKeyGenerator.toKey(object.getTime());
         byte[] spatialKey = spatialKeyGenerator.toKey(object.getLocation());
         byte[] objKey = ByteUtil.longToByte(object.getID());
         return ByteUtil.concat(spatialKey, timeKey, objKey);

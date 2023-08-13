@@ -225,11 +225,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
                 shops.add(cur);
 
@@ -317,7 +317,7 @@ public class DataProcessor {
 //                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
 //                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
@@ -330,11 +330,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
 
             }
@@ -388,7 +388,7 @@ public class DataProcessor {
 //                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
 //                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
 //                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
 //                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
@@ -417,11 +417,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
             }
         } catch (IOException ex) {
@@ -476,7 +476,7 @@ public class DataProcessor {
                 }
 
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation());
-                int tID = timeKeyGenerator.getNumber(cur.getDate());
+                int tID = timeKeyGenerator.getNumber(cur.getTime());
 
                 for (String keyword : cur.getKeywords()) {
                     byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
@@ -487,11 +487,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
             }
         } catch (IOException ex) {
@@ -544,7 +544,7 @@ public class DataProcessor {
 //                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
 //                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
 //                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
 //                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
@@ -561,11 +561,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
             }
         } catch (IOException ex) {
@@ -622,7 +622,7 @@ public class DataProcessor {
 //                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
 //                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
                             ByteUtil.getKByte(sID, 4),
@@ -640,11 +640,11 @@ public class DataProcessor {
                 minLon = Math.min(minLon, cur.getLon());
                 maxLat = Math.max(maxLat, cur.getLat());
                 maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getDate().before(initFrom)) {
-                    initFrom = cur.getDate();
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
                 }
-                if (cur.getDate().after(initEnd)) {
-                    initEnd = cur.getDate();
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
                 }
             }
         } catch (IOException ex) {
@@ -691,7 +691,7 @@ public class DataProcessor {
                 if (random.nextDouble() < 0.1) {
                     BytesKey bytesKey = new BytesKey(ByteUtil.concat(
                             spatialKeyGenerator.toKey(cur.getLocation()),
-                            timeKeyGenerator.toKey(cur.getDate())
+                            timeKeyGenerator.toKey(cur.getTime())
                     ));
                     st2Count.merge(bytesKey, 1, Integer::sum);
                     if (st2Keywords.containsKey(bytesKey)) {

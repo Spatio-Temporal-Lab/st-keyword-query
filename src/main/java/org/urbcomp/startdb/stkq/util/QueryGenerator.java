@@ -98,7 +98,7 @@ public class QueryGenerator {
                 writer.write(",");
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
                 writer.write(",");
-                Date date = object.getDate();
+                Date date = object.getTime();
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfter(date, 120)));
@@ -210,7 +210,7 @@ public class QueryGenerator {
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
         for (STObject object : objects) {
             BytesKey key = new BytesKey(ByteUtil.concat(
-                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getDate())));
+                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getTime())));
             key2Count.merge(key, 1, Integer::sum);
 
             Set<String> set = key2Words.get(key);
