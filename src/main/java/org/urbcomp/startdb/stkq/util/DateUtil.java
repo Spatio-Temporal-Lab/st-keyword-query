@@ -8,12 +8,10 @@ import java.util.Date;
 public class DateUtil {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final Date minDate;
-    private static final long minTimeMill;
 
     static {
         try {
             minDate = DateUtil.getDate("2000-01-01 00:00:00");
-            minTimeMill = minDate.getTime();
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -27,14 +25,14 @@ public class DateUtil {
         return sdf.parse(s);
     }
 
-    public static Date getDateAfter(Date date, int minute) {
+    public static Date getDateAfterMinutes(Date date, int minute) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(Calendar.MINUTE, minute);
         return calendar.getTime();
     }
 
-    public static Date getDateAfter(int hour) {
+    public static Date getDateAfterHours(int hour) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(minDate);
         calendar.add(Calendar.HOUR_OF_DAY, hour);
@@ -48,10 +46,10 @@ public class DateUtil {
     }
 
     public static int getHours(Date date) {
-        return (int) ((date.getTime() - minTimeMill) / (1000 * 60 * 60));
+        return getHours(date, minDate);
     }
 
-    public static Date lastDayOfMonth(Date date) {
+    public static Date lastDateOfMonth(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -62,7 +60,7 @@ public class DateUtil {
         return calendar.getTime();
     }
 
-    public static Date firstDayOfMonth(Date date) {
+    public static Date firstDateOfMonth(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
