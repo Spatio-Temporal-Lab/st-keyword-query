@@ -17,14 +17,6 @@ public class HBaseUtil {
     public static Configuration configuration;
     public static Connection connection;
 
-    public static Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public static Admin getAdmin() {
-        return admin;
-    }
-
     public static Admin admin;
 
     // 建立连接
@@ -43,7 +35,6 @@ public class HBaseUtil {
     public static HBaseUtil getDefaultHBaseUtil() {
         HBaseUtil hBaseUtil = new HBaseUtil();
         hBaseUtil.init("192.168.110.32");
-//        hBaseUtil.init("master,slave1,slave2");
         return hBaseUtil;
     }
 
@@ -76,36 +67,6 @@ public class HBaseUtil {
             for (String columnFamily : colFamily) {
                 builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(columnFamily));
             }
-            admin.createTable(builder.build());
-        }
-        return true;
-    }
-
-    public boolean createTable(String myTableName, String colFamily) throws IOException {
-        TableName tableName = TableName.valueOf(myTableName);
-        if (admin.tableExists(tableName)) {
-            System.out.println("table is exists!");
-            return false;
-        } else {
-            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
-            builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
-            admin.createTable(builder.build());
-        }
-        return true;
-    }
-
-    public boolean createTable(String myTableName, String colFamily, BloomType bloomType, int preLen) throws IOException {
-        TableName tableName = TableName.valueOf(myTableName);
-        if (admin.tableExists(tableName)) {
-            System.out.println("table is exists!");
-            return false;
-        } else {
-            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
-            ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
-                    ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
-            columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
-            columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(preLen));
-            builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
             admin.createTable(builder.build());
         }
         return true;

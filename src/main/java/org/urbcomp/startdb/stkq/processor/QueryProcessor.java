@@ -12,7 +12,6 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 import java.text.ParseException;
 import java.util.*;
 
-//TODO: set spatial key generator type
 public class QueryProcessor {
     private final String tableName;
     private final AbstractSTKeyGenerator generator;

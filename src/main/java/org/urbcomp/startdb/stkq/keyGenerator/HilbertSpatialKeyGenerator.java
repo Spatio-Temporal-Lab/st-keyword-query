@@ -4,9 +4,9 @@ import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
-import org.davidmoten.hilbert.HilbertCurve;
-import org.davidmoten.hilbert.Ranges;
-import org.davidmoten.hilbert.SmallHilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.Ranges;
+import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.io.Serializable;
@@ -19,7 +19,7 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
     private final int MAX_RANGE_COUNT = 32;
     NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(BIT_COUNT);
     NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(BIT_COUNT);
-    private SmallHilbertCurve curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);
+    private final SmallHilbertCurve curve;
 
     public HilbertSpatialKeyGenerator() {
         curve = HilbertCurve.small().bits(BIT_COUNT).dimensions(2);
@@ -46,7 +46,7 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};
         Ranges rangesCurve = curve.query(point1, point2, MAX_RANGE_COUNT);
 
-        for (org.davidmoten.hilbert.Range range : rangesCurve) {
+        for (com.github.davidmoten.hilbert.hilbert.Range range : rangesCurve) {
             ranges.add(new Range<>(
                     ByteUtil.getKByte(range.low(), BYTE_COUNT),
                     ByteUtil.getKByte(range.high(), BYTE_COUNT)
@@ -62,7 +62,7 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};
         Ranges rangesCurve = curve.query(point1, point2, MAX_RANGE_COUNT);
 
-        for (org.davidmoten.hilbert.Range range : rangesCurve) {
+        for (com.github.davidmoten.hilbert.hilbert.Range range : rangesCurve) {
             ranges.add(new Range<>(range.low(), range.high()));
         }
         return ranges;

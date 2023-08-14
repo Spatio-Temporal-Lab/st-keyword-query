@@ -1,21 +1,21 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.model.BytesKey;
-import org.urbcomp.startdb.stkq.model.Location;
-import org.urbcomp.startdb.stkq.model.Range;
-import org.urbcomp.startdb.stkq.model.STObject;
-import org.urbcomp.startdb.stkq.util.ByteUtil;
-import org.urbcomp.startdb.stkq.util.DateUtil;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.model.BytesKey;
+import org.urbcomp.startdb.stkq.model.STObject;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,48 +24,20 @@ import java.util.*;
 public class DataProcessor {
     private int limit;
     private double rate;
-    private Range<Location> locationRange;
-    private Range<Date> timeRange;
     private long ID;
-    private BufferedReader br;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     String DELIMITER = ",";
 
-    public DataProcessor() throws ParseException {
+    public DataProcessor() {
         limit = 10000_0000;
         rate = 1.0;
-        locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));
-        timeRange = new Range<>(DateUtil.getDate("2000-01-01 00:00:00"), DateUtil.getDate("2023-12-31 23:59:59"));
     }
 
-    public DataProcessor(int limit, double rate) throws ParseException {
+    public DataProcessor(int limit, double rate) {
         this.limit = limit;
         this.rate = rate;
-        locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));
-        timeRange = new Range<>(DateUtil.getDate("2000-01-01 00:00:00"), DateUtil.getDate("2023-12:31 23:59:59"));
     }
-
-    public DataProcessor(int limit, double rate, String path) throws ParseException {
-        this.limit = limit;
-        this.rate = rate;
-        locationRange = new Range<>(new Location(-90, -180), new Location(90, 180));
-        timeRange = new Range<>(DateUtil.getDate("2000-01-01 00:00:00"), DateUtil.getDate("2023-12:31 23:59:59"));
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-        ArrayList<STObject> shops = new ArrayList<>(limit);
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            this.br = br;
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
 
     public int getLimit() {
         return limit;
@@ -73,22 +45,6 @@ public class DataProcessor {
 
     public double getRate() {
         return rate;
-    }
-
-    public Range<Location> getLocationRange() {
-        return locationRange;
-    }
-
-    public void setLocationRange(Range<Location> locationRange) {
-        this.locationRange = locationRange;
-    }
-
-    public Range<Date> getTimeRange() {
-        return timeRange;
-    }
-
-    public void setTimeRange(Range<Date> timeRange) {
-        this.timeRange = timeRange;
     }
 
     public void setLimit(int limit) {
@@ -118,14 +74,6 @@ public class DataProcessor {
     }
 
     public STObject getSTObject(String line) {
-
-        Location locationLow = locationRange.getLow();
-        Location locationHigh = locationRange.getHigh();
-        double lat1 = locationLow.getLat();
-        double lat2 = locationHigh.getLat();
-        double lon1 = locationLow.getLon();
-        double lon2 = locationHigh.getLon();
-
         if(new Random().nextDouble() > rate) {
             return null;
         }
@@ -148,8 +96,6 @@ public class DataProcessor {
 
         if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
             return null;
-        if (lat < lat1 || lat > lat2 || lon < lon1 || lon > lon2)
-            return null;
 
         ArrayList<String> keywords = new ArrayList<>();
 
@@ -170,10 +116,6 @@ public class DataProcessor {
 
         if (keywords.size() == 0) {
             return null;
-        }
-
-        for (String keyword : keywords) {
-            //KeywordCounter.add(keyword);
         }
 
         Date date = null;
@@ -249,37 +191,6 @@ public class DataProcessor {
         return shops;
     }
 
-    public void getSTObjectsBySpatial(String path) throws ParseException {
-        //实现对象读取
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            int[][] count = new int[32][32];
-            boolean first = true;
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                count[(int) ((cur.getLat() + 90) / 5.625)][(int) ((cur.getLon() + 180) / 11.25)] += 1;
-            }
-
-            for (int[] ints : count) {
-                System.out.println(Arrays.toString(ints));
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     public BloomFilter<byte[]> generateBloomFilter(String path, int size, double p) throws ParseException {
 
         double maxLat = -100.0;
@@ -313,8 +224,6 @@ public class DataProcessor {
                 if (cur == null) {
                     continue;
                 }
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
                 int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
@@ -384,13 +293,9 @@ public class DataProcessor {
                     continue;
                 }
 
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
                 int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
-//                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
-//                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
 
@@ -540,13 +445,9 @@ public class DataProcessor {
                     continue;
                 }
 
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
                 long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
                 int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
-//                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL) << 1);
-//                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.FILTER_ITEM_LEVEL);
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
 
@@ -580,88 +481,6 @@ public class DataProcessor {
 
         System.out.println(map);
         return map;
-    }
-
-    public ArrayList<BloomFilter<byte[]>> generateBloomFilters(String path, int size, double p) throws ParseException {
-
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        ArrayList<BloomFilter<byte[]>> bloomFilters = new ArrayList<>();
-        BloomFilter<byte[]> bloomFilter = BloomFilter.create(Funnels.byteArrayFunnel(), size, p);
-        BloomFilter<byte[]> bloomFilter1 = BloomFilter.create(Funnels.byteArrayFunnel(), size >>> 1, p);
-        BloomFilter<byte[]> bloomFilter2 = BloomFilter.create(Funnels.byteArrayFunnel(), size >>> 1, p);
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.FILTER_ITEM_LEVEL << 1);
-//                int tID = timeKeyGenerator.getNumber(cur.getDate()) >>> Constant.FILTER_ITEM_LEVEL;
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
-                for (String keyword : cur.getKeywords()) {
-                    bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
-                            ByteUtil.getKByte(sID, 4),
-                            ByteUtil.getKByte(tID, 3)
-                    ));
-                    bloomFilter1.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
-                            ByteUtil.getKByte(sID, 4)
-                    ));
-                    bloomFilter2.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
-                            ByteUtil.getKByte(tID, 3)
-                    ));
-                }
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-
-        bloomFilters.add(bloomFilter);
-        bloomFilters.add(bloomFilter1);
-        bloomFilters.add(bloomFilter2);
-
-        return bloomFilters;
     }
 
     public ArrayList<Map> generateDistribution(String path) {

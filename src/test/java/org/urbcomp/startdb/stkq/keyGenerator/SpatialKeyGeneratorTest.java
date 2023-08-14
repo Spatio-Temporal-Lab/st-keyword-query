@@ -3,8 +3,8 @@ package org.urbcomp.startdb.stkq.keyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import junit.framework.TestCase;
-import org.davidmoten.hilbert.HilbertCurve;
-import org.davidmoten.hilbert.SmallHilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.math.BigInteger;

@@ -1,4 +1,4 @@
-package org.davidmoten.hilbert;
+package com.github.davidmoten.hilbert.hilbert;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package org.davidmoten.hilbert;
+package com.github.davidmoten.hilbert.hilbert;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,7 +10,7 @@ import java.math.BigInteger;
 
 import javax.imageio.ImageIO;
 
-import org.davidmoten.hilbert.exceptions.IORuntimeException;
+import com.github.davidmoten.hilbert.hilbert.exceptions.IORuntimeException;
 
 public final class HilbertCurveRenderer {
 

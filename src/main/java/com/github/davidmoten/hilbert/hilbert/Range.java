@@ -1,4 +1,4 @@
-package org.davidmoten.hilbert;
+package com.github.davidmoten.hilbert.hilbert;
 
 public final class Range {
 

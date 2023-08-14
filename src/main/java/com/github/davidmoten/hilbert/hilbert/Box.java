@@ -1,4 +1,4 @@
-package org.davidmoten.hilbert;
+package com.github.davidmoten.hilbert.hilbert;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
