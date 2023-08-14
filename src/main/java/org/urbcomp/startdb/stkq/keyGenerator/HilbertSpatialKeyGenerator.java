@@ -68,7 +68,7 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         return ranges;
     }
 
-    public Long getNumber(Location pt) {
+    public long getNumber(Location pt) {
         return curve.index(normalizedLat.normalize(pt.getLat()), normalizedLon.normalize(pt.getLon()));
     }
 }

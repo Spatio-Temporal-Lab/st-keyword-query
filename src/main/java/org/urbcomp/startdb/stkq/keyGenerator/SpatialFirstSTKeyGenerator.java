@@ -72,7 +72,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public ArrayList<byte[]> toKeys(Query query, List<Range<byte[]>> sRanges, List<Range<byte[]>> tRanges) {
+    public List<byte[]> toKeys(Query query, List<Range<byte[]>> sRanges, List<Range<byte[]>> tRanges) {
         ArrayList<byte[]> keys = new ArrayList<>();
 
         LinkedList<Long> sKeys = new LinkedList<>();
@@ -146,7 +146,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
         );
         int sRangeSize = sRangesLong.size();
 
-        ArrayList<byte[]> keysBefore = toKeys(query, sRanges, tRanges);
+        List<byte[]> keysBefore = toKeys(query, sRanges, tRanges);
 
 //        filterTime += System.nanoTime() - begin;
 

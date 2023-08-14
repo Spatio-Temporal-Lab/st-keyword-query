@@ -5,13 +5,14 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BaseFilter implements IFilter {
 
     public boolean check(byte[] key) { return true; }
 
     @Override
-    public ArrayList<byte[]> filter(ArrayList<Range<Long>> sRanges, Range<Integer> tRange, ArrayList<String> keywords, QueryType queryType) {
+    public List<byte[]> filter(List<Range<Long>> sRanges, Range<Integer> tRange, List<String> keywords, QueryType queryType) {
         ArrayList<byte[]> result = new ArrayList<>();
 
         byte[][] wordsCode = keywords.stream().map(word -> ByteUtil.getKByte(word.hashCode(), 4)).toArray(byte[][]::new);

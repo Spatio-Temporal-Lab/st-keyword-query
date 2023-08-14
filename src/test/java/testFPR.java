@@ -17,6 +17,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class testFPR {
 
@@ -63,7 +64,7 @@ public class testFPR {
         System.out.println("insert time: " + (end - start));
 
         int[] sizes = new int[filters.length];
-        ArrayList<ArrayList<ArrayList<byte[]>>> results = new ArrayList<>(filters.length);
+        List<List<List<byte[]>>> results = new ArrayList<>(filters.length);
         for (int i = 0; i < filters.length; ++i) {
             results.add(new ArrayList<>());
         }
@@ -73,14 +74,14 @@ public class testFPR {
         start = System.currentTimeMillis();
         for (Query query : queries) {
 
-            ArrayList<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
+            List<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
             Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
             ArrayList<String> keywords = query.getKeywords();
             QueryType queryType = QueryType.CONTAIN_ONE;
 
             int n = filters.length;
             for (int i = 0; i < n; ++i) {
-                ArrayList<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, queryType);
+                List<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, queryType);
                 sizes[i] += filterResult.size();
                 results.get(i).add(filterResult);
             }
@@ -88,10 +89,10 @@ public class testFPR {
 
 
         // ensure no false negative
-        ArrayList<ArrayList<byte[]>> trueResults = results.get(0);
+        List<List<byte[]>> trueResults = results.get(0);
         int queryLength = queries.size();
         for (int i = 1; i < filters.length; ++i) {
-            ArrayList<ArrayList<byte[]>> approximateResults = results.get(i);
+            List<List<byte[]>> approximateResults = results.get(i);
             for (int j = 0; j < queryLength; ++j) {
                 boolean flag = true;
                 for (byte[] code : trueResults.get(j)) {
