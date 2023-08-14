@@ -1,3 +1,4 @@
+import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.BaseFilter;
@@ -94,7 +95,6 @@ public class testFPR {
         for (int i = 1; i < filters.length; ++i) {
             List<List<byte[]>> approximateResults = results.get(i);
             for (int j = 0; j < queryLength; ++j) {
-                boolean flag = true;
                 for (byte[] code : trueResults.get(j)) {
                     boolean find = false;
                     for (byte[] aCode : approximateResults.get(j)) {
@@ -104,12 +104,8 @@ public class testFPR {
                         }
                     }
                     if (!find) {
-                        flag = false;
-                        break;
+                        Assert.fail();
                     }
-                }
-                if (!flag) {
-                    System.err.println("error for query" + j);
                 }
             }
         }
