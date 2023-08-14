@@ -84,7 +84,8 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return new ArrayList<>();
     }
 
-    public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) {
+    @SuppressWarnings("all")
+    public boolean checkInBF(byte[] key, List<byte[]> keyPres, QueryType queryType) {
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
@@ -104,7 +105,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return true;
     }
 
-    public boolean checkInFilter(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) throws IOException, ClassNotFoundException {
+    public boolean checkInFilter(byte[] key, List<byte[]> keyPres, QueryType queryType) throws IOException, ClassNotFoundException {
         //4 byte for spatial key and 3 byte for time key
         //long sIDForBf = sID >>> 16;
         //int tIDForBf = tID >>> 8;
@@ -146,7 +147,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return true;
     }
 
-    public boolean checkInFilter(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType, Filter filter) {
+    public boolean checkInFilter(byte[] key, List<byte[]> keyPres, QueryType queryType, Filter filter) {
         if (filter == null) {
             return false;
         }
@@ -173,9 +174,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     public ArrayList<Range<byte[]>> keysToRanges(Stream<byte[]> keys) {
 
         ArrayList<Range<byte[]>> ranges = new ArrayList<>();
-//        long begin = System.nanoTime();
         List<Long> keysLong = keys.map(ByteUtil::toLong).sorted().collect(Collectors.toList());
-//        filterTime += System.nanoTime() - begin;
 
         int n = keysLong.size();
 
@@ -193,32 +192,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
         return ranges;
     }
 
-    public ArrayList<Range<byte[]>> keysToRanges(ArrayList<byte[]> keys) {
-
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
-//        List<Long> keysLong = keys.map(ByteUtil::toLong).sorted().collect(Collectors.toList());
-
-        int n = keys.size();
-        long[] keysLong = new long[keys.size()];
-        for (int i = 0; i < n; ++i) {
-            keysLong[i] = ByteUtil.toLong(keys.get(i));
-        }
-
-        for (int i = 0; i < n; ) {
-            int j = i + 1;
-            while (j < n && keysLong[j] <= keysLong[j - 1] + 1)
-                ++j;
-            ranges.add(new Range<>(
-                    ByteUtil.getKByte(keysLong[i], SPATIAL_BYTE_COUNT + TIME_BYTE_COUNT),
-                    ByteUtil.getKByte(keysLong[j - 1], SPATIAL_BYTE_COUNT + TIME_BYTE_COUNT)
-            ));
-            i = j;
-        }
-
-        return ranges;
-    }
-
-    public ArrayList<Range<byte[]>> toFilteredKeyRanges(Query query) {
+    public List<Range<byte[]>> toFilteredKeyRanges(Query query) {
         if (bloomFilter == null && filterType.equals(FilterType.BLOOM)) {
             return new ArrayList<>();
         }
@@ -236,7 +210,7 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
         QueryType queryType = query.getQueryType();
 
-        ArrayList<byte[]> wordKeys = new ArrayList<>();
+        List<byte[]> wordKeys = new ArrayList<>();
         for (String s : query.getKeywords()) {
             wordKeys.add(Bytes.toBytes(s.hashCode()));
         }

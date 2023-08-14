@@ -1,5 +1,7 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
+import com.github.nivdayan.FilterLibrary.filters.Filter;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.FilterType;
 import org.urbcomp.startdb.stkq.constant.QueryType;
@@ -10,30 +12,18 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.FilterManager.FilterManager;
 import org.urbcomp.startdb.stkq.util.FilterManager.QueueFilterManager;
-import com.github.nivdayan.FilterLibrary.filters.Filter;
-import com.google.common.hash.BloomFilter;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
-    BloomFilter<byte[]> sBf;
-    BloomFilter<byte[]> tBf;
-
     public SpatialFirstSTKeyGenerator(SpatialKeyGenerator spatialKeyGenerator, TimeKeyGenerator timeKeyGenerator) {
         super(spatialKeyGenerator, timeKeyGenerator);
     }
 
     public SpatialFirstSTKeyGenerator() {
         super();
-    }
-
-    public SpatialFirstSTKeyGenerator(BloomFilter<byte[]> sBf, BloomFilter<byte[]> tBf) {
-        super();
-        this.sBf = sBf;
-        this.tBf = tBf;
     }
 
     public int getByteCount() {
@@ -108,7 +98,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public boolean checkInFilter(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) {
+    public boolean checkInFilter(byte[] key, List<byte[]> keyPres, QueryType queryType) {
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : keyPres) {
@@ -128,14 +118,13 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
         return true;
     }
 
-    public ArrayList<Range<byte[]>> toFilteredKeyRanges(Query query) {
+    public List<Range<byte[]>> toFilteredKeyRanges(Query query) {
         if (bloomFilter == null && filterType.equals(FilterType.BLOOM)) {
             return new ArrayList<>();
         }
 
         long begin;
 
-//        begin = System.nanoTime();
         List<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
         List<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
         
@@ -148,10 +137,9 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
         List<byte[]> keysBefore = toKeys(query, sRanges, tRanges);
 
-//        filterTime += System.nanoTime() - begin;
 
         QueryType queryType = query.getQueryType();
-        ArrayList<byte[]> wordKeys = new ArrayList<>();
+        List<byte[]> wordKeys = new ArrayList<>();
         for (String s : query.getKeywords()) {
             wordKeys.add(Bytes.toBytes(s.hashCode()));
         }
@@ -237,11 +225,11 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
         filteredKeys = filteredKeys.parallel().map(
                 key -> {
-                    ArrayList<byte[]> keys = new ArrayList<>();
+                    List<byte[]> keys = new ArrayList<>();
                     long sCode = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4));
                     int tCode = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7));
-                    ArrayList<byte[]> sKeys = new ArrayList<>();
-                    ArrayList<byte[]> tKeys = new ArrayList<>();
+                    List<byte[]> sKeys = new ArrayList<>();
+                    List<byte[]> tKeys = new ArrayList<>();
 
                     int pos = 0;
                     for (long i = sCode << shiftForS; i <= (sCode << shiftForS | maxShiftForS); ++i) {
@@ -269,11 +257,10 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
                     return keys;
                 }
-        ).flatMap(ArrayList::stream);
+        ).flatMap(List::stream);
 
-        ArrayList<Range<byte[]>> ranges = keysToRanges(filteredKeys);
+        List<Range<byte[]>> ranges = keysToRanges(filteredKeys);
         filterTime += System.nanoTime() - begin;
         return ranges;
-//        return keysToRanges(filteredKeys);
     }
 }
