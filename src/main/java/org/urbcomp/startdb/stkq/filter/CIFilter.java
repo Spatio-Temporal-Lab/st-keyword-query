@@ -2,7 +2,7 @@ package org.urbcomp.startdb.stkq.filter;
 
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
-public class CIFilter extends BaseFilter {
+public class CIFilter extends AbstractFilter {
     private final ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 12);
 
     public CIFilter() {

@@ -5,7 +5,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SetFilter extends BaseFilter {
+public class SetFilter extends AbstractFilter {
 
     private final Set<BytesKey> set = new HashSet<>();
 

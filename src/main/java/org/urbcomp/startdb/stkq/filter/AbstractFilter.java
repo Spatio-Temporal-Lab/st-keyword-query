@@ -7,7 +7,7 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseFilter implements IFilter {
+public abstract class AbstractFilter implements IFilter {
 
     public boolean check(byte[] key) { return true; }
 

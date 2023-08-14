@@ -1,10 +1,9 @@
 import org.junit.Assert;
-import org.urbcomp.startdb.stkq.constant.Constant;
+import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.BaseFilter;
+import org.urbcomp.startdb.stkq.filter.AbstractFilter;
 import org.urbcomp.startdb.stkq.filter.CIFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -14,37 +13,26 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class testFPR {
+public class TestFPR {
 
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
 
-    static void generateSampleData() throws ParseException, IOException {
-        DataProcessor processor = new DataProcessor();
-        processor.setLimit(10_0000);
-        ArrayList<STObject> objects = processor.getSTObjects(Constant.TWEET_DIR);
-
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(TWEET_SAMPLE_FILE))) {
-            for (STObject object : objects) {
-                out.write(object.toVSCLine() + '\n');
-            }
-        }
-    }
-
-
-    public static void main(String[] args) {
-
+    @Test
+    public void testFPR() {
         SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
         List<STObject> objects = getSampleData();
 
-        BaseFilter[] filters = new BaseFilter[]{
+        AbstractFilter[] filters = new AbstractFilter[]{
                 new SetFilter(),
                 new CIFilter()
         };
@@ -56,7 +44,7 @@ public class testFPR {
                         ByteUtil.getKByte(s.hashCode(), 4),
                         spatialKeyGenerator.toKey(object.getLocation()),
                         timeKeyGenerator.toKey(object.getTime()));
-                for (BaseFilter filter : filters) {
+                for (AbstractFilter filter : filters) {
                     filter.insert(key);
                 }
             }
