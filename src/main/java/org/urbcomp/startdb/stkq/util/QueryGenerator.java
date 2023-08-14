@@ -125,7 +125,7 @@ public class QueryGenerator {
     }
 
     public static void generateZipfQueries(int size, double skew) {
-        ArrayList<BytesKey> stKeySortByObjectCount;
+        List<BytesKey> stKeySortByObjectCount;
         Map<BytesKey, Set<String>> key2Words;
 
         try(FileInputStream fin = new FileInputStream("/usr/data/st2Count.txt");
@@ -201,7 +201,7 @@ public class QueryGenerator {
     }
 
     public static void generateZipfQueries(ArrayList<STObject> objects, int size, double skew) {
-        ArrayList<BytesKey> stKeySortByObjectCount;
+        List<BytesKey> stKeySortByObjectCount;
         Map<BytesKey, Set<String>> key2Words = new HashMap<>();
         Map<BytesKey, Integer> key2Count = new HashMap<>();
 

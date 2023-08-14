@@ -42,7 +42,7 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
     }
 }
 
-public class FilterManager extends AbstractFilterManager {
+public class FilterManager {
     private static final int MAX_FILTER_COUNT = 512;
     private static int filterCount;
     private static final Map<BytesKey, FilterWithHotness> filters = new Hashtable<>();
@@ -55,10 +55,11 @@ public class FilterManager extends AbstractFilterManager {
     private static final String DIR_NAME = "/usr/data/bloom/dynamicBloom/all" + Constant.S_FILTER_ITEM_LEVEL + Constant.T_FILTER_ITEM_LEVEL + "/";
     private static long time;
 
+    @SuppressWarnings("unchecked")
     public static void init() {
         String path = "/usr/data/count.txt";
         try(FileInputStream fIn = new FileInputStream(path);
-            ObjectInputStream o = new ObjectInputStream(fIn);) {
+            ObjectInputStream o = new ObjectInputStream(fIn)) {
             count = (Map<BytesKey, Long>) o.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);

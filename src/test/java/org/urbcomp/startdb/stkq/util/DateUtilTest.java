@@ -23,20 +23,4 @@ public class DateUtilTest extends TestCase {
             System.out.println(DateUtil.getDateAfterHours(i));
         }
     }
-
-    public void testLastDayOfMonth() throws ParseException {
-        Date date = DateUtil.getDate("2000-02-01 00:00:00");
-        System.out.println(DateUtil.lastDateOfMonth(date));
-        date = DateUtil.getDate("2001-02-01 00:00:00");
-        System.out.println(DateUtil.lastDateOfMonth(date));
-    }
-
-    public void testFirstDayOfMonth() throws ParseException {
-        Date date = DateUtil.getDate("2000-02-01 00:00:00");
-        System.out.println(DateUtil.firstDateOfMonth(date));
-        date = DateUtil.getDate("2001-02-01 00:00:00");
-        System.out.println(DateUtil.firstDateOfMonth(date));
-        date.setMonth(0);
-        System.out.println(date);
-    }
 }

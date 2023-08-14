@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 public class MapUtil {
-    public static <K, V extends Comparable<? super V>> ArrayList<K> sortByValue(Map<K, V> map) {
+    public static <K, V extends Comparable<? super V>> List<K> sortByValue(Map<K, V> map) {
         List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Map.Entry.comparingByValue());
 
-        ArrayList<K> result = new ArrayList<>();
+        List<K> result = new ArrayList<>();
         for (Map.Entry<K, V> entry : list) {
             result.add(entry.getKey());
         }

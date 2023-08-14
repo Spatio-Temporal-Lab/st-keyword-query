@@ -25,10 +25,6 @@ public class ByteUtil {
         return getKByte(num, 8);
     }
 
-    public static byte[] intToByte(int num) {
-        return getKByte(num, 4);
-    }
-
     public static byte[] concat(byte[]... values) {
         int lengthByte = 0;
         for (byte[] value : values) {
@@ -41,12 +37,6 @@ public class ByteUtil {
             countLength += b.length;
         }
         return allBytes;
-    }
-
-    public static byte[] toByte(byte[] b) {
-        byte[] result = new byte[b.length];
-        System.arraycopy(b, 0, result, 0, b.length);
-        return result;
     }
 
     public static int toInt(byte[] bytes) {
@@ -68,6 +58,6 @@ public class ByteUtil {
     }
 
     public static BigInteger getValue(byte[] bytes) {
-        return new BigInteger(1, toByte(bytes));
+        return new BigInteger(1, bytes);
     }
 }

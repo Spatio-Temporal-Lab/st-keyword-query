@@ -24,9 +24,7 @@ public class QueryProcessor {
     long queryBloomTime = 0;
 
     long allSize = 0;
-    long filteredSize = 0;
     long allCount = 0;
-    long filteredCount = 0;
 
     public long getQueryBloomTime() {
         return queryBloomTime;
@@ -40,16 +38,8 @@ public class QueryProcessor {
         return allSize;
     }
 
-    public long getFilteredSize() {
-        return filteredSize;
-    }
-
     public long getAllCount() {
         return allCount;
-    }
-
-    public long getFilteredCount() {
-        return filteredCount;
     }
 
     private long getRangeSize(Range<byte[]> range) {
@@ -61,16 +51,6 @@ public class QueryProcessor {
     private long getRangesSize(List<Range<byte[]>> ranges) {
         long sum = 0;
         for (Range<byte[]> range : ranges) {
-            sum += getRangeSize(range);
-        }
-        return sum;
-    }
-
-    private long getRangesSize(ArrayList<Range<byte[]>> ranges, int len) {
-        long sum = 0;
-        for (Range<byte[]> range : ranges) {
-            range.setLow(Arrays.copyOfRange(range.getLow(), 0, len));
-            range.setHigh(Arrays.copyOfRange(range.getHigh(), 0, len));
             sum += getRangeSize(range);
         }
         return sum;

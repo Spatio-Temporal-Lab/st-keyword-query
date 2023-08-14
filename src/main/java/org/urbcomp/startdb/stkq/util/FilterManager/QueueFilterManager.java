@@ -20,7 +20,7 @@ class FilterWithKey {
     }
 }
 
-public class QueueFilterManager extends AbstractFilterManager {
+public class QueueFilterManager {
     static Queue<FilterWithKey> queue;
     static Map<BytesKey, Filter> filters = new Hashtable<>();
     private static final int MAX_FILTER_COUNT = 512;
