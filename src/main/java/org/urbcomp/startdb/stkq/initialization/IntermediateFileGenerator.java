@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.exp;
+package org.urbcomp.startdb.stkq.initialization;
 
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
-public class TestFileIO {
+public class IntermediateFileGenerator {
     public static void main(String[] args) throws Exception {
 
 //        writeInfiniFilter();

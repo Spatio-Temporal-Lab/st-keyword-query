@@ -72,36 +72,6 @@ public class HBaseUtil {
         return true;
     }
 
-    public boolean createTable(String myTableName, String colFamily) throws IOException {
-        TableName tableName = TableName.valueOf(myTableName);
-        if (admin.tableExists(tableName)) {
-            System.out.println("table is exists!");
-            return false;
-        } else {
-            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
-            builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(colFamily));
-            admin.createTable(builder.build());
-        }
-        return true;
-    }
-
-    public boolean createTable(String myTableName, String colFamily, BloomType bloomType, int preLen) throws IOException {
-        TableName tableName = TableName.valueOf(myTableName);
-        if (admin.tableExists(tableName)) {
-            System.out.println("table is exists!");
-            return false;
-        } else {
-            TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(tableName);
-            ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder =
-                    ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
-            columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
-            columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(preLen));
-            builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
-            admin.createTable(builder.build());
-        }
-        return true;
-    }
-
     public boolean createTable(String myTableName, String colFamily, BloomType bloomType, int preLen, long maxFileSize) throws IOException {
         TableName tableName = TableName.valueOf(myTableName);
         if (admin.tableExists(tableName)) {

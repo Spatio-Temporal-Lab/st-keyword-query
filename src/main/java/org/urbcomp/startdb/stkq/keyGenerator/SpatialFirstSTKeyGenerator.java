@@ -97,27 +97,6 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
         return keys;
     }
 
-    @Override
-    public boolean checkInFilter(byte[] key, List<byte[]> keyPres, QueryType queryType) {
-        switch (queryType) {
-            case CONTAIN_ONE:
-                for (byte[] keyPre : keyPres) {
-                    if (filter.search(ByteUtil.concat(keyPre, key))) {
-                        return true;
-                    }
-                }
-                return false;
-            case CONTAIN_ALL:
-                for (byte[] keyPre : keyPres) {
-                    if (!filter.search(ByteUtil.concat(keyPre, key))) {
-                        return false;
-                    }
-                }
-                return true;
-        }
-        return true;
-    }
-
     public List<Range<byte[]>> toFilteredKeyRanges(Query query) {
         if (bloomFilter == null && filterType.equals(FilterType.BLOOM)) {
             return new ArrayList<>();

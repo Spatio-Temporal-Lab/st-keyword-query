@@ -1,5 +1,3 @@
-package org.urbcomp.startdb.stkq.exp;
-
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
@@ -20,7 +18,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class TestQueryTweet {
+public class testQuery {
 
     public static boolean equals_(ArrayList<STObject> a1, ArrayList<STObject> a2) {
         int n = a1.size();
@@ -104,7 +102,7 @@ public class TestQueryTweet {
                 new QueryProcessor(tableName, keyGenerator1, true, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
 //                new QueryProcessor(tableName, keyGenerator, true, false, parallel),
-//                new QueryProcessor(tableName, keyGenerator1, false, false, parallel),
+                new QueryProcessor(tableName, keyGenerator1, false, false, parallel),
 //                new QueryProcessor(tableName, keyGenerator, false, true, parallel),
         };
 

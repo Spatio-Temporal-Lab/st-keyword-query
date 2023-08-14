@@ -1,5 +1,3 @@
-package org.urbcomp.startdb.stkq.exp;
-
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.HBaseWriter;
@@ -14,7 +12,7 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 
-public class TestWrite {
+public class testWrite {
     public static void main(String[] args) throws ParseException, IOException {
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 

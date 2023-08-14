@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.exp;
+package org.urbcomp.startdb.stkq.initialization;
 
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
@@ -9,36 +9,43 @@ import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 
-public class TestWriteTweet {
+public class BatchWriteWithRepeat {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
+        HBaseUtil hBaseUtil = new HBaseUtil();
+        hBaseUtil.init("192.168.137.204");
 
-        String tableName = "testTweet";
+        String tableName = "testTweetSample";
+        hBaseUtil.deleteTable(tableName);
+        hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1012 * 1024);
 
-        if (hBaseUtil.existsTable(tableName)) {
-            hBaseUtil.truncateTable(tableName);
-        } else {
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
-        }
-
-        String inPathName = "E:\\data\\tweet\\tweetAll.csv";
+        String inPathName = "/usr/data/tweetSample.csv";
 
         SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
         List<Put> puts = new ArrayList<>();
+
+        Random random = new Random();
+
         int batchSize = 5000;
         try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
 
@@ -108,14 +115,15 @@ public class TestWriteTweet {
                     byte[] sCode = sKeyGenerator.toKey(location);
                     byte[] tCode = tKeyGenerator.toKey(date);
 
-                    Put put = new Put(ByteUtil.concat(sCode, tCode,  Bytes.toBytes(ID)));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(location.toString()));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date)));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(String.join(" ", keywords)));
-
-                    ++ID;
-                    puts.add(put);
+                    for (int i = 0; i < 1000; ++i) {
+                        Put put = new Put(ByteUtil.concat(sCode, tCode, Bytes.toBytes(ID)));
+                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID++));
+                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(location.toString()));
+                        Date date1 = DateUtil.getDateAfterMinutes(date, random.nextInt(240) - 120);
+                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date1)));
+                        put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(String.join(" ", keywords)));
+                        puts.add(put);
+                    }
 
                     if (puts.size() >= batchSize) {
                         table.put(puts);
@@ -133,4 +141,5 @@ public class TestWriteTweet {
             System.out.println("Dataset size: " + ID);
         }
     }
+
 }

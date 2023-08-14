@@ -3,8 +3,8 @@ package org.urbcomp.startdb.stkq.util;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
-import org.davidmoten.hilbert.HilbertCurve;
-import org.davidmoten.hilbert.SmallHilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
+import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
 import org.urbcomp.startdb.stkq.model.*;
 

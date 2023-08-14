@@ -54,47 +54,6 @@ public class BasicRosetta {
 
     public ArrayList<Range<byte[]>> filter(ArrayList<Range<Long>> sRanges, Range<Integer> tRange, ArrayList<byte[]> keyPre) {return new ArrayList<>();}
 
-//    public ArrayList<Long> filter(Range<Long> range) {
-//
-//        long originLow = range.getLow();
-//        long originHigh = range.getHigh();
-//        long low = originLow >> (n - 1);
-//        long high = originHigh >> (n - 1);
-//
-//        Stream<Long> result = LongStream.range(low, high + 1).parallel().filter(filters.get(0)::search).boxed();
-//
-//        if (n == 1) {
-//            return result.collect(Collectors.toCollection(ArrayList::new));
-//        }
-//
-//        for (int i = 1; i < n; ++i) {
-//            int shift = n - i - 1;
-//
-//            ChainedInfiniFilter filter = filters.get(i);
-//
-//            long finalLow = originLow >> shift;
-//            long finalHigh = originHigh >> shift;
-//
-//            result = result.parallel().map(key -> {
-//                ArrayList<Long> keys = new ArrayList<>();
-//                long left = key << 1;
-//                if (left >= finalLow) {
-//                    if (filter.search(left)) {
-//                        keys.add(left);
-//                    }
-//                }
-//                long right = left | 1;
-//                if (right <= finalHigh) {
-//                    if (filter.search(right)) {
-//                        keys.add(right);
-//                    }
-//                }
-//                return keys;
-//            }).flatMap(ArrayList::stream);
-//        }
-//        return result.collect(Collectors.toCollection(ArrayList::new));
-//    }
-
     public ArrayList<Long> filter(Range<Long> range) {
 
         long originLow = range.getLow();
