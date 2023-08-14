@@ -41,7 +41,7 @@ public class testFPR {
         SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
-        ArrayList<STObject> objects = getSampleData();
+        List<STObject> objects = getSampleData();
 
         BaseFilter[] filters = new BaseFilter[]{
                 new SetFilter(),
@@ -120,8 +120,8 @@ public class testFPR {
     }
 
 
-    private static ArrayList<STObject> getSampleData() {
-        ArrayList<STObject> objects = new ArrayList<>();
+    private static List<STObject> getSampleData() {
+        List<STObject> objects = new ArrayList<>();
         try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
             String line;
             while ((line = in.readLine()) != null) {
