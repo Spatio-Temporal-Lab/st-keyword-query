@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 
-public class testWrite {
+public class TestWrite {
     public static void main(String[] args) throws ParseException, IOException {
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 

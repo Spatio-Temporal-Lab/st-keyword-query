@@ -1,8 +1,8 @@
 import org.junit.Assert;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.AbstractFilter;
-import org.urbcomp.startdb.stkq.filter.CIFilter;
+import org.urbcomp.startdb.stkq.filter.IFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
@@ -32,9 +32,9 @@ public class TestFPR {
 
         List<STObject> objects = getSampleData();
 
-        AbstractFilter[] filters = new AbstractFilter[]{
+        IFilter[] filters = new IFilter[]{
                 new SetFilter(),
-                new CIFilter()
+                new InfiniFilter()
         };
 
         long start = System.currentTimeMillis();
@@ -44,7 +44,7 @@ public class TestFPR {
                         ByteUtil.getKByte(s.hashCode(), 4),
                         spatialKeyGenerator.toKey(object.getLocation()),
                         timeKeyGenerator.toKey(object.getTime()));
-                for (AbstractFilter filter : filters) {
+                for (IFilter filter : filters) {
                     filter.insert(key);
                 }
             }

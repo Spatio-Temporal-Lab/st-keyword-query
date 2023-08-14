@@ -18,9 +18,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class testQuery {
+public class TestQuery {
 
-    public static boolean equals_(ArrayList<STObject> a1, ArrayList<STObject> a2) {
+    private static boolean equals_(ArrayList<STObject> a1, ArrayList<STObject> a2) {
         int n = a1.size();
         if (a2.size() != n) {
             return false;
@@ -33,7 +33,7 @@ public class testQuery {
         return true;
     }
 
-    public static boolean equals(ArrayList<ArrayList<STObject>> a1, ArrayList<ArrayList<STObject>> a2) {
+    private static boolean equals(ArrayList<ArrayList<STObject>> a1, ArrayList<ArrayList<STObject>> a2) {
         int n = a1.size();
         if (a2.size() != n) {
             return false;
@@ -47,7 +47,7 @@ public class testQuery {
         return true;
     }
 
-    public static void main(String[] args) throws ParseException, InterruptedException, IOException, ClassNotFoundException {
+    public static void main(String[] args) throws ParseException, InterruptedException, IOException {
 
 //        String tableName = "testTweetSample";
 //        String bloomPath = "/usr/data/bloom/multiBloom/sample/";

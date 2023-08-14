@@ -5,7 +5,10 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SetFilter extends AbstractFilter {
+/**
+ * use the set to verify if the element is contained in a set, which achieve zero false positive rate
+ */
+public class SetFilter implements IFilter {
 
     private final Set<BytesKey> set = new HashSet<>();
 
