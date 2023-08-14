@@ -7,7 +7,6 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
-import org.urbcomp.startdb.stkq.util.KeywordCounter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
@@ -174,7 +173,7 @@ public class DataProcessor {
         }
 
         for (String keyword : keywords) {
-            KeywordCounter.add(keyword);
+            //KeywordCounter.add(keyword);
         }
 
         Date date = null;
