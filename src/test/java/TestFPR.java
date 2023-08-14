@@ -24,9 +24,10 @@ import java.util.List;
 public class TestFPR {
 
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
+    private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
 
     @Test
-    public void testFPR() {
+    public void testInfiniFilterFPR() {
         SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
@@ -58,19 +59,17 @@ public class TestFPR {
             results.add(new ArrayList<>());
         }
 
-        ArrayList<Query> queries = QueryGenerator.getQueries("queriesZipfSample.csv");
+        List<Query> queries = QueryGenerator.getQueries("queriesZipfSample.csv");
 
         start = System.currentTimeMillis();
         for (Query query : queries) {
-
             List<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
             Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
-            ArrayList<String> keywords = query.getKeywords();
-            QueryType queryType = QueryType.CONTAIN_ONE;
+            List<String> keywords = query.getKeywords();
 
             int n = filters.length;
             for (int i = 0; i < n; ++i) {
-                List<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, queryType);
+                List<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, QUERY_TYPE);
                 sizes[i] += filterResult.size();
                 results.get(i).add(filterResult);
             }
@@ -91,9 +90,7 @@ public class TestFPR {
                             break;
                         }
                     }
-                    if (!find) {
-                        Assert.fail();
-                    }
+                    Assert.assertTrue(find);
                 }
             }
         }
