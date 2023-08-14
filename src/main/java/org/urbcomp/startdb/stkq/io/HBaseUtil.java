@@ -17,14 +17,6 @@ public class HBaseUtil {
     public static Configuration configuration;
     public static Connection connection;
 
-    public static Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public static Admin getAdmin() {
-        return admin;
-    }
-
     public static Admin admin;
 
     // 建立连接
@@ -43,7 +35,6 @@ public class HBaseUtil {
     public static HBaseUtil getDefaultHBaseUtil() {
         HBaseUtil hBaseUtil = new HBaseUtil();
         hBaseUtil.init("192.168.110.32");
-//        hBaseUtil.init("master,slave1,slave2");
         return hBaseUtil;
     }
 

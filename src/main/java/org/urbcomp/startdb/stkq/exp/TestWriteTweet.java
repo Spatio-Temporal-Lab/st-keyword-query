@@ -23,8 +23,6 @@ public class TestWriteTweet {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-//        HBaseUtil hBaseUtil = new HBaseUtil();
-//        hBaseUtil.init("192.168.137.207");
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
         String tableName = "testTweet";
@@ -35,7 +33,6 @@ public class TestWriteTweet {
             hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
         }
 
-//        String inPathName = "/usr/data/tweetAll.csv";
         String inPathName = "E:\\data\\tweet\\tweetAll.csv";
 
         SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();

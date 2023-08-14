@@ -21,9 +21,6 @@ public class HBaseQueryProcessor {
 
     static {
         hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
-//        hBaseUtil = new HBaseUtil();
-//        hBaseUtil.init("192.168.137.204");
-//        hBaseUtil.init("192.168.137.207");
     }
     private static CountDownLatch cdl;
 
@@ -124,7 +121,6 @@ public class HBaseQueryProcessor {
                             ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
             }
             cdl.await();
-//            service.shutdown();
         }
         else {
             for (Range<byte[]> range : ranges) {

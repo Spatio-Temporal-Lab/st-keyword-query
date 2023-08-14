@@ -140,20 +140,6 @@ public class TestWriteTweetAllWithRepeat {
 
             System.out.println("Dataset size: " + ID);
         }
-
-
-//        long rowCount = 0;
-//        Scan scan = new Scan();
-//        scan.setFilter(new FirstKeyOnlyFilter());
-//        ResultScanner resultScanner = hBaseUtil.getTable(tableName).getScanner(scan);
-//        for (Result result : resultScanner) {
-//            rowCount += result.size();
-//        }
-//        String outPathName = "/usr/data//log/rowCount.txt";
-//        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outPathName), StandardCharsets.UTF_8)) {
-//            writer.write(String.valueOf(rowCount));
-//        }
-//        System.out.println(rowCount);
     }
 
 }

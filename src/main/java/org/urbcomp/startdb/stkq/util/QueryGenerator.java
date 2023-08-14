@@ -20,7 +20,6 @@ public class QueryGenerator {
     private static final Random random = new Random();
 
     private static ArrayList<String> getRandomKeywords() {
-//        ArrayList<String> keywords = KeywordCounter.getKeywords();
         int n = keywords.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
         Set<String> set = new HashSet<>();
@@ -73,7 +72,6 @@ public class QueryGenerator {
 
     public static void generateQueries(ArrayList<STObject> objects, int count) throws IOException {
         String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
-//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesForSample.csv";
         System.out.println(path);
         int half = count / 2;
         File file = new File(path);
@@ -116,12 +114,6 @@ public class QueryGenerator {
                 System.out.println(writeCount);
             }
         }
-    }
-
-    public static ArrayList<String> getRandomKeywords(byte[] st) {
-        ArrayList<String> keywords = new ArrayList<>();
-
-        return keywords;
     }
 
     public static void generateZipfQueries(int size, double skew) {
@@ -287,16 +279,6 @@ public class QueryGenerator {
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-
-//        DataReader dataReader = new DataReader();
-
-//        dataReader.setRate(0.1);
-//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetSample.csv"));
-//        ArrayList<STObject> objects = new ArrayList<>(dataReader.getSTObjects("/usr/data/tweetAll.csv"));
-//        generateQueries(objects, 1_0000);
-//
-//        generateZipfQueries(10000, 0.8);
-
 
         ArrayList<STObject> objects;
         String path = "src/main/resources/tweetSample.txt";

@@ -182,7 +182,6 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
                 tIntSet.add(i);
             }
 
-            //13, -2, 5, -95, 1, -78, 3
             int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
             int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
             Map<BytesKey, Filter> filters = new Hashtable<>();

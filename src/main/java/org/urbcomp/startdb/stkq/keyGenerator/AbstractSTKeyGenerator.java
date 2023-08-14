@@ -107,8 +107,6 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
 
     public boolean checkInFilter(byte[] key, List<byte[]> keyPres, QueryType queryType) throws IOException, ClassNotFoundException {
         //4 byte for spatial key and 3 byte for time key
-        //long sIDForBf = sID >>> 16;
-        //int tIDForBf = tID >>> 8;
         long sIDForBf = ByteUtil.toLong(Arrays.copyOfRange(key, 0, 4)) >>> 16;
         int tIDForBf = ByteUtil.toInt(Arrays.copyOfRange(key, 4, 7)) >>> 8;
         BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, 2), ByteUtil.getKByte(tIDForBf, 2))));

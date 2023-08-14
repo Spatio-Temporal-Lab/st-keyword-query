@@ -23,26 +23,15 @@ public class TestFileIO {
 //        writeDistribution();
         writeKeywords();
 //        writeBf();
-
-//        DataReader dataReader = new DataReader();
-//        BloomFilter<byte[]> bloomFilter = dataReader.generateBloomFilter("/usr/data/tweetSample.csv", 50000, 0.001);
-//        String outputPath = "/usr/data/bloom/tweetSampleBloom.txt";
-//        FileOutputStream f = new FileOutputStream(outputPath);
-//        ObjectOutputStream o = new ObjectOutputStream(f);
-//        o.writeObject(bloomFilter);
     }
 
     public static void writeBf() throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
-//        ArrayList<BloomFilter<byte[]>> bloomFilters = dataReader.generateBloomFilters("/usr/data/tweetAll.csv", 50_000_000, 0.001);
         BloomFilter<byte[]> bloomFilter = dataProcessor.generateBloomFilter("/usr/data/tweetAll.csv", 50_000_000, 0.001);
-//        int n = bloomFilters.size();
-//        for (int i = 0; i < n; ++i) {
         String outputPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
         FileOutputStream f = new FileOutputStream(outputPath);
         ObjectOutputStream o = new ObjectOutputStream(f);
         o.writeObject(bloomFilter);
-//        }
     }
 
     public static void writeInfiniFilters() throws ParseException, IOException {
@@ -53,9 +42,9 @@ public class TestFileIO {
         for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
             String outputPath = "/usr/data/bloom/dynamicBloom/all" + Constant.S_FILTER_ITEM_LEVEL + Constant.T_FILTER_ITEM_LEVEL + "/" + entry.getKey() + ".txt";
             entry.getValue().writeTo(Files.newOutputStream(Paths.get(outputPath)));
-//            FileOutputStream f = new FileOutputStream(outputPath);
-//            ObjectOutputStream o = new ObjectOutputStream(f);
-//            o.writeObject(entry.getValue());
+            FileOutputStream f = new FileOutputStream(outputPath);
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            o.writeObject(entry.getValue());
         }
     }
 
