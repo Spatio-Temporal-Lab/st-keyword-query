@@ -19,7 +19,7 @@ public class TimeKeyGeneratorTest extends TestCase {
         Date date = DateUtil.getDate("2000-01-01 00:00:00");
         for (int i = 0; i < 10; ++i) {
             assertArrayEquals(timeKeyGenerator.toKey(date), ByteUtil.getKByte(i, 3));
-            date = DateUtil.getDateAfter(date, 60);
+            date = DateUtil.getDateAfterMinutes(date, 60);
         }
     }
 
@@ -33,8 +33,8 @@ public class TimeKeyGeneratorTest extends TestCase {
                 assertArrayEquals(range.getLow(), ByteUtil.getKByte(i, 3));
                 assertArrayEquals(range.getHigh(), ByteUtil.getKByte(i + 1, 3));
             }
-            date1 = DateUtil.getDateAfter(date1, 60);
-            date2 = DateUtil.getDateAfter(date2, 60);
+            date1 = DateUtil.getDateAfterMinutes(date1, 60);
+            date2 = DateUtil.getDateAfterMinutes(date2, 60);
         }
     }
 }
