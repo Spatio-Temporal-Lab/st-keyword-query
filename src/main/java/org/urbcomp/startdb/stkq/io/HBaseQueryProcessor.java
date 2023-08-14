@@ -50,7 +50,7 @@ public class HBaseQueryProcessor {
         @Override
         public void run() {
             List<Map<String, String>> scanResult = hBaseUtil.scanWithKeywords(tableName, useBfInHBase, keywords,
-                    ByteUtil.tobyte(start), ByteUtil.tobyte(end), query.getQueryType());
+                    ByteUtil.toByte(start), ByteUtil.toByte(end), query.getQueryType());
 
             if (scanResult == null || scanResult.size() == 0) {
                 cdl.countDown();
