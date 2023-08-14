@@ -58,7 +58,7 @@ public class QueryProcessor {
         return right - left + 1;
     }
 
-    private long getRangesSize(ArrayList<Range<byte[]>> ranges) {
+    private long getRangesSize(List<Range<byte[]>> ranges) {
         long sum = 0;
         for (Range<byte[]> range : ranges) {
             sum += getRangeSize(range);
@@ -93,7 +93,7 @@ public class QueryProcessor {
 
         List<Map<String, String>> scanResults;
 
-        ArrayList<Range<byte[]>> ranges;
+        List<Range<byte[]>> ranges;
 
         long begin = System.currentTimeMillis();
         if (filterInMemory) {

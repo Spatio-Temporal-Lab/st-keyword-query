@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -28,7 +29,7 @@ public class TimeKeyGeneratorTest extends TestCase {
         Date date2 = DateUtil.getDate("2000-01-01 01:00:00");
         for (int i = 0; i < 10; ++i) {
             Query query = new Query(0.0, 0.0, 0.0, 0.0, date1, date2, new ArrayList<>());
-            ArrayList<Range<byte[]>> ranges = timeKeyGenerator.toKeyRanges(query);
+            List<Range<byte[]>> ranges = timeKeyGenerator.toKeyRanges(query);
             for (Range<byte[]> range : ranges) {
                 assertArrayEquals(range.getLow(), ByteUtil.getKByte(i, 3));
                 assertArrayEquals(range.getHigh(), ByteUtil.getKByte(i + 1, 3));

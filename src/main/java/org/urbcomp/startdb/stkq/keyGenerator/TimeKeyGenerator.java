@@ -8,6 +8,7 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
     private final int BYTE_COUNT = 3;
@@ -34,17 +35,12 @@ public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
         return DateUtil.getHours(d) / hourPerBin;
     }
 
-    public Date keyToTime(byte[] key) {
-        //TODO
-        return null;
-    }
-
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
+    public List<Range<byte[]>> toKeyRanges(Query query) {
         int ds = getNumber(query.getStartTime());
         int dt = getNumber(query.getEndTime());
 
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+        List<Range<byte[]>> ranges = new ArrayList<>();
         ranges.add(new Range<>(
                 ByteUtil.getKByte(ds / hourPerBin, BYTE_COUNT),
                 ByteUtil.getKByte(dt / hourPerBin, BYTE_COUNT)

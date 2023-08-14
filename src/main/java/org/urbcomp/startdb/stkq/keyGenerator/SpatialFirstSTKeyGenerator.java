@@ -49,11 +49,11 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+    public List<Range<byte[]>> toKeyRanges(Query query) {
+        List<Range<byte[]>> ranges = new ArrayList<>();
 
-        ArrayList<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
-        ArrayList<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
         for (Range<byte[]> spatialRange : spatialRanges) {
             long spatialRangeStart = ByteUtil.toLong(spatialRange.getLow());
             long spatialRangeEnd = ByteUtil.toLong(spatialRange.getHigh());
@@ -72,7 +72,7 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public ArrayList<byte[]> toKeys(Query query, ArrayList<Range<byte[]>> sRanges, ArrayList<Range<byte[]>> tRanges) {
+    public ArrayList<byte[]> toKeys(Query query, List<Range<byte[]>> sRanges, List<Range<byte[]>> tRanges) {
         ArrayList<byte[]> keys = new ArrayList<>();
 
         LinkedList<Long> sKeys = new LinkedList<>();
@@ -136,8 +136,8 @@ public class SpatialFirstSTKeyGenerator extends AbstractSTKeyGenerator {
         long begin;
 
 //        begin = System.nanoTime();
-        ArrayList<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
-        ArrayList<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
         
         List<Range<Long>> sRangesLong = sRanges.stream().map(
                 key -> new Range<>(ByteUtil.toLong(key.getLow()), ByteUtil.toLong(key.getHigh()))).collect(Collectors.toList());

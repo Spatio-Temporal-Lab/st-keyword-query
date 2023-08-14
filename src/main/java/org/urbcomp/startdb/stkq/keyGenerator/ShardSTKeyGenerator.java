@@ -6,6 +6,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ShardSTKeyGenerator extends AbstractSTKeyGenerator {
     private int shard = 0;
@@ -13,9 +14,6 @@ public class ShardSTKeyGenerator extends AbstractSTKeyGenerator {
 
     public ShardSTKeyGenerator(SpatialKeyGenerator spatialKeyGenerator, TimeKeyGenerator timeKeyGenerator) {
         super(spatialKeyGenerator, timeKeyGenerator);
-    }
-
-    public ShardSTKeyGenerator() {
     }
 
     public int getByteCount() {
@@ -32,11 +30,11 @@ public class ShardSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        ArrayList<Range<byte[]>> rangesTemp = new ArrayList<>();
+    public List<Range<byte[]>> toKeyRanges(Query query) {
+        List<Range<byte[]>> rangesTemp = new ArrayList<>();
 
-        ArrayList<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
-        ArrayList<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
         for (Range<byte[]> timeRange : timeRanges) {
             int timeRangeStart = ByteUtil.toInt(timeRange.getLow());
             int timeRangeEnd = ByteUtil.toInt(timeRange.getHigh());
@@ -51,7 +49,7 @@ public class ShardSTKeyGenerator extends AbstractSTKeyGenerator {
             }
         }
 
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+        List<Range<byte[]>> ranges = new ArrayList<>();
         for (Range<byte[]> range : rangesTemp) {
             for (int i = 0; i < MAX_SHARD; ++i) {
                 byte[] byteI = ByteUtil.getKByte(i, 1);

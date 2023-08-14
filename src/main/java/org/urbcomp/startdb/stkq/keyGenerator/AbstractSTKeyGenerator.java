@@ -88,11 +88,11 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
+    public List<Range<byte[]>> toKeyRanges(Query query) {
         return new ArrayList<>();
     }
 
-    public ArrayList<byte[]> toKeys(Query query, ArrayList<Range<byte[]>> sRange, ArrayList<Range<byte[]>> tRange) {return new ArrayList<>(); }
+    public ArrayList<byte[]> toKeys(Query query, List<Range<byte[]>> sRange, List<Range<byte[]>> tRange) {return new ArrayList<>(); }
 
     public boolean checkInBF(byte[] key, ArrayList<byte[]> keyPres, QueryType queryType) {
         switch (queryType) {
@@ -228,8 +228,8 @@ public abstract class AbstractSTKeyGenerator implements IKeyGenerator<STObject>,
             return new ArrayList<>();
         }
 
-        ArrayList<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
-        ArrayList<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> sRanges = spatialKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> tRanges = timeKeyGenerator.toKeyRanges(query);
 
         List<Range<Long>> sRangesLong = sRanges.stream().map(
                 key -> new Range<>(ByteUtil.toLong(key.getLow()), ByteUtil.toLong(key.getHigh()))).collect(Collectors.toList());

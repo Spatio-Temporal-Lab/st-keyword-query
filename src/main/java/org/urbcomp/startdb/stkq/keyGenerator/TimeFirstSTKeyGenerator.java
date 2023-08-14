@@ -6,14 +6,12 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TimeFirstSTKeyGenerator extends AbstractSTKeyGenerator {
 
     public TimeFirstSTKeyGenerator(SpatialKeyGenerator spatialKeyGenerator, TimeKeyGenerator timeKeyGenerator) {
         super(spatialKeyGenerator, timeKeyGenerator);
-    }
-
-    public TimeFirstSTKeyGenerator() {
     }
 
     public int getByteCount() {
@@ -29,11 +27,11 @@ public class TimeFirstSTKeyGenerator extends AbstractSTKeyGenerator {
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+    public List<Range<byte[]>> toKeyRanges(Query query) {
+        List<Range<byte[]>> ranges = new ArrayList<>();
 
-        ArrayList<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
-        ArrayList<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> timeRanges = timeKeyGenerator.toKeyRanges(query);
+        List<Range<byte[]>> spatialRanges = spatialKeyGenerator.toKeyRanges(query);
         for (Range<byte[]> timeRange : timeRanges) {
             int timeRangeStart = ByteUtil.toInt(timeRange.getLow());
             int timeRangeEnd = ByteUtil.toInt(timeRange.getHigh());

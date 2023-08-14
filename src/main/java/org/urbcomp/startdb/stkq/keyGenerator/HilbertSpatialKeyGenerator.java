@@ -11,6 +11,7 @@ import org.locationtech.geomesa.curve.NormalizedDimension;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements Serializable {
     private final int BIT_COUNT = 14;
@@ -32,13 +33,14 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         return BYTE_COUNT;
     }
 
+    @Override
     public byte[] toKey(Location pt) {
         return ByteUtil.getKByte(getNumber(pt), BYTE_COUNT);
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+    public List<Range<byte[]>> toKeyRanges(Query query) {
+        List<Range<byte[]>> ranges = new ArrayList<>();
 
         long[] point1 = new long[] {normalizedLat.normalize(query.getMinLat()), normalizedLon.normalize(query.getMinLon())};
         long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};

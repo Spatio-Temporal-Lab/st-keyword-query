@@ -14,10 +14,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class TestSpatialIndex {
 
-    private static long getSize(ArrayList<Range<byte[]>> ranges) {
+    private static long getSize(List<Range<byte[]>> ranges) {
         long size = 0;
         for (Range<byte[]> range : ranges) {
             size += ByteUtil.toLong(range.getHigh()) - ByteUtil.toLong(range.getLow());
@@ -25,7 +26,7 @@ public class TestSpatialIndex {
         return size;
     }
 
-    private static boolean check(byte[] key, ArrayList<Range<byte[]>> keyRanges) {
+    private static boolean check(byte[] key, List<Range<byte[]>> keyRanges) {
         long keyLong = ByteUtil.toLong(key);
         for (Range<byte[]> range : keyRanges) {
             long low = ByteUtil.toLong(range.getLow());
@@ -59,7 +60,7 @@ public class TestSpatialIndex {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < n; ++i) {
             byte[] key1 = keyGenerator1.toKey(stObjects.get(i).getLocation());
-            ArrayList<Range<byte[]>> ranges1 = keyGenerator1.toKeyRanges(queries.get(i));
+            List<Range<byte[]>> ranges1 = keyGenerator1.toKeyRanges(queries.get(i));
             if (!check(key1, ranges1)) {
                 System.err.println("range 1 error, key = " + Arrays.toString(key1));
             }
@@ -72,7 +73,7 @@ public class TestSpatialIndex {
         startTime = System.currentTimeMillis();
         for (int i = 0; i < n; ++i) {
             byte[] key2 = keyGenerator2.toKey(stObjects.get(i).getLocation());
-            ArrayList<Range<byte[]>> ranges2 = keyGenerator2.toKeyRanges(queries.get(i));
+            List<Range<byte[]>> ranges2 = keyGenerator2.toKeyRanges(queries.get(i));
             if (!check(key2, ranges2)) {
                 System.err.println("range 2 error, key = " + Arrays.toString(key2));
             }

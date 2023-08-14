@@ -110,7 +110,7 @@ public class HBaseQueryProcessor {
             cdl.countDown();
         }
     }
-    public static List<Map<String, String>> scan(String tableName, ArrayList<Range<byte[]>> ranges,
+    public static List<Map<String, String>> scan(String tableName, List<Range<byte[]>> ranges,
                                                  Query query, boolean useBfInHBase, boolean parallel) throws InterruptedException {
 
         keywords = query.getKeywords().toArray(new String[0]);

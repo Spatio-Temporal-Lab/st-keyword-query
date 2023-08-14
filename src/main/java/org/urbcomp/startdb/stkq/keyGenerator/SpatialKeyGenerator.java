@@ -12,11 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SpatialKeyGenerator implements IKeyGenerator<Location> {
-    private Z2SFC z2 = new Z2SFC(14);
-    private final int BYTE_COUNT = 4;
+    private final Z2SFC z2;
+    private static final int BYTE_COUNT = 4;
+
+    private static final int PRECISION = 14;
 
     public SpatialKeyGenerator() {
-        z2 = new Z2SFC(14);
+        this(PRECISION);
     }
 
     public SpatialKeyGenerator(int precision) {
@@ -27,14 +29,16 @@ public class SpatialKeyGenerator implements IKeyGenerator<Location> {
         return BYTE_COUNT;
     }
 
+    @Override
     public byte[] toKey(Location pt) {
         return ByteUtil.getKByte(getNumber(pt), BYTE_COUNT);
     }
 
     @Override
-    public ArrayList<Range<byte[]>> toKeyRanges(Query query) {
-        ArrayList<Range<byte[]>> ranges = new ArrayList<>();
+    public List<Range<byte[]>> toKeyRanges(Query query) {
+        List<Range<byte[]>> ranges = new ArrayList<>();
 
+        @SuppressWarnings("unchecked")
         List<ZIndexRange> indexRangeList = (List<ZIndexRange>) scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
                 Tuple2.apply(query.getMinLon(), query.getMaxLon()),
                 Tuple2.apply(query.getMinLat(), query.getMaxLat())
@@ -52,7 +56,8 @@ public class SpatialKeyGenerator implements IKeyGenerator<Location> {
     public ArrayList<Range<Long>> toRanges(Query query) {
         ArrayList<Range<Long>> ranges = new ArrayList<>();
 
-        List<ZIndexRange> indexRangeList = scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
+        @SuppressWarnings("unchecked")
+        List<ZIndexRange> indexRangeList = (List<ZIndexRange>) scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
                 Tuple2.apply(query.getMinLon(), query.getMaxLon()),
                 Tuple2.apply(query.getMinLat(), query.getMaxLat())
         ));
