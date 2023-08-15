@@ -1,4 +1,3 @@
-import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
@@ -6,9 +5,9 @@ import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
-import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
@@ -23,14 +22,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class TestFilters {
 
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
     private static final List<STObject> SAMPLE_DATA = getSampleData();
-    private static final SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-    private static final TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+    private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+    private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
     private static List<List<byte[]>> GROUND_TRUTH_RANGES = new ArrayList<>();
 
     @BeforeClass
@@ -61,8 +63,8 @@ public class TestFilters {
 
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
-            byte[] spatialKey = spatialKeyGenerator.toKey(object.getLocation());
-            byte[] timeKey = timeKeyGenerator.toKey(object.getTime());
+            byte[] spatialKey = spatialKeyGenerator.toBytes(object.getLocation());
+            byte[] timeKey = timeKeyGenerator.toBytes(object.getTime());
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
                         ByteUtil.getKByte(s.hashCode(), Constant.KEYWORD_BYTE_COUNT),
@@ -76,8 +78,8 @@ public class TestFilters {
     private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
-            List<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
-            Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
+            List<Range<Long>> spatialRanges = spatialKeyGenerator.toNumberRanges(query);
+            Range<Integer> timeRange = timeKeyGenerator.toNumberRanges(query).get(0);
             List<String> keywords = query.getKeywords();
 
             List<byte[]> filterResult = filter.shrink(spatialRanges, timeRange, keywords, QUERY_TYPE);
