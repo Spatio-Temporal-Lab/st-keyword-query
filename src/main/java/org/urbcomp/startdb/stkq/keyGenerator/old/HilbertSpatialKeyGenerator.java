@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.keyGenerator;
+package org.urbcomp.startdb.stkq.keyGenerator.old;
 
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -55,8 +55,8 @@ public class HilbertSpatialKeyGenerator extends SpatialKeyGenerator implements S
         return ranges;
     }
 
-    public ArrayList<Range<Long>> toRanges(Query query) {
-        ArrayList<Range<Long>> ranges = new ArrayList<>();
+    public List<Range<Long>> toRanges(Query query) {
+        List<Range<Long>> ranges = new ArrayList<>();
 
         long[] point1 = new long[] {normalizedLat.normalize(query.getMinLat()), normalizedLon.normalize(query.getMinLon())};
         long[] point2 = new long[] {normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};

@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.keyGenerator;
+package org.urbcomp.startdb.stkq.keyGenerator.old;
 
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import org.apache.hadoop.hbase.util.Bytes;

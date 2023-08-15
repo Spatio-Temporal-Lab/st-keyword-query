@@ -1,7 +1,7 @@
 package org.urbcomp.startdb.stkq.processor;
 
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;

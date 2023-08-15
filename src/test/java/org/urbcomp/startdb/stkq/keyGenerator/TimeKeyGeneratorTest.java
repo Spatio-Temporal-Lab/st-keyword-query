@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
+import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;

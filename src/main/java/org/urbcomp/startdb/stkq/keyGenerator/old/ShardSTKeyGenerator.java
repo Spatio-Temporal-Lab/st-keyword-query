@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.keyGenerator;
+package org.urbcomp.startdb.stkq.keyGenerator.old;
 
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;

@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.keyGenerator;
+package org.urbcomp.startdb.stkq.keyGenerator.old;
 
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.Filter;

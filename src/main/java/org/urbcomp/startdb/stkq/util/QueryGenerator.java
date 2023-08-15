@@ -1,8 +1,8 @@
 package org.urbcomp.startdb.stkq.util;
 
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;

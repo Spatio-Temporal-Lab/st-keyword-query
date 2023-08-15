@@ -1,6 +1,6 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.keyGenerator.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;

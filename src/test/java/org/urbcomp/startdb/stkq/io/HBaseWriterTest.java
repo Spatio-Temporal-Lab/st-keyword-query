@@ -1,9 +1,9 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.keyGenerator.AbstractSTKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeFirstSTKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.TimeFirstSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 import junit.framework.TestCase;
 

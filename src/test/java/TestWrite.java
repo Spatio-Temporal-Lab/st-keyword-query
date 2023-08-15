@@ -1,7 +1,7 @@
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.HBaseWriter;
-import org.urbcomp.startdb.stkq.keyGenerator.*;
+import org.urbcomp.startdb.stkq.keyGenerator.old.*;
 import org.urbcomp.startdb.stkq.model.STObject;
 
 import java.io.BufferedWriter;

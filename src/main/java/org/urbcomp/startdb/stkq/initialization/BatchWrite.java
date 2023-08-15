@@ -2,9 +2,9 @@ package org.urbcomp.startdb.stkq.initialization;
 
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
