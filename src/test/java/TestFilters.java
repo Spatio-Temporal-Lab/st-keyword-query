@@ -61,11 +61,13 @@ public class TestFilters {
 
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
+            byte[] spatialKey = spatialKeyGenerator.toKey(object.getLocation());
+            byte[] timeKey = timeKeyGenerator.toKey(object.getTime());
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
                         ByteUtil.getKByte(s.hashCode(), Constant.KEYWORD_BYTE_COUNT),
-                        spatialKeyGenerator.toKey(object.getLocation()),
-                        timeKeyGenerator.toKey(object.getTime()));
+                        spatialKey,
+                        timeKey);
                 filter.insert(key);
             }
         }
