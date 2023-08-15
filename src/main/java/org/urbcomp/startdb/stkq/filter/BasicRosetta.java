@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.filter;
 
-
 import org.urbcomp.startdb.stkq.model.Range;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
@@ -11,10 +10,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class BasicRosetta {
     protected int n;
-    protected ArrayList<ChainedInfiniFilter> filters;
+    protected List<ChainedInfiniFilter> filters;
 
     public BasicRosetta(int n) {
         this.n = n;
