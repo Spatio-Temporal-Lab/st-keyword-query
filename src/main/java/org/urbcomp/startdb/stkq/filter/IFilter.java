@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IFilter {
-    default List<byte[]> filter(List<Range<Long>> sRanges, Range<Integer> tRange,
+    default List<byte[]> shrink(List<Range<Long>> sRanges, Range<Integer> tRange,
                                 List<String> keywords, QueryType queryType) {
         List<byte[]> result = new ArrayList<>();
 

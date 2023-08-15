@@ -1,4 +1,5 @@
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
@@ -28,78 +29,75 @@ public class TestFilters {
     private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
     private static final List<STObject> SAMPLE_DATA = getSampleData();
+    private static final SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+    private static final TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+    private static List<List<byte[]>> GROUND_TRUTH_RANGES = new ArrayList<>();
+
+    @BeforeClass
+    public static void initial() {
+        IFilter setFilter = new SetFilter();
+        insertIntoFilter(setFilter);
+        GROUND_TRUTH_RANGES = shrinkByFilter(setFilter);
+        System.out.println("GroundTruthRanges Size: " + GROUND_TRUTH_RANGES.stream().map(List::size).reduce(0, Integer::sum));
+    }
 
     @Test
     public void testInfiniFilterFPR() {
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        IFilter[] filters = new IFilter[]{
-                new SetFilter(),
-                new InfiniFilter()
-        };
+        IFilter filter = new InfiniFilter();
 
         long start = System.currentTimeMillis();
+        insertIntoFilter(filter);
+        long end = System.currentTimeMillis();
+        System.out.println("Insert Time: " + (end - start));
+
+        start = System.currentTimeMillis();
+        List<List<byte[]>> results = shrinkByFilter(filter);
+        end = System.currentTimeMillis();
+        System.out.println("Query Time: " + (end - start));
+        System.out.println("Result Size: " + results.stream().map(List::size).reduce(0, Integer::sum));
+
+        checkNoFalsePositive(results);
+    }
+
+    private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
                         ByteUtil.getKByte(s.hashCode(), Constant.KEYWORD_BYTE_COUNT),
                         spatialKeyGenerator.toKey(object.getLocation()),
                         timeKeyGenerator.toKey(object.getTime()));
-                for (IFilter filter : filters) {
-                    filter.insert(key);
-                }
+                filter.insert(key);
             }
         }
-        long end = System.currentTimeMillis();
-        System.out.println("insert time: " + (end - start));
+    }
 
-        int[] sizes = new int[filters.length];
-        List<List<List<byte[]>>> results = new ArrayList<>(filters.length);
-        for (int i = 0; i < filters.length; ++i) {
-            results.add(new ArrayList<>());
-        }
-
-
-
-        start = System.currentTimeMillis();
+    private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
+        List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
             Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
             List<String> keywords = query.getKeywords();
 
-            int n = filters.length;
-            for (int i = 0; i < n; ++i) {
-                List<byte[]> filterResult = filters[i].filter(spatialRanges, timeRange, keywords, QUERY_TYPE);
-                sizes[i] += filterResult.size();
-                results.get(i).add(filterResult);
-            }
+            List<byte[]> filterResult = filter.shrink(spatialRanges, timeRange, keywords, QUERY_TYPE);
+            results.add(filterResult);
         }
-
-        // ensure no false negative
-        List<List<byte[]>> trueResults = results.get(0);
-        int queryLength = QUERIES.size();
-        for (int i = 1; i < filters.length; ++i) {
-            List<List<byte[]>> approximateResults = results.get(i);
-            for (int j = 0; j < queryLength; ++j) {
-                for (byte[] code : trueResults.get(j)) {
-                    boolean find = false;
-                    for (byte[] aCode : approximateResults.get(j)) {
-                        if (Arrays.equals(aCode, code)) {
-                            find = true;
-                            break;
-                        }
-                    }
-                    Assert.assertTrue(find);
-                }
-            }
-        }
-        end = System.currentTimeMillis();
-        System.out.println("query time: " + (end - start));
-
-        System.out.println(Arrays.toString(sizes));
+        return results;
     }
 
+    private static void checkNoFalsePositive(List<List<byte[]>> results) {
+        for (int i = 0; i < QUERIES.size(); ++i) {
+            for (byte[] code : GROUND_TRUTH_RANGES.get(i)) {
+                boolean find = false;
+                for (byte[] aCode : results.get(i)) {
+                    if (Arrays.equals(aCode, code)) {
+                        find = true;
+                        break;
+                    }
+                }
+                Assert.assertTrue(find);
+            }
+        }
+    }
 
     private static List<STObject> getSampleData() {
         List<STObject> objects = new ArrayList<>();
