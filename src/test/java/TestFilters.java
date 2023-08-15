@@ -1,4 +1,4 @@
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
@@ -38,7 +38,7 @@ public class TestFilters {
         IFilter setFilter = new SetFilter();
         insertIntoFilter(setFilter);
         GROUND_TRUTH_RANGES = shrinkByFilter(setFilter);
-        System.out.println("GroundTruthRanges Size: " + GROUND_TRUTH_RANGES.stream().map(List::size).reduce(0, Integer::sum));
+        assertEquals(13365, GROUND_TRUTH_RANGES.stream().mapToInt(List::size).sum());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class TestFilters {
         List<List<byte[]>> results = shrinkByFilter(filter);
         end = System.currentTimeMillis();
         System.out.println("Query Time: " + (end - start));
-        System.out.println("Result Size: " + results.stream().map(List::size).reduce(0, Integer::sum));
+        System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
 
         checkNoFalsePositive(results);
     }
@@ -94,7 +94,7 @@ public class TestFilters {
                         break;
                     }
                 }
-                Assert.assertTrue(find);
+                assertTrue(find);
             }
         }
     }
