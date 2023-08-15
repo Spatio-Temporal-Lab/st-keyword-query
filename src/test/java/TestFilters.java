@@ -21,10 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TestFPR {
+public class TestFilters {
 
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
+    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
 
     @Test
     public void testInfiniFilterFPR() {
@@ -59,10 +60,10 @@ public class TestFPR {
             results.add(new ArrayList<>());
         }
 
-        List<Query> queries = QueryGenerator.getQueries("queriesZipfSample.csv");
+
 
         start = System.currentTimeMillis();
-        for (Query query : queries) {
+        for (Query query : QUERIES) {
             List<Range<Long>> spatialRanges = spatialKeyGenerator.toRanges(query);
             Range<Integer> timeRange = timeKeyGenerator.toRanges(query);
             List<String> keywords = query.getKeywords();
@@ -78,7 +79,7 @@ public class TestFPR {
 
         // ensure no false negative
         List<List<byte[]>> trueResults = results.get(0);
-        int queryLength = queries.size();
+        int queryLength = QUERIES.size();
         for (int i = 1; i < filters.length; ++i) {
             List<List<byte[]>> approximateResults = results.get(i);
             for (int j = 0; j < queryLength; ++j) {
