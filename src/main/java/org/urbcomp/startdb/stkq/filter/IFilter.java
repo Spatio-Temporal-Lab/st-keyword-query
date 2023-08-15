@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.filter;
 
+import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -10,9 +11,10 @@ import java.util.List;
 public interface IFilter {
     default List<byte[]> filter(List<Range<Long>> sRanges, Range<Integer> tRange,
                                 List<String> keywords, QueryType queryType) {
-        ArrayList<byte[]> result = new ArrayList<>();
+        List<byte[]> result = new ArrayList<>();
 
-        byte[][] wordsCode = keywords.stream().map(word -> ByteUtil.getKByte(word.hashCode(), 4)).toArray(byte[][]::new);
+        byte[][] wordsCode = keywords.stream()
+                .map(word -> ByteUtil.getKByte(word.hashCode(), Constant.KEYWORD_BYTE_COUNT)).toArray(byte[][]::new);
 
         int tStart = tRange.getLow();
         int tEnd = tRange.getHigh();
@@ -23,8 +25,8 @@ public interface IFilter {
             for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
                 for (int j = tStart; j <= tEnd; ++j) {
                     byte[] stKey = ByteUtil.concat(
-                            ByteUtil.getKByte(i, 4),
-                            ByteUtil.getKByte(j, 3)
+                            ByteUtil.getKByte(i, Constant.SPATIAL_BYTE_COUNT),
+                            ByteUtil.getKByte(j, Constant.TIME_BYTE_COUNT)
                     );
                     switch (queryType) {
                         case CONTAIN_ONE:

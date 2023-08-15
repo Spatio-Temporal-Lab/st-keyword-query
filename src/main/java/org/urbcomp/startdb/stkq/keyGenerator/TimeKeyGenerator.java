@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
+import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -11,7 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 public class TimeKeyGenerator implements IKeyGenerator<Date>, Serializable {
-    private final int BYTE_COUNT = 3;
+    private final int BYTE_COUNT = Constant.TIME_BYTE_COUNT;
     private final int hourPerBin;
 
     public TimeKeyGenerator() {

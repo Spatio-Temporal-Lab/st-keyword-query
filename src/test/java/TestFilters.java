@@ -1,5 +1,6 @@
 import org.junit.Assert;
 import org.junit.Test;
+import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
@@ -26,13 +27,12 @@ public class TestFilters {
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
+    private static final List<STObject> SAMPLE_DATA = getSampleData();
 
     @Test
     public void testInfiniFilterFPR() {
         SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        List<STObject> objects = getSampleData();
 
         IFilter[] filters = new IFilter[]{
                 new SetFilter(),
@@ -40,10 +40,10 @@ public class TestFilters {
         };
 
         long start = System.currentTimeMillis();
-        for (STObject object : objects) {
+        for (STObject object : SAMPLE_DATA) {
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
-                        ByteUtil.getKByte(s.hashCode(), 4),
+                        ByteUtil.getKByte(s.hashCode(), Constant.KEYWORD_BYTE_COUNT),
                         spatialKeyGenerator.toKey(object.getLocation()),
                         timeKeyGenerator.toKey(object.getTime()));
                 for (IFilter filter : filters) {
@@ -75,7 +75,6 @@ public class TestFilters {
                 results.get(i).add(filterResult);
             }
         }
-
 
         // ensure no false negative
         List<List<byte[]>> trueResults = results.get(0);
