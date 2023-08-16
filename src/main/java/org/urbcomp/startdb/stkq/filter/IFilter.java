@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IFilter {
+    // todo 这个方法需要放在query processor里面
     default List<byte[]> shrink(Query query, ISpatialKeyGeneratorNew sKeyGenerator, TimeKeyGeneratorNew tKeyGenerator,
                 KeywordKeyGeneratorNew keywordGenerator) {
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
