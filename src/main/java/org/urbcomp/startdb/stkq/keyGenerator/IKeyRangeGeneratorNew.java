@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface IKeyRangeGeneratorNew<T> {
     List<Range<T>> toNumberRanges(Query query);
-    List<Range<byte[]>> toBytesRanges(Query query);
 }

@@ -8,7 +8,6 @@ import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
-import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
@@ -78,11 +77,7 @@ public class TestFilters {
     private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
-            List<Range<Long>> spatialRanges = spatialKeyGenerator.toNumberRanges(query);
-            Range<Integer> timeRange = timeKeyGenerator.toNumberRanges(query).get(0);
-            List<String> keywords = query.getKeywords();
-
-            List<byte[]> filterResult = filter.shrink(spatialRanges, timeRange, keywords);
+            List<byte[]> filterResult = filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
             results.add(filterResult);
         }
         return results;

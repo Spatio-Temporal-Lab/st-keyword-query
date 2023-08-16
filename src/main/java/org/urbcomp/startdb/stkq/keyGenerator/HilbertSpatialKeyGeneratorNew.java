@@ -40,6 +40,11 @@ public class HilbertSpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
     }
 
     @Override
+    public byte[] numberToBytes(Long number) {
+        return ByteUtil.getKByte(number, BYTE_COUNT);
+    }
+
+    @Override
     public List<Range<Long>> toNumberRanges(Query query) {
         long[] p1 = new long[]{normalizedLat.normalize(query.getMinLat()), normalizedLon.normalize(query.getMinLon())};
         long[] p2 = new long[]{normalizedLat.normalize(query.getMaxLat()), normalizedLon.normalize(query.getMaxLon())};
@@ -47,12 +52,4 @@ public class HilbertSpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
                 .map(o -> new Range<>(o.low(), o.high()))
                 .collect(Collectors.toList());
     }
-
-    @Override
-    public List<Range<byte[]>> toBytesRanges(Query query) {
-        return toNumberRanges(query).stream()
-                .map(o -> new Range<>(ByteUtil.getKByte(o.getLow(), BYTE_COUNT), ByteUtil.getKByte(o.getHigh(), BYTE_COUNT)))
-                .collect(Collectors.toList());
-    }
-
 }

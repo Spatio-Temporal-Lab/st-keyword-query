@@ -13,4 +13,9 @@ public class KeywordKeyGeneratorNew implements IKeyGeneratorNew<String, Integer>
     public byte[] toBytes(String object) {
         return ByteUtil.getKByte(toNumber(object), Constant.KEYWORD_BYTE_COUNT);
     }
+
+    @Override
+    public byte[] numberToBytes(Integer number) {
+        return ByteUtil.getKByte(number, Constant.KEYWORD_BYTE_COUNT);
+    }
 }

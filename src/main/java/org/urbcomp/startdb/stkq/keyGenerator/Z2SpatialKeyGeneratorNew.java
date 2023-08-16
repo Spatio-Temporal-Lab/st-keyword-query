@@ -37,6 +37,11 @@ public class Z2SpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
     }
 
     @Override
+    public byte[] numberToBytes(Long number) {
+        return ByteUtil.getKByte(number, BYTE_COUNT);
+    }
+
+    @Override
     public List<Range<Long>> toNumberRanges(Query query) {
         @SuppressWarnings("unchecked")
         List<ZIndexRange> indexRangeList = (List<ZIndexRange>) scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
@@ -45,14 +50,5 @@ public class Z2SpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
         ));
 
         return indexRangeList.stream().map(o -> new Range<>(o.low(), o.high())).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Range<byte[]>> toBytesRanges(Query query) {
-        return toNumberRanges(query).stream()
-                .map(o -> new Range<>(
-                        ByteUtil.getKByte(o.getLow(), BYTE_COUNT),
-                        ByteUtil.getKByte(o.getHigh(), BYTE_COUNT)))
-                .collect(Collectors.toList());
     }
 }

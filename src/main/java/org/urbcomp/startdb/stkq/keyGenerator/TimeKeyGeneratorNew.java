@@ -9,7 +9,6 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TimeKeyGeneratorNew implements IKeyGeneratorNew<Date, Integer>, IKeyRangeGeneratorNew<Integer> {
     private final static int BYTE_COUNT = Constant.TIME_BYTE_COUNT;
@@ -35,16 +34,14 @@ public class TimeKeyGeneratorNew implements IKeyGeneratorNew<Date, Integer>, IKe
     }
 
     @Override
+    public byte[] numberToBytes(Integer number) {
+        return ByteUtil.getKByte(number, BYTE_COUNT);
+    }
+
+    @Override
     public List<Range<Integer>> toNumberRanges(Query query) {
         int ds = toNumber(query.getStartTime());
         int dt = toNumber(query.getEndTime());
         return Collections.singletonList(new Range<>(ds / hoursPerBin, dt / hoursPerBin));
-    }
-
-    @Override
-    public List<Range<byte[]>> toBytesRanges(Query query) {
-        return toNumberRanges(query).stream()
-                .map(o -> new Range<>(ByteUtil.getKByte(o.getLow(), BYTE_COUNT), ByteUtil.getKByte(o.getHigh(), BYTE_COUNT)))
-                .collect(Collectors.toList());
     }
 }
