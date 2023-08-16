@@ -3,7 +3,7 @@ package org.urbcomp.startdb.stkq.keyGenerator;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
-public class KeywordKeyGeneratorNew implements IKeyGeneratorNew<String, Integer>{
+public class KeywordKeyGeneratorNew implements IKeyGeneratorNew<String, Integer> {
     @Override
     public Integer toNumber(String object) {
         return object.hashCode();
