@@ -3,7 +3,6 @@ package org.urbcomp.startdb.stkq.keyGenerator.old;
 import org.locationtech.geomesa.curve.Z2SFC;
 import org.urbcomp.startdb.stkq.ZIndexRange;
 import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.keyGenerator.old.IKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
