@@ -1,7 +1,6 @@
 package org.urbcomp.startdb.stkq.filter;
 
 import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
@@ -9,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IFilter {
-    default List<byte[]> shrink(List<Range<Long>> sRanges, Range<Integer> tRange,
-                                List<String> keywords, QueryType queryType) {
+    default List<byte[]> shrink(List<Range<Long>> sRanges, Range<Integer> tRange, List<String> keywords) {
         List<byte[]> result = new ArrayList<>();
 
         byte[][] wordsCode = keywords.stream()
@@ -28,29 +26,12 @@ public interface IFilter {
                             ByteUtil.getKByte(i, Constant.SPATIAL_BYTE_COUNT),
                             ByteUtil.getKByte(j, Constant.TIME_BYTE_COUNT)
                     );
-                    switch (queryType) {
-                        case CONTAIN_ONE:
-                            for (byte[] wordCode : wordsCode) {
-                                byte[] key = ByteUtil.concat(wordCode, stKey);
-                                if (check(key)) {
-                                    result.add(stKey);
-                                    break;
-                                }
-                            }
+                    for (byte[] wordCode : wordsCode) {
+                        byte[] key = ByteUtil.concat(wordCode, stKey);
+                        if (check(key)) {
+                            result.add(stKey);
                             break;
-                        case CONTAIN_ALL:
-                            boolean containAll = true;
-                            for (byte[] wordCode : wordsCode) {
-                                byte[] key = ByteUtil.concat(wordCode, stKey);
-                                if (!check(key)) {
-                                    containAll = false;
-                                    break;
-                                }
-                            }
-                            if (containAll) {
-                                result.add(stKey);
-                            }
-                            break;
+                        }
                     }
                 }
             }

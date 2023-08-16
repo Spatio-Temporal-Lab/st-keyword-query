@@ -1,6 +1,5 @@
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
@@ -28,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 public class TestFilters {
 
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
-    private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
     private static final List<STObject> SAMPLE_DATA = getSampleData();
     private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
@@ -84,7 +82,7 @@ public class TestFilters {
             Range<Integer> timeRange = timeKeyGenerator.toNumberRanges(query).get(0);
             List<String> keywords = query.getKeywords();
 
-            List<byte[]> filterResult = filter.shrink(spatialRanges, timeRange, keywords, QUERY_TYPE);
+            List<byte[]> filterResult = filter.shrink(spatialRanges, timeRange, keywords);
             results.add(filterResult);
         }
         return results;
