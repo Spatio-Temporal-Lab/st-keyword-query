@@ -23,10 +23,10 @@ public interface IFilter {
 
         int tStart = tRange.getLow();
         int tEnd = tRange.getHigh();
-        for (Range<Long> spatialRange : sRanges) {
-            long spatialRangeStart = spatialRange.getLow();
-            long spatialRangeEnd = spatialRange.getHigh();
-            for (long i = spatialRangeStart; i <= spatialRangeEnd; ++i) {
+        for (Range<Long> sRange : sRanges) {
+            long sRangeStart = sRange.getLow();
+            long sRangeEnd = sRange.getHigh();
+            for (long i = sRangeStart; i <= sRangeEnd; ++i) {
                 for (int j = tStart; j <= tEnd; ++j) {
                     byte[] stKey = ByteUtil.concat(sKeyGenerator.numberToBytes(i), tKeyGenerator.numberToBytes(j));
                     for (byte[] wordCode : wordsCode) {

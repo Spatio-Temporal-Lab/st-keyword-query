@@ -30,7 +30,6 @@ public class TestFilters {
     private static final List<STObject> SAMPLE_DATA = getSampleData();
     private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
-
     private static final KeywordKeyGeneratorNew keywordGenerator = new KeywordKeyGeneratorNew();
     private static List<List<byte[]>> GROUND_TRUTH_RANGES = new ArrayList<>();
 
