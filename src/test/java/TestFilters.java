@@ -7,6 +7,7 @@ import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -33,6 +34,8 @@ public class TestFilters {
     private static final List<STObject> SAMPLE_DATA = getSampleData();
     private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGenerator();
     private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+
+    private static final KeywordKeyGeneratorNew keywordGenerator = new KeywordKeyGeneratorNew();
     private static List<List<byte[]>> GROUND_TRUTH_RANGES = new ArrayList<>();
 
     @BeforeClass
@@ -67,7 +70,7 @@ public class TestFilters {
             byte[] timeKey = timeKeyGenerator.toBytes(object.getTime());
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
-                        ByteUtil.getKByte(s.hashCode(), Constant.KEYWORD_BYTE_COUNT),
+                        keywordGenerator.toBytes(s),
                         spatialKey,
                         timeKey);
                 filter.insert(key);
