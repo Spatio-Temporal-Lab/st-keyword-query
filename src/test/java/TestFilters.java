@@ -4,7 +4,7 @@ import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
@@ -31,7 +31,7 @@ public class TestFilters {
     private static final QueryType QUERY_TYPE = QueryType.CONTAIN_ONE;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
     private static final List<STObject> SAMPLE_DATA = getSampleData();
-    private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+    private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
     private static final KeywordKeyGeneratorNew keywordGenerator = new KeywordKeyGeneratorNew();

@@ -13,7 +13,7 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class HilbertSpatialKeyGenerator implements ISpatialKeyGeneratorNew {
+public class HilbertSpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
     private final static int DEFAULT_PRECISION = 14;
     private final static int BYTE_COUNT = Constant.SPATIAL_BYTE_COUNT;
     private final static int MAX_RANGE_COUNT = 32;  // for each query range, return the maximum number of key ranges
@@ -21,11 +21,11 @@ public class HilbertSpatialKeyGenerator implements ISpatialKeyGeneratorNew {
     NormalizedLon normalizedLon = new NormalizedLon(DEFAULT_PRECISION);
     private final SmallHilbertCurve curve;
 
-    public HilbertSpatialKeyGenerator() {
+    public HilbertSpatialKeyGeneratorNew() {
         this(DEFAULT_PRECISION);
     }
 
-    public HilbertSpatialKeyGenerator(int precision) {
+    public HilbertSpatialKeyGeneratorNew(int precision) {
         curve = HilbertCurve.small().bits(precision).dimensions(2);
     }
 
