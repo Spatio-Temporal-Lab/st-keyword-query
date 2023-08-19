@@ -12,10 +12,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +23,7 @@ public class DataProcessor {
     private double rate;
     private long ID;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
 
     String DELIMITER = ",";
 
@@ -553,5 +551,18 @@ public class DataProcessor {
         }
 
         return set;
+    }
+
+    public static List<STObject> getSampleData() {
+        List<STObject> objects = new ArrayList<>();
+        try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                objects.add(new STObject(line));
+            }
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return objects;
     }
 }

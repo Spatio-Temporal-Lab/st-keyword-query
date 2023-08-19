@@ -1,10 +1,10 @@
 package org.urbcomp.startdb.stkq.filter;
 
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
 import java.util.ArrayList;
 

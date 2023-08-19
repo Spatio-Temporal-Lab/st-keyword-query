@@ -3,16 +3,16 @@ import org.junit.Test;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.SetFilter;
-import org.urbcomp.startdb.stkq.keyGenerator.*;
+import org.urbcomp.startdb.stkq.io.DataProcessor;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,10 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestFilters {
-
-    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
-    private static final List<STObject> SAMPLE_DATA = getSampleData();
+    private static final List<STObject> SAMPLE_DATA = DataProcessor.getSampleData();
     private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
     private static final KeywordKeyGeneratorNew keywordGenerator = new KeywordKeyGeneratorNew();
@@ -94,16 +92,4 @@ public class TestFilters {
         }
     }
 
-    private static List<STObject> getSampleData() {
-        List<STObject> objects = new ArrayList<>();
-        try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                objects.add(new STObject(line));
-            }
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
-        return objects;
-    }
 }
