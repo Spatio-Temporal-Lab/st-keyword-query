@@ -1,4 +1,5 @@
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
@@ -7,30 +8,16 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestKeyGenerator extends TestCase {
+import static org.junit.Assert.assertTrue;
 
-    private static final List<STObject> SAMPLE_DATA = getSampleData();
-    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
+public class TestKeyGenerator {
 
-    private Query getQueryByObject(STObject object) {
-        return new Query(
-                object.getLat() - 0.01,
-                object.getLat() + 0.01,
-                object.getLon() - 0.01,
-                object.getLon() + 0.01,
-                DateUtil.getDateAfterMinutes(object.getTime(), -30),
-                DateUtil.getDateAfterMinutes(object.getTime(), 20),
-                new ArrayList<>()
-        );
-    }
+    private static final List<STObject> SAMPLE_DATA = DataProcessor.getSampleData();
 
+    @Test
     public void testCorrectness() {
         testSTKeyGenerator(new STKeyGenerator());
         testSTKeyGenerator(new TSKeyGenerator());
@@ -51,16 +38,15 @@ public class TestKeyGenerator extends TestCase {
         }
     }
 
-    private static List<STObject> getSampleData() {
-        List<STObject> objects = new ArrayList<>();
-        try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                objects.add(new STObject(line));
-            }
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
-        return objects;
+    private Query getQueryByObject(STObject object) {
+        return new Query(
+                object.getLat() - 0.01,
+                object.getLat() + 0.01,
+                object.getLon() - 0.01,
+                object.getLon() + 0.01,
+                DateUtil.getDateAfterMinutes(object.getTime(), -30),
+                DateUtil.getDateAfterMinutes(object.getTime(), 20),
+                new ArrayList<>()
+        );
     }
 }

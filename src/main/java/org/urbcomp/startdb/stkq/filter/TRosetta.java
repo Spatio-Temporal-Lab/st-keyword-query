@@ -1,19 +1,14 @@
 package org.urbcomp.startdb.stkq.filter;
 
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class TRosetta extends BasicRosetta implements IFilter {
+public class TRosetta extends BasicRosetta {
 
     public TRosetta(int n) {
         super(n);
@@ -130,20 +125,5 @@ public class TRosetta extends BasicRosetta implements IFilter {
         }
 
         return toRanges(s, result);
-    }
-
-    @Override
-    public List<byte[]> shrink(Query query, ISpatialKeyGeneratorNew sKeyGenerator, TimeKeyGeneratorNew tKeyGenerator, KeywordKeyGeneratorNew keywordGenerator) {
-        return IFilter.super.shrink(query, sKeyGenerator, tKeyGenerator, keywordGenerator);
-    }
-
-    @Override
-    public void insert(byte[] code) {
-
-    }
-
-    @Override
-    public boolean check(byte[] key) {
-        return false;
     }
 }
