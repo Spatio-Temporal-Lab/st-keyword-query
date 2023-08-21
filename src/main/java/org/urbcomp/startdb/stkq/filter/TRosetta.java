@@ -20,49 +20,20 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
 
     public void insert(byte[] pre, int t) {
         for (int i = 0; i < n; ++i) {
-            filters.get(i).insert(ByteUtil.concat(pre, ByteUtil.getKByte(t >> (n - i - 1), Constant.TIME_BYTE_COUNT)), false);
+            filters.get(i).insert(ByteUtil.concat(pre, tKeyGenerator.numberToBytes(t >> (n - i - 1))), false);
         }
     }
 
-    public boolean checkInFilter(ChainedInfiniFilter filter, byte[] s, int t, List<byte[]> kKeys, QueryType queryType) {
-        if (filter == null) {
-            return false;
-        }
-
-        byte[] key = ByteUtil.concat(s, ByteUtil.getKByte(t, Constant.TIME_BYTE_COUNT));
-        switch (queryType) {
-            case CONTAIN_ONE:
-                for (byte[] keyPre : kKeys) {
-                    if (filter.search(ByteUtil.concat(keyPre, key))) {
-                        return true;
-                    }
-                }
-                return false;
-            case CONTAIN_ALL:
-                for (byte[] keyPre : kKeys) {
-                    if (!filter.search(ByteUtil.concat(keyPre, key))) {
-                        return false;
-                    }
-                }
-                return true;
-        }
-        return true;
-    }
-
-    public List<byte[]> shrink(byte[] s, int tLow, int tHigh, List<byte[]> keyPres, QueryType queryType) {
+    public List<byte[]> shrink(byte[] sKey, int tLow, int tHigh, List<byte[]> keyPres, QueryType queryType) {
         int low = tLow >> (n - 1);
         int high = tHigh >> (n - 1);
 
         ChainedInfiniFilter filter = filters.get(0);
         List<Integer> result = new ArrayList<>();
         for (int i = low; i <= high; ++i) {
-            if (checkInFilter(filter, s, i, keyPres, queryType)) {
+            if (checkInFilter(filter, ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(i)), keyPres, queryType)) {
                 result.add(i);
             }
-        }
-
-        if (n == 1) {
-            return result.stream().map(i -> ByteUtil.concat(s, tKeyGenerator.numberToBytes(i))).collect(Collectors.toList());
         }
 
         for (int i = 1; i < n; ++i) {
@@ -77,13 +48,13 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
             for (int j : result) {
                 int left = j << 1;
                 if (left >= low) {
-                    if (checkInFilter(filter, s, left, keyPres, queryType)) {
+                    if (checkInFilter(filter, ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(left)), keyPres, queryType)) {
                         temp.add(left);
                     }
                 }
                 int right = left | 1;
                 if (right <= high) {
-                    if (checkInFilter(filter, s, right, keyPres, queryType)) {
+                    if (checkInFilter(filter, ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(right)), keyPres, queryType)) {
                         temp.add(right);
                     }
                 }
@@ -95,7 +66,7 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
             result = new ArrayList<>(temp);
         }
 
-        return result.stream().map(i -> ByteUtil.concat(s, tKeyGenerator.numberToBytes(i))).collect(Collectors.toList());
+        return result.stream().map(i -> ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(i))).collect(Collectors.toList());
     }
 
     @Override

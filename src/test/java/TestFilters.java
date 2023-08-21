@@ -58,20 +58,26 @@ public class TestFilters {
 
     @Test
     public void testRangeFilters() {
-        IRangeFilter filter = new TRosetta(3);
+        IRangeFilter[] filters = {
+                new TRosetta(3),
+                new SRosetta(3)
+        };
 
-        long start = System.currentTimeMillis();
-        insertIntoRangeFilter(filter);
-        long end = System.currentTimeMillis();
-        System.out.println("Insert Time: " + (end - start));
+        for (IRangeFilter filter : filters) {
+            long start = System.currentTimeMillis();
+            insertIntoRangeFilter(filter);
+            long end = System.currentTimeMillis();
+            System.out.println("Insert Time: " + (end - start));
+        }
 
-        start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkByRangeFilter(filter);
-        end = System.currentTimeMillis();
-        System.out.println("Query Time: " + (end - start));
-        System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
-
-        checkNoFalsePositive(results);
+        for (IRangeFilter filter : filters) {
+            long start = System.currentTimeMillis();
+            List<List<byte[]>> results = shrinkByRangeFilter(filter);
+            long end = System.currentTimeMillis();
+            checkNoFalsePositive(results);
+            System.out.println("Query Time: " + (end - start));
+            System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
+        }
     }
 
     private static void insertIntoFilter(IFilter filter) {
