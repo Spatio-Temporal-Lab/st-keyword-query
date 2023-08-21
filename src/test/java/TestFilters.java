@@ -60,7 +60,8 @@ public class TestFilters {
     public void testRangeFilters() {
         IRangeFilter[] filters = {
                 new TRosetta(3),
-                new SRosetta(3)
+                new SRosetta(3),
+                new STRosetta(3)
         };
 
         for (IRangeFilter filter : filters) {

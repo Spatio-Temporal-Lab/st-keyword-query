@@ -3,7 +3,6 @@ package org.urbcomp.startdb.stkq.filter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.github.nivdayan.FilterLibrary.filters.Filter;
 import org.apache.lucene.util.RamUsageEstimator;
-import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
