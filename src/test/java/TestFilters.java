@@ -1,8 +1,7 @@
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.urbcomp.startdb.stkq.filter.IFilter;
-import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.filter.SetFilter;
+import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -34,6 +33,9 @@ public class TestFilters {
         insertIntoFilter(setFilter);
         GROUND_TRUTH_RANGES = shrinkByFilter(setFilter);
         assertEquals(13365, GROUND_TRUTH_RANGES.stream().mapToInt(List::size).sum());
+        for (Query query : QUERIES) {
+            query.setQueryType(QueryType.CONTAIN_ONE);
+        }
     }
 
     @Test
@@ -47,6 +49,24 @@ public class TestFilters {
 
         start = System.currentTimeMillis();
         List<List<byte[]>> results = shrinkByFilter(filter);
+        end = System.currentTimeMillis();
+        System.out.println("Query Time: " + (end - start));
+        System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
+
+        checkNoFalsePositive(results);
+    }
+
+    @Test
+    public void testRangeFilters() {
+        IRangeFilter filter = new TRosetta(3);
+
+        long start = System.currentTimeMillis();
+        insertIntoRangeFilter(filter);
+        long end = System.currentTimeMillis();
+        System.out.println("Insert Time: " + (end - start));
+
+        start = System.currentTimeMillis();
+        List<List<byte[]>> results = shrinkByRangeFilter(filter);
         end = System.currentTimeMillis();
         System.out.println("Query Time: " + (end - start));
         System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
@@ -68,10 +88,25 @@ public class TestFilters {
         }
     }
 
+    private static void insertIntoRangeFilter(IRangeFilter filter) {
+        for (STObject object : SAMPLE_DATA) {
+            filter.insert(object);
+        }
+    }
+
     private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<byte[]> filterResult = filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
+            results.add(filterResult);
+        }
+        return results;
+    }
+
+    private static List<List<byte[]>> shrinkByRangeFilter(IRangeFilter filter) {
+        List<List<byte[]>> results = new ArrayList<>();
+        for (Query query : QUERIES) {
+            List<byte[]> filterResult = filter.shrink(query);
             results.add(filterResult);
         }
         return results;
