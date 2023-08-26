@@ -94,7 +94,7 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
             long sLow = sRange.getLow();
             long sHigh = sRange.getHigh();
             for (long s = sLow; s <= sHigh; ++s) {
-                results.addAll(shrink(ByteUtil.getKByte(s, Constant.SPATIAL_BYTE_COUNT), tLow, tHigh, kKeys, queryType));
+                results.addAll(shrink(sKeyGenerator.numberToBytes(s), tLow, tHigh, kKeys, queryType));
             }
         }
 

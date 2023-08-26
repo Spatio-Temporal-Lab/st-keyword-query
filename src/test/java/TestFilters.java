@@ -68,7 +68,7 @@ public class TestFilters {
             long start = System.currentTimeMillis();
             insertIntoRangeFilter(filter);
             long end = System.currentTimeMillis();
-            System.out.println("Insert Time: " + (end - start));
+            System.out.println(filter.getClass().getSimpleName() + " insert Time: " + (end - start));
         }
 
         for (IRangeFilter filter : filters) {
@@ -76,8 +76,10 @@ public class TestFilters {
             List<List<byte[]>> results = shrinkByRangeFilter(filter);
             long end = System.currentTimeMillis();
             checkNoFalsePositive(results);
-            System.out.println("Query Time: " + (end - start));
-            System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
+
+            String className = filter.getClass().getSimpleName();
+            System.out.println(className + " query Time: " + (end - start));
+            System.out.println(className + " result Size: " + results.stream().mapToInt(List::size).sum());
         }
     }
 
