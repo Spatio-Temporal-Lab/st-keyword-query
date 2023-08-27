@@ -58,7 +58,7 @@ public class STRosetta extends BasicRosetta implements IRangeFilter {
                 long s = stPair.getKey();
                 int t = stPair.getValue();
                 for (long i = Math.max(s << 2, sLowThisLevel); i <= Math.min(s << 2 | 3, sHighThisLevel); ++i) {
-                    for (int j = Math.min(t << 1, tLowThisLevel); j <= Math.min(t << 1 | 1, tHighThisLevel); ++j) {
+                    for (int j = Math.max(t << 1, tLowThisLevel); j <= Math.min(t << 1 | 1, tHighThisLevel); ++j) {
                         if (checkInFilter(filter, ByteUtil.concat(sKeyGenerator.numberToBytes(i), tKeyGenerator.numberToBytes(j)), keyPres, queryType)) {
                             temp.add(new Pair<>(i, j));
                         }
