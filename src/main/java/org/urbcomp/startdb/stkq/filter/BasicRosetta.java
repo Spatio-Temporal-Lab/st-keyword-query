@@ -30,7 +30,7 @@ public class BasicRosetta {
         }
     }
 
-    public boolean checkInFilter(Filter filter, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
+    protected boolean checkInFilter(Filter filter, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
         if (filter == null) {
             return false;
         }
