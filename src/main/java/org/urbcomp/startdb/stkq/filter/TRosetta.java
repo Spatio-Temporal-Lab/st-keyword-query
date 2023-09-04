@@ -17,13 +17,13 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
         super(n);
     }
 
-    public void insert(byte[] pre, int t) {
+    private void insert(byte[] pre, int t) {
         for (int i = 0; i < n; ++i) {
             filters.get(i).insert(ByteUtil.concat(pre, tKeyGenerator.numberToBytes(t >> (n - i - 1))), false);
         }
     }
 
-    public List<byte[]> shrink(byte[] sKey, int tLow, int tHigh, List<byte[]> keyPres, QueryType queryType) {
+    private List<byte[]> shrink(byte[] sKey, int tLow, int tHigh, List<byte[]> keyPres, QueryType queryType) {
         int low = tLow >> (n - 1);
         int high = tHigh >> (n - 1);
 
@@ -38,7 +38,7 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
         for (int i = 1; i < n; ++i) {
             int shift = n - i - 1;
 
-            ArrayList<Integer> temp = new ArrayList<>();
+            List<Integer> temp = new ArrayList<>();
             filter = filters.get(i);
 
             low = tLow >> shift;
@@ -62,7 +62,7 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
             if (temp.size() == 0) {
                 return new ArrayList<>();
             }
-            result = new ArrayList<>(temp);
+            result = temp;
         }
 
         return result.stream().map(i -> ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(i))).collect(Collectors.toList());
