@@ -40,11 +40,6 @@
             <version>31.1-jre</version>
         </dependency>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>2.0.22</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
             <version>${hbase.version}</version>
@@ -64,22 +59,11 @@
             <artifactId>s2-geometry-library-java</artifactId>
             <version>1.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>2.2.0</version>
-            <scope>compile</scope>
-        </dependency>
 
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>5.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>de.ruedigermoeller</groupId>
-            <artifactId>fst</artifactId>
-            <version>2.04</version>
         </dependency>
     </dependencies>
 </project>
