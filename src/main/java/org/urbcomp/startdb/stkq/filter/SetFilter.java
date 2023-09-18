@@ -18,6 +18,11 @@ public class SetFilter implements IFilter {
     }
 
     @Override
+    public int size() {
+        return set.size();
+    }
+
+    @Override
     public void insert(byte[] code) {
         set.add(new BytesKey(code));
     }

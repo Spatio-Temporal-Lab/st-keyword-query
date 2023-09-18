@@ -51,4 +51,9 @@ public class Z2SpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
 
         return indexRangeList.stream().map(o -> new Range<>(o.low(), o.high())).collect(Collectors.toList());
     }
+
+    @Override
+    public int getBits() {
+        return DEFAULT_PRECISION + DEFAULT_PRECISION;
+    }
 }

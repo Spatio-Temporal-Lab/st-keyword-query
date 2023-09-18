@@ -60,4 +60,8 @@ public class ByteUtil {
     public static BigInteger getValue(byte[] bytes) {
         return new BigInteger(1, bytes);
     }
+
+    public static int getBytesCountByBitsCount(int bitsCount) {
+        return (bitsCount - 1 >> 3) + 1;
+    }
 }

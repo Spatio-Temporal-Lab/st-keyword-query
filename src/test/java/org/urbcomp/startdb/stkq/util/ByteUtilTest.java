@@ -1,6 +1,7 @@
 package org.urbcomp.startdb.stkq.util;
 
 import junit.framework.TestCase;
+import org.junit.Assert;
 
 public class ByteUtilTest extends TestCase {
     public void testToInt() {
@@ -15,6 +16,14 @@ public class ByteUtilTest extends TestCase {
         byte[] bytes = ByteUtil.getKByte(x, 4);
         for (byte b : bytes) {
             assertEquals(b, -1);
+        }
+    }
+
+    public void testGetBytesCountByBitsCount() {
+        for (int i = 1; i <= 8; ++i) {
+            for (int j = 1; j <= 8; ++j) {
+                Assert.assertEquals(i, ByteUtil.getBytesCountByBitsCount((i - 1) * 8 + j));
+            }
         }
     }
 }

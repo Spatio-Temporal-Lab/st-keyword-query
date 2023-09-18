@@ -44,4 +44,8 @@ public class TimeKeyGeneratorNew implements IKeyGeneratorNew<Date, Integer>, IKe
         int dt = toNumber(query.getEndTime());
         return Collections.singletonList(new Range<>(ds / hoursPerBin, dt / hoursPerBin));
     }
+
+    public int getBits() {
+        return BYTE_COUNT << 3;
+    }
 }

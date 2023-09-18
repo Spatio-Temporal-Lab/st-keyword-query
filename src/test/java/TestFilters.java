@@ -131,6 +131,22 @@ public class TestFilters {
 
     }
 
+    @Test
+    public void testSTFilter() {
+        STFilter stFilter = new STFilter(3, 15, 3, 2);
+
+        insertIntoSTFilter(stFilter);
+
+        long start = System.currentTimeMillis();
+        List<List<byte[]>> results = shrinkBySTFilter(stFilter);
+        long end = System.currentTimeMillis();
+        checkNoFalsePositive(results);
+
+        System.out.println("query Time: " + (end - start));
+        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+    }
+
+
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
             byte[] spatialKey = spatialKeyGenerator.toBytes(object.getLocation());
@@ -150,6 +166,11 @@ public class TestFilters {
             filter.insert(object);
         }
     }
+    private static void insertIntoSTFilter(STFilter stFilter) {
+        for (STObject object : SAMPLE_DATA) {
+            stFilter.insert(object);
+        }
+    }
 
     private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
@@ -164,6 +185,15 @@ public class TestFilters {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<byte[]> filterResult = filter.shrink(query);
+            results.add(filterResult);
+        }
+        return results;
+    }
+
+    private List<List<byte[]>> shrinkBySTFilter(STFilter stFilter) {
+        List<List<byte[]>> results = new ArrayList<>();
+        for (Query query : QUERIES) {
+            List<byte[]> filterResult = stFilter.shrink(query);
             results.add(filterResult);
         }
         return results;
