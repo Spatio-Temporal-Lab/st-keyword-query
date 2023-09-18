@@ -63,6 +63,22 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 		//System.out.println( age );
 		return age;
 	}
+
+	long parse_unary_by_finger_print(long fingerprint) {
+		long inverted_fp = ~fingerprint;
+		//print_long_in_binary(inverted_fp, 32);
+		long mask = (1L << fingerprintLength) - 1;
+		//print_long_in_binary(mask, 32);
+		long masked = mask & inverted_fp;
+		//print_long_in_binary(masked, 32);
+		long highest = Long.highestOneBit(masked);
+		//print_long_in_binary(highest, 32);
+		long leading_zeros = Long.numberOfTrailingZeros(highest);
+		//System.out.println( leading_zeros );
+		long age = fingerprintLength - leading_zeros - 1;
+		//System.out.println( age );
+		return age;
+	}
 	
 	// TODO if we rejuvenate a void entry, we should subtract from num_void_entries 
 	// as if this count reaches zero, we can have shorter chains
@@ -166,7 +182,7 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 		//System.out.println("FP size: " + new_fingerprint_size);
 		new_fingerprint_size = Math.max(new_fingerprint_size, fingerprintLength);
 		QuotientFilter new_qf = new QuotientFilter(power_of_two_size + 1, new_fingerprint_size + 3);
-		Iterator it = new Iterator(this);		
+		Iterator it = new Iterator(this);
 		long unary_mask = prep_unary_mask(fingerprintLength, new_fingerprint_size);
 		
 		long current_empty_fingerprint = empty_fingerprint;
@@ -223,6 +239,68 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 		num_existing_entries = new_qf.num_existing_entries;
 		power_of_two_size++;
 		num_extension_slots += 2;
+		max_entries_before_expansion = (int)(Math.pow(2, power_of_two_size) * expansion_threshold);
+		last_empty_slot = new_qf.last_empty_slot;
+		last_cluster_start = new_qf.last_cluster_start;
+		backward_steps = new_qf.backward_steps;
+		if (num_void_entries > 0) {
+			//is_full = true;
+		}
+		return true;
+	}
+
+	private long setZero(long x, int pos) {
+		return x & ~(1L << pos);
+	}
+
+	boolean sacrifice() {
+		if (is_full()) {
+			return false;
+		}
+		int new_fingerprint_size = fingerprintLength - 1;
+
+		QuotientFilter new_qf = new QuotientFilter(power_of_two_size, new_fingerprint_size + 3);
+		Iterator it = new Iterator(this);
+
+		long current_empty_fingerprint = empty_fingerprint;
+		set_empty_fingerprint(new_fingerprint_size);
+		num_void_entries = 0;
+
+		while (it.next()) {
+			long bucket = it.bucket_index;
+			long fingerprint = it.fingerprint;
+			if (it.fingerprint != current_empty_fingerprint) {
+
+				long generation = parse_unary_by_finger_print(fingerprint);
+				long actual_fp_length = fingerprintLength - (generation + 1);
+				long real_fingerprint = fingerprint & ((1L << actual_fp_length) - 1);
+
+//				System.out.println(fingerprintLength);
+//				System.out.println(actual_fp_length);
+//				System.out.println(generation + " " + existing_fingerprint);
+				long updated_fingerprint = ((1L << (generation + 1)) - 2) << (actual_fp_length - 1) | setZero(real_fingerprint, (int) (actual_fp_length - 1));
+//				System.out.println(fingerprint + " " + Long.toBinaryString(fingerprint) + "\n" +
+//						updated_fingerprint + " " + Long.toBinaryString(updated_fingerprint));
+//				System.out.println("*********************");
+
+				new_qf.insert(updated_fingerprint, bucket, false);
+
+				num_void_entries += updated_fingerprint == empty_fingerprint ? 1 : 0;
+				if (updated_fingerprint == empty_fingerprint) {
+					report_void_entry_creation(bucket);
+				}
+			}
+			else {
+				handle_empty_fingerprint(it.bucket_index, new_qf);
+			}
+		}
+
+		empty_fingerprint = (1L << new_fingerprint_size) - 2 ;
+		fingerprintLength = new_fingerprint_size;
+		bitPerEntry = new_fingerprint_size + 3;
+		filter = new_qf.filter;
+		num_existing_entries = new_qf.num_existing_entries;
+//		num_extension_slots += 2;
 		max_entries_before_expansion = (int)(Math.pow(2, power_of_two_size) * expansion_threshold);
 		last_empty_slot = new_qf.last_empty_slot;
 		last_cluster_start = new_qf.last_cluster_start;

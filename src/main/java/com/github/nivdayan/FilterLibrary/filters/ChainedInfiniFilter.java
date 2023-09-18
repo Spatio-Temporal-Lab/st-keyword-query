@@ -191,7 +191,9 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 		
 		num_existing_entries--;
 		//secondary_IF.num_existing_entries++;
-		secondary_IF.insert(adjusted_fingerprint, slot, false);
+		if (!secondary_IF.insert(adjusted_fingerprint, slot, false)) {
+			System.out.println("insert failed");
+		}
 		
 	}
 	
@@ -281,7 +283,53 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 			secondary_IF.expand();
 			logical_slots = secondary_IF.get_logical_num_slots();
 			secondary_fullness = num_entries / (double)logical_slots;
+//			System.out.println(logical_slots);
+//			System.out.println(secondary_fullness);
 		} while (secondary_fullness > expansion_threshold / 2.0);
+	}
+
+	@Override
+	public boolean sacrifice() {
+		if (secondary_IF == null && num_void_entries > 0) { // first time we create a former filter
+//			System.out.println("case 1");
+			int power = (int) Math.ceil( Math.log(num_void_entries) / Math.log(2) );
+			int FP_size = power_of_two_size - power + 1;
+			create_secondary(power, FP_size - 1);
+		}
+		// the secondary infinifilter is full, so we add it to the chain
+		else if (secondary_IF != null && secondary_IF.num_void_entries > 0) { // our former filter is full
+//			System.out.println("case 2");
+			chain.add(secondary_IF);
+			int orig_FP = secondary_IF.fingerprintLength;
+			secondary_IF = new BasicInfiniFilter(secondary_IF.power_of_two_size + 1, secondary_IF.fingerprintLength + 3);
+			secondary_IF.hash_type = this.hash_type;
+			secondary_IF.original_fingerprint_size = orig_FP;
+			secondary_IF.fprStyle = fprStyle;
+		}
+		else if (secondary_IF != null) {
+//			System.out.println("case 3");
+			secondary_IF.sacrifice();
+			if (secondary_IF.num_void_entries > 0) {
+				chain.add(secondary_IF);
+				int orig_FP = secondary_IF.fingerprintLength;
+				secondary_IF = new BasicInfiniFilter(secondary_IF.power_of_two_size + 1, secondary_IF.fingerprintLength + 3);
+				secondary_IF.hash_type = this.hash_type;
+				secondary_IF.original_fingerprint_size = orig_FP;
+				secondary_IF.fprStyle = fprStyle;
+			} else {
+				expand_secondary_IF();
+			}
+		}
+		prep_masks();
+//		System.out.println("secondary if: " + secondary_IF.fingerprintLength);
+//		System.out.println("this if: " + (this.fingerprintLength - 1));
+//		System.out.println(unary_mask + " "  + Long.toBinaryString(unary_mask));
+//		System.out.println(fingerprint_mask + " " + Long.toBinaryString(fingerprint_mask));
+//		System.out.println(slot_mask + " " + Long.toBinaryString(slot_mask));
+
+		super.sacrifice();
+		//System.out.println(num_expansions + "\t" + num_distinct_void_entries + "\t" + fingerprintLength + "\t" + num_existing_entries);
+		return true;
 	}
 	
 	// TODO if we rejuvenate a void entry, we should subtract from num_void_entries 
@@ -404,6 +452,6 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 		return num_entries; 
 	}
 	
-	
+
 }
 

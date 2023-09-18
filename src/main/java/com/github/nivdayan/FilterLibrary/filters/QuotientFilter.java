@@ -265,6 +265,7 @@ public class QuotientFilter extends Filter {
 		System.out.println("bits\t:" + num_bits);
 		System.out.println("bits/entry\t:" + num_bits / (double)num_entries);
 		System.out.println("FP length:\t" + fingerprintLength);
+		System.out.println("power of two size:\t" + power_of_two_size);
 		compute_statistics();	
 		//System.out.println("num runs: \t\t" + num_runs);
 		//System.out.println("avg run length: \t" + avg_run_length);
@@ -513,7 +514,7 @@ public class QuotientFilter extends Filter {
 		boolean temp_continuation = false;
 				
 		do {
-			if (current_index >= get_logical_num_slots_plus_extensions()) {	 
+			if (current_index >= get_logical_num_slots_plus_extensions()) {
 				return false;
 			}
 			is_this_slot_empty = is_slot_empty(current_index);
@@ -730,6 +731,7 @@ public class QuotientFilter extends Filter {
 	protected boolean _search(long large_hash) {
 		long slot_index = get_slot_index(large_hash);
 		long fingerprint = gen_fingerprint(large_hash);
+//		System.out.println(slot_index + " " + fingerprint);
 		return search(fingerprint, slot_index);
 	}
 

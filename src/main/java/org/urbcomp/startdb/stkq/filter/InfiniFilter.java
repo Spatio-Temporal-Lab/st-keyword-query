@@ -3,9 +3,10 @@ package org.urbcomp.startdb.stkq.filter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
 public class InfiniFilter implements IFilter {
-    private final ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 15);
+    private final ChainedInfiniFilter filter;
 
-    public InfiniFilter() {
+    public InfiniFilter(int log2Size, int bitsPerKey) {
+        filter = new ChainedInfiniFilter(log2Size, bitsPerKey);
         filter.set_expand_autonomously(true);
     }
 
@@ -18,4 +19,6 @@ public class InfiniFilter implements IFilter {
     public void insert(byte[] code) {
         filter.insert(code, false);
     }
+
+    public boolean sacrifice() { return filter.sacrifice(); }
 }

@@ -1,3 +1,6 @@
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
+import org.apache.lucene.util.RamUsageEstimator;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
@@ -40,20 +43,39 @@ public class TestFilters {
 
     @Test
     public void testInfiniFilterFPR() {
-        IFilter filter = new InfiniFilter();
 
-        long start = System.currentTimeMillis();
-        insertIntoFilter(filter);
-        long end = System.currentTimeMillis();
-        System.out.println("Insert Time: " + (end - start));
+        IFilter[] filters = new IFilter[]{
+                new InfiniFilter(3, 12),
+                new InfiniFilter(3, 13),
+                new InfiniFilter(3, 14),
+                new InfiniFilter(3, 15),
+                new InfiniFilter(3, 16)
+        };
 
-        start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkByFilter(filter);
-        end = System.currentTimeMillis();
-        System.out.println("Query Time: " + (end - start));
-        System.out.println("Result Size: " + results.stream().mapToInt(List::size).sum());
+        int id = 0;
+        for (IFilter filter : filters) {
+            long start = System.currentTimeMillis();
+            insertIntoFilter(filter);
+            long end = System.currentTimeMillis();
+            System.out.println("Insert Time " + id++ +": " + (end - start));
+        }
 
-        checkNoFalsePositive(results);
+        id = 0;
+        for (IFilter filter : filters) {
+            long start = System.currentTimeMillis();
+            List<List<byte[]>> results = shrinkByFilter(filter);
+            long end = System.currentTimeMillis();
+            System.out.println("Query Time " + id++ + ": " + (end - start));
+            System.out.println("Result Size" + id + ": " + results.stream().mapToInt(List::size).sum());
+            checkNoFalsePositive(results);
+        }
+
+        InfiniFilter filter = (InfiniFilter) filters[filters.length - 1];
+        for (int i = 0; i < 5; ++i) {
+            filter.sacrifice();
+            System.out.println(shrinkByFilter(filter).stream().mapToInt(List::size).sum());
+        }
+
     }
 
     @Test
@@ -81,6 +103,32 @@ public class TestFilters {
             System.out.println(className + " query Time: " + (end - start));
             System.out.println(className + " result Size: " + results.stream().mapToInt(List::size).sum());
         }
+    }
+
+    @Test
+    public void testSacrifice() {
+
+        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 16);
+        filter.set_expand_autonomously(true);
+
+        int n = 100_0000;
+
+        for (int i = 0; i < n; ++i) {
+            filter.insert(i, false);
+        }
+
+        System.out.println(RamUsageEstimator.humanSizeOf(filter));
+
+        for (int t = 0; t < 5; ++t) {
+            System.out.println("start " + t);
+            filter.sacrifice();
+            System.out.println("end " + t);
+            System.out.println(RamUsageEstimator.humanSizeOf(filter));
+            for (int i = 0; i < n; ++i) {
+                Assert.assertTrue(filter.search(i));
+            }
+        }
+
     }
 
     private static void insertIntoFilter(IFilter filter) {
