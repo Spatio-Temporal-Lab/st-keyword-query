@@ -5,6 +5,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -23,7 +24,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestFilters {
-    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
+//    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
+    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
+    private static final List<Query> QUERIES_SMALL = QueryGenerator.getQueries("queriesZipfSample.csv");
+
     private static final List<STObject> SAMPLE_DATA = DataProcessor.getSampleData();
     private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
@@ -35,8 +39,11 @@ public class TestFilters {
         IFilter setFilter = new SetFilter();
         insertIntoFilter(setFilter);
         GROUND_TRUTH_RANGES = shrinkByFilter(setFilter);
-        assertEquals(13365, GROUND_TRUTH_RANGES.stream().mapToInt(List::size).sum());
+//        assertEquals(13365, GROUND_TRUTH_RANGES.stream().mapToInt(List::size).sum());
         for (Query query : QUERIES) {
+            query.setQueryType(QueryType.CONTAIN_ONE);
+        }
+        for (Query query : QUERIES_SMALL) {
             query.setQueryType(QueryType.CONTAIN_ONE);
         }
     }
@@ -65,16 +72,17 @@ public class TestFilters {
             long start = System.currentTimeMillis();
             List<List<byte[]>> results = shrinkByFilter(filter);
             long end = System.currentTimeMillis();
+            System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(filter));
             System.out.println("Query Time " + id++ + ": " + (end - start));
             System.out.println("Result Size" + id + ": " + results.stream().mapToInt(List::size).sum());
             checkNoFalsePositive(results);
         }
 
-        InfiniFilter filter = (InfiniFilter) filters[filters.length - 1];
-        for (int i = 0; i < 5; ++i) {
-            filter.sacrifice();
-            System.out.println(shrinkByFilter(filter).stream().mapToInt(List::size).sum());
-        }
+//        InfiniFilter filter = (InfiniFilter) filters[filters.length - 1];
+//        for (int i = 0; i < 5; ++i) {
+//            filter.sacrifice();
+//            System.out.println(shrinkByFilter(filter).stream().mapToInt(List::size).sum());
+//        }
 
     }
 
@@ -133,19 +141,88 @@ public class TestFilters {
 
     @Test
     public void testSTFilter() {
-        STFilter stFilter = new STFilter(3, 15, 3, 2);
+        int sbits = 8;
+        int tBits = 4;
+        AbstractSTFilter stFilter = new STFilter(3, 13, sbits, tBits);
 
         insertIntoSTFilter(stFilter);
 
-        long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();/**/
         List<List<byte[]>> results = shrinkBySTFilter(stFilter);
         long end = System.currentTimeMillis();
         checkNoFalsePositive(results);
-
+//
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " + RamUsageEstimator.humanSizeOf(stFilter));
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+
+
+        AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sbits, tBits);
+        insertIntoSTFilter(stFilter1);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
+        start = System.currentTimeMillis();
+        results = shrinkBySTFilter(stFilter1);
+        end = System.currentTimeMillis();
+        checkNoFalsePositive(results);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
+        System.out.println("query Time: " + (end - start));
+        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+//
+//        results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
+//        System.out.println(results.stream().mapToInt(List::size).sum());
+//        results = shrinkBySTFilter(stFilter1, QUERIES_SMALL);
+//        System.out.println(results.stream().mapToInt(List::size).sum());
     }
 
+    @Test
+    public void testInfiniFilter() {
+        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 12);
+        filter.set_expand_autonomously(true);
+        for (int i = 0; i <= 100; ++i) {
+            boolean success = filter.insert(0, true);
+            if (!success) {
+                System.out.println(i);
+            }
+        }
+    }
+
+    @Test
+    public void testForError() {
+        IFilter filter = new SetFilter();
+        insertIntoFilter(filter);
+        AbstractSTFilter filter1 = new STFilter(3, 13, 3, 2);
+        insertIntoSTFilter(filter1);
+
+
+        Query query = QUERIES.get(14180);
+        List<byte[]> result = shrinkByFilter(filter, query);
+
+        System.out.println("true: ");
+        for (byte[] bytes : result) {
+            System.out.print(Arrays.toString(bytes) + " ");
+        }
+        System.out.println();
+
+
+        List<byte[]> result1 = shrinkBySTFilter(filter1, query);
+        System.out.println("real: ");
+        for (byte[] bytes : result1) {
+            System.out.print(Arrays.toString(bytes) + " ");
+        }
+        System.out.println();
+
+        for (byte[] bs : result) {
+            boolean find = false;
+            for (byte[] bs1 : result1) {
+                if (Arrays.equals(bs, bs1)) {
+                    find = true;
+                    break;
+                }
+            }
+            assertTrue(find);
+        }
+
+    }
 
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
@@ -166,7 +243,7 @@ public class TestFilters {
             filter.insert(object);
         }
     }
-    private static void insertIntoSTFilter(STFilter stFilter) {
+    private static void insertIntoSTFilter(AbstractSTFilter stFilter) {
         for (STObject object : SAMPLE_DATA) {
             stFilter.insert(object);
         }
@@ -181,6 +258,10 @@ public class TestFilters {
         return results;
     }
 
+    private static List<byte[]> shrinkByFilter(IFilter filter, Query query) {
+        return filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
+    }
+
     private static List<List<byte[]>> shrinkByRangeFilter(IRangeFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
@@ -190,9 +271,22 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(STFilter stFilter) {
+    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
+            List<byte[]> filterResult = stFilter.shrink(query);
+            results.add(filterResult);
+        }
+        return results;
+    }
+
+    private List<byte[]> shrinkBySTFilter(AbstractSTFilter stFilter, Query query) {
+        return stFilter.shrink(query);
+    }
+
+    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter, List<Query> queries) {
+        List<List<byte[]>> results = new ArrayList<>();
+        for (Query query : queries) {
             List<byte[]> filterResult = stFilter.shrink(query);
             results.add(filterResult);
         }

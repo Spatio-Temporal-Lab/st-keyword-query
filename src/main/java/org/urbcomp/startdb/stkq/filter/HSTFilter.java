@@ -1,8 +1,8 @@
 package org.urbcomp.startdb.stkq.filter;
 
-import org.junit.Assert;
+import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.HotnessAwareFilterManager;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class STFilter extends AbstractSTFilter {
-    private final BasicFilterManager filterManager;
+public class HSTFilter extends AbstractSTFilter {
+    private final HotnessAwareFilterManager filterManager;
+    private boolean first = true;
 
-    public STFilter(int log2Size, int bitsPerKey, int sBits, int tBits) {
-        super(sBits, tBits);
-        filterManager = new BasicFilterManager(log2Size, bitsPerKey);
+    public HSTFilter(int log2Size, int bitsPerKey, int sIndexBits, int tIndexBits) {
+        super(sIndexBits, tIndexBits);
+        filterManager = new HotnessAwareFilterManager(log2Size, bitsPerKey);
     }
 
     public void insert(STObject stObject) {
@@ -26,35 +27,18 @@ public class STFilter extends AbstractSTFilter {
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
         BytesKey stIndex = getSTIndex(s, t);
-//        if (!stIndex.equals(new BytesKey(new byte[]{1, -63, 12, -115, 0, 108, 77}))) {
-//            return;
-//        }
-//        System.out.println(stObject);//1_-63_12_-115_0_108_77
         IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
         for (String keyword : stObject.getKeywords()) {
             filter.insert(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t)));
         }
     }
 
-    @Override
-    public boolean check(STObject stObject) {
-        long s = sKeyGenerator.toNumber(stObject.getLocation());
-        int t = tKeyGenerator.toNumber(stObject.getTime());
-
-        BytesKey stIndex = getSTIndex(s, t);
-//        if (!stIndex.equals(new BytesKey(new byte[]{1, -63, 12, -115, 0, 108, 77}))) {
-//            return false;
-//        }
-//        System.out.println(stObject);
-        IFilter filter = filterManager.get(stIndex);
-        for (String keyword : stObject.getKeywords()) {
-//            System.out.println(keyword);
-            Assert.assertTrue(filter.check(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t))));
-        }
-        return true;
-    }
-
     public List<byte[]> shrink(Query query) {
+        if (first) {
+            filterManager.build();
+            first = false;
+        }
+
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
@@ -70,7 +54,7 @@ public class STFilter extends AbstractSTFilter {
             for (long s = sLow; s <= sHigh; ++s) {
                 for (int t = tLow; t <= tHigh; ++t) {
                     byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
-                    if (checkInFilter(filterManager.get(getSTIndex(s, t)), stKey, kKeys, queryType)) {
+                    if (checkInFilter(filterManager.getAndUpdate(getSTIndex(s, t)), stKey, kKeys, queryType)) {
                         results.add(ByteUtil.concat(
                                 sKeyGenerator.numberToBytes(s),
                                 tKeyGenerator.numberToBytes(t)

@@ -284,7 +284,7 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 			logical_slots = secondary_IF.get_logical_num_slots();
 			secondary_fullness = num_entries / (double)logical_slots;
 //			System.out.println(logical_slots);
-//			System.out.println(secondary_fullness);
+//			System.out.println("s_full_ness: " + secondary_fullness);
 		} while (secondary_fullness > expansion_threshold / 2.0);
 	}
 

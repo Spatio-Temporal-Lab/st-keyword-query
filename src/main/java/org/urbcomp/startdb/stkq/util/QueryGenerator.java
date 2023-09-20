@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.util;
 
+import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
@@ -192,7 +193,7 @@ public class QueryGenerator {
         }
     }
 
-    public static void generateZipfQueries(ArrayList<STObject> objects, int size, double skew) {
+    public static void generateZipfQueries(List<STObject> objects, int size, double skew) {
         List<BytesKey> stKeySortByObjectCount;
         Map<BytesKey, Set<String>> key2Words = new HashMap<>();
         Map<BytesKey, Integer> key2Count = new HashMap<>();
@@ -221,7 +222,8 @@ public class QueryGenerator {
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
         SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
-        String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSample.csv";
+//        String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSample.csv";
+        String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSampleBig.csv";
         System.out.println(path);
         File file = new File(path);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -280,14 +282,7 @@ public class QueryGenerator {
             throw new RuntimeException(e);
         }
 
-        ArrayList<STObject> objects;
-        String path = "src/main/resources/tweetSample.txt";
-        try(InputStream is = Files.newInputStream(Paths.get(path));
-            ObjectInputStream ois = new ObjectInputStream(is)) {
-            objects = (ArrayList<STObject>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        generateZipfQueries(objects, 10000, 0.8);
+        List<STObject> objects = DataProcessor.getSampleData();
+        generateZipfQueries(objects, 5_0000, 0.8);
     }
 }

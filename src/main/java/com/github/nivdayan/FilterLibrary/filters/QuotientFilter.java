@@ -488,10 +488,14 @@ public class QuotientFilter extends Filter {
 	
 	boolean insert(long long_fp, long index, boolean insert_only_if_no_match) {
 		if (index > last_empty_slot) {
+//			System.err.println("index > last_empty_slot");
 			return false;
 		}
+//		System.out.println("fp = " + long_fp);
+//		System.out.println("id = " + index);
 		boolean does_run_exist = is_occupied(index);
 		if (!does_run_exist) {
+//			System.out.println("run does not exists");
 			boolean val = insert_new_run(index, long_fp);
 			return val;
 		}
@@ -499,7 +503,9 @@ public class QuotientFilter extends Filter {
 		long run_start_index = find_run_start(index);
 		if (does_run_exist && insert_only_if_no_match) {
 			long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
+//			System.out.println("found_index = " + found_index);
 			if (found_index > -1) {
+//				System.out.println("already exists");
 				return false; 
 			}
 		} 
@@ -647,8 +653,6 @@ public class QuotientFilter extends Filter {
 		
 	}
 
-
-	
 	long get_slot_index(long large_hash) {
 		long slot_index_mask = (1L << power_of_two_size) - 1;
 		long slot_index = large_hash & slot_index_mask;
@@ -700,7 +704,7 @@ public class QuotientFilter extends Filter {
 		System.out.println(slot_index + "  " + fingerprint );
 		System.out.println(); */
 		
-		boolean success = insert(fingerprint, slot_index, false);
+		boolean success = insert(fingerprint, slot_index, insert_only_if_no_match);
 		/*if (!success) {
 			System.out.println("insertion failure");
 			System.out.println(input + "\t" + slot_index + "\t" + get_fingerprint_str(fingerprint, fingerprintLength));
@@ -731,11 +735,8 @@ public class QuotientFilter extends Filter {
 	protected boolean _search(long large_hash) {
 		long slot_index = get_slot_index(large_hash);
 		long fingerprint = gen_fingerprint(large_hash);
-//		System.out.println(slot_index + " " + fingerprint);
 		return search(fingerprint, slot_index);
 	}
-
-
 	
 	public boolean get_bit_at_offset(int offset) {
 		return filter.get(offset);

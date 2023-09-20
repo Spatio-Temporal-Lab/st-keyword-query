@@ -139,7 +139,7 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 	}
 	
 	void handle_empty_fingerprint(long bucket_index, QuotientFilter insertee) {
-		System.out.println("called");
+//		System.out.println("called");
 		/*long bucket1 = bucket_index;
 		long bucket_mask = 1L << power_of_two_size; 		// setting this bit to the proper offset of the slot address field
 		long bucket2 = bucket1 | bucket_mask;	// adding the pivot bit to the slot address field

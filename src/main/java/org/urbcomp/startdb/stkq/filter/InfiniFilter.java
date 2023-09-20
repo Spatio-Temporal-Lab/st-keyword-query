@@ -27,7 +27,8 @@ public class InfiniFilter implements IFilter {
 
     @Override
     public void insert(byte[] code) {
-        filter.insert(code, false);
+        filter.insert(code, true);
+//        System.out.println(filter.insert(code, true));
     }
 
     public boolean sacrifice() { return filter.sacrifice(); }

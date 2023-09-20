@@ -44,6 +44,7 @@ public interface IFilter {
     }
     void insert(byte[] code);
     boolean check(byte[] key);
+    boolean sacrifice();
 
     int size();
 
