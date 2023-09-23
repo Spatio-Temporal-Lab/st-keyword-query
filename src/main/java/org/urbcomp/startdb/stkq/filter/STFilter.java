@@ -26,10 +26,6 @@ public class STFilter extends AbstractSTFilter {
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
         BytesKey stIndex = getSTIndex(s, t);
-//        if (!stIndex.equals(new BytesKey(new byte[]{1, -63, 12, -115, 0, 108, 77}))) {
-//            return;
-//        }
-//        System.out.println(stObject);//1_-63_12_-115_0_108_77
         IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
         for (String keyword : stObject.getKeywords()) {
             filter.insert(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t)));
@@ -42,13 +38,8 @@ public class STFilter extends AbstractSTFilter {
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
         BytesKey stIndex = getSTIndex(s, t);
-//        if (!stIndex.equals(new BytesKey(new byte[]{1, -63, 12, -115, 0, 108, 77}))) {
-//            return false;
-//        }
-//        System.out.println(stObject);
         IFilter filter = filterManager.get(stIndex);
         for (String keyword : stObject.getKeywords()) {
-//            System.out.println(keyword);
             Assert.assertTrue(filter.check(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t))));
         }
         return true;

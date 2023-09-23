@@ -45,7 +45,7 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
 
 public class HotnessAwareFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
-    private static final int UPDATE_TIME = 1000;
+    private static final int UPDATE_TIME = 500;
     private static final int MAX_UPDATE_TIME = 3000;
     private final Map<BytesKey, Long> st2Count = new HashMap<>();
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
@@ -111,7 +111,7 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             System.out.println("sorted filters size 0: " + RamUsageEstimator.humanSizeOf(sortedFilters));
 
             int size = filters.size();
-            int upSize = size;
+            int upSize = size / 2;
 
             int i = 0;
             System.out.println("-------------------------");

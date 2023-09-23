@@ -2,7 +2,6 @@ package org.urbcomp.startdb.stkq.filter.manager;
 
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.filter.SetFilter;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.util.HashMap;
@@ -19,7 +18,6 @@ public class BasicFilterManager extends AbstractFilterManager {
         IFilter filter = get(index);
         if (filter == null) {
             filter = new InfiniFilter(log2Size, bitsPerKey);
-//            filter = new SetFilter();
             filters.put(index, filter);
         }
         return filter;

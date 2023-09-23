@@ -23,7 +23,8 @@ public class DataProcessor {
     private double rate;
     private long ID;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
+//    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
+    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSampleBig.csv";
 
     String DELIMITER = ",";
 

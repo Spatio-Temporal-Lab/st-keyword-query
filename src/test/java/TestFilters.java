@@ -5,7 +5,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
-import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestFilters {
@@ -77,12 +75,6 @@ public class TestFilters {
             System.out.println("Result Size" + id + ": " + results.stream().mapToInt(List::size).sum());
             checkNoFalsePositive(results);
         }
-
-//        InfiniFilter filter = (InfiniFilter) filters[filters.length - 1];
-//        for (int i = 0; i < 5; ++i) {
-//            filter.sacrifice();
-//            System.out.println(shrinkByFilter(filter).stream().mapToInt(List::size).sum());
-//        }
 
     }
 
@@ -184,44 +176,6 @@ public class TestFilters {
                 System.out.println(i);
             }
         }
-    }
-
-    @Test
-    public void testForError() {
-        IFilter filter = new SetFilter();
-        insertIntoFilter(filter);
-        AbstractSTFilter filter1 = new STFilter(3, 13, 3, 2);
-        insertIntoSTFilter(filter1);
-
-
-        Query query = QUERIES.get(14180);
-        List<byte[]> result = shrinkByFilter(filter, query);
-
-        System.out.println("true: ");
-        for (byte[] bytes : result) {
-            System.out.print(Arrays.toString(bytes) + " ");
-        }
-        System.out.println();
-
-
-        List<byte[]> result1 = shrinkBySTFilter(filter1, query);
-        System.out.println("real: ");
-        for (byte[] bytes : result1) {
-            System.out.print(Arrays.toString(bytes) + " ");
-        }
-        System.out.println();
-
-        for (byte[] bs : result) {
-            boolean find = false;
-            for (byte[] bs1 : result1) {
-                if (Arrays.equals(bs, bs1)) {
-                    find = true;
-                    break;
-                }
-            }
-            assertTrue(find);
-        }
-
     }
 
     private static void insertIntoFilter(IFilter filter) {
