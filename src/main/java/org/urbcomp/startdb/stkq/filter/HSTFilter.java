@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.filter;
 
-import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.manager.HotnessAwareFilterManager;
 import org.urbcomp.startdb.stkq.model.BytesKey;
@@ -65,5 +64,10 @@ public class HSTFilter extends AbstractSTFilter {
         }
 
         return results;
+    }
+
+    @Override
+    public long size() {
+        return filterManager.size();
     }
 }

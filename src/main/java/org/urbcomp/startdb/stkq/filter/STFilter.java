@@ -73,4 +73,9 @@ public class STFilter extends AbstractSTFilter {
 
         return results;
     }
+
+    @Override
+    public long size() {
+        return filterManager.size();
+    }
 }

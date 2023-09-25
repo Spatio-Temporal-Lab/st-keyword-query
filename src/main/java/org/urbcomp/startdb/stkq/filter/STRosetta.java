@@ -22,7 +22,7 @@ public class STRosetta extends BasicRosetta implements IRangeFilter {
         for (int i = 0; i < n; ++i) {
             filters.get(i).insert(ByteUtil.concat(pre,
                     sKeyGenerator.numberToBytes(s >> ((n - i - 1) << 1)),
-                    tKeyGenerator.numberToBytes(t >> (n - i - 1))), false);
+                    tKeyGenerator.numberToBytes(t >> (n - i - 1))), true);
         }
     }
 

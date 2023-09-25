@@ -19,7 +19,7 @@ public class SRosetta extends BasicRosetta implements IRangeFilter {
 
     private void insert(byte[] pre, long s) {
         for (int i = 0; i < n; ++i) {
-            filters.get(i).insert(ByteUtil.concat(pre, sKeyGenerator.numberToBytes(s >> ((n - i - 1) << 1))), false);
+            filters.get(i).insert(ByteUtil.concat(pre, sKeyGenerator.numberToBytes(s >> ((n - i - 1) << 1))), true);
         }
     }
 

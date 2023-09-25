@@ -24,7 +24,7 @@ public class BasicRosetta {
         this.n = n;
         filters = new ArrayList<>(n);
         for (int i = 0; i < n; ++i) {
-            ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 15);
+            ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 16 - n + i);
             filter.set_expand_autonomously(true);
             filters.add(filter);
         }
@@ -59,7 +59,7 @@ public class BasicRosetta {
         StringBuilder builder = new StringBuilder();
         builder.append(n);
         for (int i = 0; i < n; ++i) {
-            builder.append(" ").append(RamUsageEstimator.humanSizeOf(filters.get(i)));
+            builder.append("--").append(RamUsageEstimator.humanSizeOf(filters.get(i))).append("--").append(filters.get(i).get_logical_num_slots());
         }
         return builder.toString();
     }

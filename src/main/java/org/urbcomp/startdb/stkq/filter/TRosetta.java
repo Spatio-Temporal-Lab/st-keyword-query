@@ -2,16 +2,25 @@ package org.urbcomp.startdb.stkq.filter;
 
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TRosetta extends BasicRosetta implements IRangeFilter {
+
+    Set[] sets = {
+            new HashSet<BytesKey>(),
+            new HashSet<BytesKey>(),
+            new HashSet<BytesKey>()
+    };
 
     public TRosetta(int n) {
         super(n);
@@ -19,7 +28,8 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
 
     private void insert(byte[] pre, int t) {
         for (int i = 0; i < n; ++i) {
-            filters.get(i).insert(ByteUtil.concat(pre, tKeyGenerator.numberToBytes(t >> (n - i - 1))), false);
+            filters.get(i).insert(ByteUtil.concat(pre, tKeyGenerator.numberToBytes(t >> (n - i - 1))), true);
+            sets[i].add(new BytesKey(ByteUtil.concat(pre, tKeyGenerator.numberToBytes(t >> (n - i - 1)))));
         }
     }
 
@@ -98,5 +108,14 @@ public class TRosetta extends BasicRosetta implements IRangeFilter {
         }
 
         return results;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < n; ++i) {
+            builder.append("--").append(sets[i].size());
+        }
+        return super.toString() + builder;
     }
 }

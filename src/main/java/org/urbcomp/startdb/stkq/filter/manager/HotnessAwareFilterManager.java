@@ -1,6 +1,7 @@
 package org.urbcomp.startdb.stkq.filter.manager;
 
 import com.google.common.collect.TreeMultiset;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
@@ -45,9 +46,9 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
 
 public class HotnessAwareFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
-    private static final int UPDATE_TIME = 500;
+    private static final int UPDATE_TIME = 600;
     private static final int MAX_UPDATE_TIME = 3000;
-    private final Map<BytesKey, Long> st2Count = new HashMap<>();
+//    private final Map<BytesKey, Long> st2Count = new HashMap<>();
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
     private final TreeMap<Long, Set<IFilter>> sortedFilters = new TreeMap<>();
 
@@ -61,7 +62,7 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             filter = new InfiniFilter(log2Size, bitsPerKey);
             filters.put(index, new FilterWithHotness(filter));
         }
-        st2Count.merge(index, 1L, Long::sum);
+//        st2Count.merge(index, 1L, Long::sum);
         return filter;
     }
 
@@ -70,13 +71,14 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             BytesKey index = entry.getKey();
             FilterWithHotness filter = entry.getValue();
 
-            long count = st2Count.get(index);
+            long count = filter.getFilter().size();
+//            long count = st2Count.get(index);
             filter.setHotness(count);
 
             Set<IFilter> filterSet = sortedFilters.computeIfAbsent(count, k -> new HashSet<>());
             filterSet.add(filter.getFilter());
         }
-        System.out.println("st2Count: " + RamUsageEstimator.humanSizeOf(st2Count));
+//        System.out.println("st2Count: " + RamUsageEstimator.humanSizeOf(st2Count));
         System.out.println("filters: " + RamUsageEstimator.humanSizeOf(filters));
         System.out.println("sorted filters: " + RamUsageEstimator.humanSizeOf(sortedFilters));
         System.out.println("size = " + filters.size());
@@ -99,7 +101,8 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             sortedFilters.remove(oldHotness);
         }
 
-        long newHotness = oldHotness + st2Count.get(index);
+//        long newHotness = oldHotness + st2Count.get(index);
+        long newHotness = filter.getFilter().size();
         filter.setHotness(newHotness);
 
         Set<IFilter> newFilterSet = sortedFilters.computeIfAbsent(newHotness, k -> new HashSet<>());
@@ -111,7 +114,7 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             System.out.println("sorted filters size 0: " + RamUsageEstimator.humanSizeOf(sortedFilters));
 
             int size = filters.size();
-            int upSize = size / 2;
+            int upSize = size * 3 / 4;
 
             int i = 0;
             System.out.println("-------------------------");
@@ -184,5 +187,17 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             System.out.println("3: " + set);
         }
         System.out.println(set);
+    }
+
+    public Map<BytesKey, FilterWithHotness> getFilters() {
+        return filters;
+    }
+
+    public long size() {
+        long size = 0;
+        for (Map.Entry<BytesKey, FilterWithHotness> filter : filters.entrySet()) {
+            size += RamUsageEstimator.sizeOf(filter.getValue().getFilter());
+        }
+        return size;
     }
 }

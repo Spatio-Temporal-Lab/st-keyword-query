@@ -283,6 +283,6 @@ public class QueryGenerator {
         }
 
         List<STObject> objects = DataProcessor.getSampleData();
-        generateZipfQueries(objects, 5_0000, 0.8);
+        generateZipfQueries(objects, 5_0000, 1.2);
     }
 }

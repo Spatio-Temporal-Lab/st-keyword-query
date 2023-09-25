@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.filter.manager;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.model.BytesKey;
@@ -25,5 +26,13 @@ public class BasicFilterManager extends AbstractFilterManager {
 
     public IFilter get(BytesKey index) {
         return filters.get(index);
+    }
+
+    public long size() {
+        long size = 0;
+        for (Map.Entry<BytesKey, IFilter> filterEntry : filters.entrySet()) {
+            size += RamUsageEstimator.sizeOf(filterEntry.getValue());
+        }
+        return size;
     }
 }

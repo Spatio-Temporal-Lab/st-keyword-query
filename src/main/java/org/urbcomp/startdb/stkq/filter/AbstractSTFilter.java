@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.filter;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -121,4 +122,6 @@ public abstract class AbstractSTFilter {
 
         return results;
     }
+
+    public long size() { return RamUsageEstimator.sizeOf(this); }
 }

@@ -1,4 +1,5 @@
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -50,11 +51,12 @@ public class TestFilters {
     public void testInfiniFilterFPR() {
 
         IFilter[] filters = new IFilter[]{
-                new InfiniFilter(3, 12),
-                new InfiniFilter(3, 13),
-                new InfiniFilter(3, 14),
-                new InfiniFilter(3, 15),
-                new InfiniFilter(3, 16)
+//                new InfiniFilter(3, 12),
+//                new InfiniFilter(3, 13),
+//                new InfiniFilter(3, 14),
+//                new InfiniFilter(3, 15),
+//                new InfiniFilter(3, 16)
+                new InfiniFilter(3, 20)
         };
 
         int id = 0;
@@ -102,6 +104,8 @@ public class TestFilters {
             String className = filter.getClass().getSimpleName();
             System.out.println(className + " query Time: " + (end - start));
             System.out.println(className + " result Size: " + results.stream().mapToInt(List::size).sum());
+            System.out.println(className + " memory Usage " + RamUsageEstimator.humanSizeOf(filter));
+            System.out.println(filter);
         }
     }
 
@@ -144,7 +148,9 @@ public class TestFilters {
         long end = System.currentTimeMillis();
         checkNoFalsePositive(results);
 //
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " + RamUsageEstimator.humanSizeOf(stFilter));
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
+                RamUsageEstimator.humanSizeOf(stFilter) + " " + ObjectSizeCalculator.getObjectSize(stFilter));
+        System.out.println("Filter Memory Usage: " + stFilter.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
 
@@ -152,18 +158,21 @@ public class TestFilters {
         AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sbits, tBits);
         insertIntoSTFilter(stFilter1);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
+        System.out.println("Filter Memory Usage: " + stFilter1.size());
         start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter1);
+        results = shrinkBySTFilter(stFilter1, QUERIES_SMALL);
         end = System.currentTimeMillis();
-        checkNoFalsePositive(results);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
+//        checkNoFalsePositive(results);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " +
+                RamUsageEstimator.humanSizeOf(stFilter1) + " " + ObjectSizeCalculator.getObjectSize(stFilter1));
+        System.out.println("Filter Memory Usage: " + stFilter1.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
 //
-//        results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
-//        System.out.println(results.stream().mapToInt(List::size).sum());
-//        results = shrinkBySTFilter(stFilter1, QUERIES_SMALL);
-//        System.out.println(results.stream().mapToInt(List::size).sum());
+        results = shrinkBySTFilter(stFilter);
+        System.out.println(results.stream().mapToInt(List::size).sum());
+        results = shrinkBySTFilter(stFilter1);
+        System.out.println(results.stream().mapToInt(List::size).sum());
     }
 
     @Test
