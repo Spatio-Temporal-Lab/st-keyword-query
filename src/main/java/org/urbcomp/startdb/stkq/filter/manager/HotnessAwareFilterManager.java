@@ -46,8 +46,8 @@ class FilterWithHotness implements Comparable<FilterWithHotness> {
 
 public class HotnessAwareFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
-    private static final int UPDATE_TIME = 600;
-    private static final int MAX_UPDATE_TIME = 3000;
+    private static final int UPDATE_TIME = 10000;
+    private static final int MAX_UPDATE_TIME = 50000;
 //    private final Map<BytesKey, Long> st2Count = new HashMap<>();
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
     private final TreeMap<Long, Set<IFilter>> sortedFilters = new TreeMap<>();
@@ -79,10 +79,14 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             filterSet.add(filter.getFilter());
         }
 //        System.out.println("st2Count: " + RamUsageEstimator.humanSizeOf(st2Count));
-        System.out.println("filters: " + RamUsageEstimator.humanSizeOf(filters));
-        System.out.println("sorted filters: " + RamUsageEstimator.humanSizeOf(sortedFilters));
-        System.out.println("size = " + filters.size());
-        System.out.println(RamUsageEstimator.humanSizeOf(this));
+//        System.out.println("filters: " + RamUsageEstimator.humanSizeOf(filters));
+//        System.out.println("sorted filters: " + RamUsageEstimator.humanSizeOf(sortedFilters));
+//        System.out.println("size = " + filters.size());
+//        System.out.println(RamUsageEstimator.humanSizeOf(this));
+    }
+
+    public int getUpdateSize(int size) {
+        return (int) (size * 0.74);
     }
 
     public IFilter update(BytesKey index) {
@@ -110,14 +114,14 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
 
         if (queryCount % UPDATE_TIME == 0 && queryCount <= MAX_UPDATE_TIME) {
 
-            System.out.println("filters size 0: " + RamUsageEstimator.humanSizeOf(filters));
-            System.out.println("sorted filters size 0: " + RamUsageEstimator.humanSizeOf(sortedFilters));
+//            System.out.println("filters size 0: " + RamUsageEstimator.humanSizeOf(filters));
+//            System.out.println("sorted filters size 0: " + RamUsageEstimator.humanSizeOf(sortedFilters));
 
             int size = filters.size();
-            int upSize = size * 3 / 4;
+            int upSize = getUpdateSize(size);
 
             int i = 0;
-            System.out.println("-------------------------");
+//            System.out.println("-------------------------");
             for (Map.Entry<Long, Set<IFilter>> filterEntry : sortedFilters.entrySet()) {
                 boolean end = false;
 
@@ -147,8 +151,8 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             }
 
 
-            System.out.println("filters size 1: " + RamUsageEstimator.humanSizeOf(filters));
-            System.out.println("sorted filters size 1: " + RamUsageEstimator.humanSizeOf(sortedFilters));
+//            System.out.println("filters size 1: " + RamUsageEstimator.humanSizeOf(filters));
+//            System.out.println("sorted filters size 1: " + RamUsageEstimator.humanSizeOf(sortedFilters));
         }
 
         return filter.getFilter();
@@ -165,7 +169,6 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
 
     public static void main(String[] args) {
         TreeMultiset<FilterWithHotness> set = TreeMultiset.create();
-        Random random = new Random();
 
         int n = 3;
         FilterWithHotness[] filters = new FilterWithHotness[n];
@@ -194,6 +197,7 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
     }
 
     public long size() {
+        System.out.println("filter count: " + filters.size());
         long size = 0;
         for (Map.Entry<BytesKey, FilterWithHotness> filter : filters.entrySet()) {
             size += RamUsageEstimator.sizeOf(filter.getValue().getFilter());
