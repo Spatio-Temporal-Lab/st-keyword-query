@@ -1,7 +1,6 @@
 package org.urbcomp.startdb.stkq.filter.manager;
 
 import com.google.common.collect.TreeMultiset;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;

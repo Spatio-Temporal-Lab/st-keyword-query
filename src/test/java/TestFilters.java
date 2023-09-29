@@ -146,13 +146,14 @@ public class TestFilters {
         long start = System.currentTimeMillis();
         List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
         long end = System.currentTimeMillis();
-//        checkNoFalsePositive(results);
-
+        checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
                 RamUsageEstimator.humanSizeOf(stFilter) + " " + ObjectSizeCalculator.getObjectSize(stFilter));
         System.out.println("Filter Memory Usage: " + stFilter.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+
+        System.out.println("------------------------------------------------------------------");
 
 
         AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sBits, tBits);
@@ -162,13 +163,31 @@ public class TestFilters {
         start = System.currentTimeMillis();
         results = shrinkBySTFilter(stFilter1, QUERIES_SMALL);
         end = System.currentTimeMillis();
-//        checkNoFalsePositive(results);
+        checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " +
                 RamUsageEstimator.humanSizeOf(stFilter1) + " " + ObjectSizeCalculator.getObjectSize(stFilter1));
         System.out.println("Filter Memory Usage: " + stFilter1.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
-//
+
+        System.out.println("------------------------------------------------------------------");
+
+        AbstractSTFilter stFilter2 = new AHSTFilter(3, 14, sBits, tBits);
+        insertIntoSTFilter(stFilter2);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " + RamUsageEstimator.humanSizeOf(stFilter2));
+        System.out.println("Filter Memory Usage: " + stFilter2.size());
+        start = System.currentTimeMillis();
+        results = shrinkBySTFilter(stFilter2, QUERIES_SMALL);
+        end = System.currentTimeMillis();
+        checkNoFalsePositive(results);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " +
+                RamUsageEstimator.humanSizeOf(stFilter2) + " " + ObjectSizeCalculator.getObjectSize(stFilter2));
+        System.out.println("Filter Memory Usage: " + stFilter2.size());
+        System.out.println("query Time: " + (end - start));
+        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+
+        System.out.println("******************************************************************");
+
 
         start = System.currentTimeMillis();
         results = shrinkBySTFilter(stFilter);
@@ -178,6 +197,12 @@ public class TestFilters {
 
         start = System.currentTimeMillis();
         results = shrinkBySTFilter(stFilter1);
+        end = System.currentTimeMillis();
+        System.out.println("query Time: " + (end - start));
+        System.out.println(results.stream().mapToInt(List::size).sum());
+
+        start = System.currentTimeMillis();
+        results = shrinkBySTFilter(stFilter2);
         end = System.currentTimeMillis();
         System.out.println("query Time: " + (end - start));
         System.out.println(results.stream().mapToInt(List::size).sum());
@@ -265,7 +290,7 @@ public class TestFilters {
     }
 
     private static void checkNoFalsePositive(List<List<byte[]>> results) {
-        for (int i = 0; i < QUERIES.size(); ++i) {
+        for (int i = 0; i < QUERIES_SMALL.size(); ++i) {
             for (byte[] code : GROUND_TRUTH_RANGES.get(i)) {
                 boolean find = false;
                 for (byte[] aCode : results.get(i)) {

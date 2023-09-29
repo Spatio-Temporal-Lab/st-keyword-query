@@ -32,7 +32,8 @@ public class QuotientFilter extends Filter {
 	public double avg_run_length;
 	public double avg_cluster_length;
 	
-	int original_fingerprint_size; 
+	int original_fingerprint_size;
+
 	int num_expansions;
 	
 	
@@ -62,6 +63,11 @@ public class QuotientFilter extends Filter {
 	}
 
 	public QuotientFilter() {super(); filter = make_filter(1, 1);}
+
+
+	public int getNum_expansions() {
+		return num_expansions;
+	}
 
 	//nuevo
 	void update(long init_size)
