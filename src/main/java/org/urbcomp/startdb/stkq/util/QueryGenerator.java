@@ -1,12 +1,15 @@
 package org.urbcomp.startdb.stkq.util;
 
 import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.*;
 
 import java.io.*;
@@ -199,11 +202,16 @@ public class QueryGenerator {
         Map<BytesKey, Integer> key2Count = new HashMap<>();
 
 
-        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
+
         for (STObject object : objects) {
+//            BytesKey key = new BytesKey(ByteUtil.concat(
+//                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getTime())));
             BytesKey key = new BytesKey(ByteUtil.concat(
-                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getTime())));
+                    sKeyGenerator.toBytes(object.getLocation()), tKeyGenerator.toBytes(object.getTime())));
             key2Count.merge(key, 1, Integer::sum);
 
             Set<String> set = key2Words.get(key);

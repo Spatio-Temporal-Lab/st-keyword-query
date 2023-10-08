@@ -5,9 +5,12 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -204,8 +207,10 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -223,8 +228,10 @@ public class DataProcessor {
                 if (cur == null) {
                     continue;
                 }
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+//                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
                 for (String keyword : cur.getKeywords()) {
                     bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
@@ -272,8 +279,10 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -292,8 +301,10 @@ public class DataProcessor {
                     continue;
                 }
 
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+//                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
@@ -354,8 +365,10 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
 
         ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 20);
@@ -378,8 +391,10 @@ public class DataProcessor {
                     continue;
                 }
 
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation());
-                int tID = timeKeyGenerator.getNumber(cur.getTime());
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation());
+//                int tID = timeKeyGenerator.getNumber(cur.getTime());
+                long sID = spatialKeyGenerator.toNumber(cur.getLocation());
+                int tID = timeKeyGenerator.toNumber(cur.getTime());
 
                 for (String keyword : cur.getKeywords()) {
                     byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
@@ -424,8 +439,10 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -444,8 +461,10 @@ public class DataProcessor {
                     continue;
                 }
 
-                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+//                long sID = spatialKeyGenerator.getNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+//                int tID = timeKeyGenerator.getNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
 
                 long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
                 int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
@@ -486,8 +505,10 @@ public class DataProcessor {
         Map<BytesKey, Integer> st2Count = new HashMap<>();
         Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
 
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
         Random random = new Random();
 
         try (BufferedReader br = new BufferedReader(
@@ -507,8 +528,10 @@ public class DataProcessor {
 
                 if (random.nextDouble() < 0.1) {
                     BytesKey bytesKey = new BytesKey(ByteUtil.concat(
-                            spatialKeyGenerator.toKey(cur.getLocation()),
-                            timeKeyGenerator.toKey(cur.getTime())
+//                            spatialKeyGenerator.toKey(cur.getLocation()),
+//                            timeKeyGenerator.toKey(cur.getTime())
+                            spatialKeyGenerator.toBytes(cur.getLocation()),
+                            timeKeyGenerator.toBytes(cur.getTime())
                     ));
                     st2Count.merge(bytesKey, 1, Integer::sum);
                     if (st2Keywords.containsKey(bytesKey)) {

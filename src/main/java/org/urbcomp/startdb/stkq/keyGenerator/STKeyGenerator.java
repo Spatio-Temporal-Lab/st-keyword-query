@@ -59,4 +59,27 @@ public class STKeyGenerator implements ISTKeyGeneratorNew {
         }
         return stRanges;
     }
+
+    @Override
+    public List<Range<byte[]>> toBytesRanges(Query query) {
+        List<Range<Long>> sRanges = spatialKeyGenerator.toNumberRanges(query);
+        List<Range<Integer>> tRanges = timeKeyGenerator.toNumberRanges(query);
+        int tRangeLow = tRanges.get(0).getLow();
+        int tRangeHigh = tRanges.get(0).getHigh();
+        List<Range<byte[]>> stRanges = new ArrayList<>();
+        for (Range<Long> sRange : sRanges) {
+            for (long s = sRange.getLow(); s <= sRange.getHigh(); ++s) {
+                long sAfterShift = s << T_BIT_COUNT;
+                stRanges.add(new Range<>(
+                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(sAfterShift), timeKeyGenerator.numberToBytes(tRangeLow)),
+                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(sAfterShift), timeKeyGenerator.numberToBytes(tRangeHigh))));
+            }
+        }
+        return stRanges;
+    }
+
+    @Override
+    public int getByteCount() {
+        return S_BYTE_COUNT + T_BYTE_COUNT;
+    }
 }

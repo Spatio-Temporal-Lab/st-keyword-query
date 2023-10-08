@@ -1,7 +1,9 @@
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.HBaseWriter;
-import org.urbcomp.startdb.stkq.keyGenerator.old.*;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 
 import java.io.BufferedWriter;
@@ -23,11 +25,15 @@ public class TestWrite {
         String[] tableNames = new String[]{
                 "testTimeFirst", "testSpatialFirst", "testHilbert", "testShard"
         };
-        AbstractSTKeyGenerator[] generators = new AbstractSTKeyGenerator[]{
-                new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
-                new SpatialFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
-                new SpatialFirstSTKeyGenerator(new HilbertSpatialKeyGenerator(), new TimeKeyGenerator()),
-                new ShardSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator())
+//        AbstractSTKeyGenerator[] generators = new AbstractSTKeyGenerator[]{
+//                new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
+//                new SpatialFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
+//                new SpatialFirstSTKeyGenerator(new HilbertSpatialKeyGenerator(), new TimeKeyGenerator()),
+//                new ShardSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator())
+//        };
+        ISTKeyGeneratorNew[] generators = new ISTKeyGeneratorNew[]{
+                new STKeyGenerator(),
+                new TSKeyGenerator(),
         };
         DataProcessor dataProcessor = new DataProcessor();
         ArrayList<STObject> objects = new ArrayList<>(dataProcessor.getSTObjects(inPathName));
@@ -39,7 +45,10 @@ public class TestWrite {
                 for (int i = 0; i < n; ++i) {
                     String tableName = tableNames[i];
                     hBaseUtil.truncateTable(tableName);
-                    AbstractSTKeyGenerator generator = generators[i];
+//                    AbstractSTKeyGenerator generator = generators[i];
+//                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
+//                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
+                    ISTKeyGeneratorNew generator = generators[i];
                     HBaseWriter hBaseWriter = new HBaseWriter(generator);
                     hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
                     long start = System.currentTimeMillis();

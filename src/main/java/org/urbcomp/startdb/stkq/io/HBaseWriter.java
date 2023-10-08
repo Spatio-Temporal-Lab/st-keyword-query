@@ -1,6 +1,9 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.IKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
@@ -20,9 +23,14 @@ import java.util.List;
 public class HBaseWriter {
     private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-    private final AbstractSTKeyGenerator keyGenerator;
+//    private final AbstractSTKeyGenerator keyGenerator;
+    private final ISTKeyGeneratorNew keyGenerator;
 
-    public HBaseWriter(AbstractSTKeyGenerator keyGenerator) {
+//    public HBaseWriter(AbstractSTKeyGenerator keyGenerator) {
+//        this.keyGenerator = keyGenerator;
+//    }
+
+    public HBaseWriter(ISTKeyGeneratorNew keyGenerator) {
         this.keyGenerator = keyGenerator;
     }
 
@@ -55,7 +63,8 @@ public class HBaseWriter {
 
         try (BufferedMutator table = hBaseUtil.getConnection().getBufferedMutator(htConfig)) {
             for (STObject object : objects) {
-                Put put = new Put(keyGenerator.toKey(object));
+//                Put put = new Put(keyGenerator.toKey(object));
+                Put put = new Put(keyGenerator.toBytes(object));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(object.getID()));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(object.getLocation().toString()));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(object.getTime())));

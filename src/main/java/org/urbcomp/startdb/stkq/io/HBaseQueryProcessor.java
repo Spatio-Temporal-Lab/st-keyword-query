@@ -29,15 +29,13 @@ public class HBaseQueryProcessor {
     static class ScanThread extends Thread {
         private final byte[] start;
         private final byte[] end;
-        private final boolean useBfInHBase;
         private final String tableName;
         private final Query query;
         private final List<Map<String, String>> result;
 
-        public ScanThread(String tableName, boolean useBfInHBase, byte[] s, byte[] e, Query query, List<Map<String, String>> result) {
+        public ScanThread(String tableName, byte[] s, byte[] e, Query query, List<Map<String, String>> result) {
             this.start = s;
             this.end = e;
-            this.useBfInHBase = useBfInHBase;
             this.tableName = tableName;
             this.query = query;
             this.result = result;
@@ -46,10 +44,10 @@ public class HBaseQueryProcessor {
         //覆写线程的run方法
         @Override
         public void run() {
-            List<Map<String, String>> scanResult = hBaseUtil.scanWithKeywords(tableName, useBfInHBase, keywords,
+            List<Map<String, String>> scanResult = hBaseUtil.scanWithKeywords(tableName, keywords,
                     start, end, query.getQueryType());
 
-            if (scanResult == null || scanResult.size() == 0) {
+            if (scanResult == null || scanResult.isEmpty()) {
                 cdl.countDown();
                 return;
             }
@@ -108,28 +106,17 @@ public class HBaseQueryProcessor {
         }
     }
     public static List<Map<String, String>> scan(String tableName, List<Range<byte[]>> ranges,
-                                                 Query query, boolean useBfInHBase, boolean parallel) throws InterruptedException {
+                                                 Query query) throws InterruptedException {
 
         keywords = query.getKeywords().toArray(new String[0]);
         List<Map<String, String>> result = Collections.synchronizedList(new ArrayList<>());
-
-        if (parallel) {
-            cdl = new CountDownLatch(ranges.size());
-            for (Range<byte[]> range : ranges) {
-                service.submit(new ScanThread(tableName, useBfInHBase,
-                            ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
-                            ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
-            }
-            cdl.await();
+        cdl = new CountDownLatch(ranges.size());
+        for (Range<byte[]> range : ranges) {
+            service.submit(new ScanThread(tableName,
+                    ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
+                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
         }
-        else {
-            for (Range<byte[]> range : ranges) {
-                result.addAll(hBaseUtil.scanWithKeywords(tableName, useBfInHBase, query.getKeywords().toArray(new String[0]),
-                        ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
-                        ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)),
-                        query.getQueryType()));
-            }
-        }
+        cdl.await();
         return result;
     }
 

@@ -262,7 +262,7 @@ public class HBaseUtil {
     }
 
 
-    public List<Map<String, String>> scanWithKeywords(String tableName, boolean useBfInHBase, String[] keywords,
+    public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
                                                       byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -275,9 +275,6 @@ public class HBaseUtil {
                     byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
                 }
                 scan.setAttribute("keywords", byteBuffer.array());
-                if (useBfInHBase) {
-                    scan.setAttribute("useBf", new byte[]{1});
-                }
 
                 rs = table.getScanner(scan);
 

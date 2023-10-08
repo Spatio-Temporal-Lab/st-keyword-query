@@ -1,7 +1,7 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.util.DateUtil;
@@ -13,8 +13,10 @@ import java.util.Arrays;
 import java.util.Date;
 
 public class SpatialTimeKeyGeneratorTest extends TestCase {
-    TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-    SpatialKeyGenerator spatialKeyGenerator = new SpatialKeyGenerator();
+//    TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+//    SpatialKeyGenerator spatialKeyGenerator = new SpatialKeyGenerator();
+    TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+    ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     public void testToKeyRanges() throws ParseException {
         Date date = DateUtil.getDate("2010-06-06 12:00:00");
         Date left = DateUtil.getDate("2010-06-06 11:00:00");
@@ -23,7 +25,7 @@ public class SpatialTimeKeyGeneratorTest extends TestCase {
         Location leftUp = new Location(9.99, 9.99);
         Location rightDown = new Location(10.00, 10.00);
         Query query = new Query(leftUp.getLat(), rightDown.getLat(), leftUp.getLon(), rightDown.getLon(), left, right, new ArrayList<>());
-        System.out.println(Arrays.toString(timeKeyGenerator.toKey(date)));
-        System.out.println(Arrays.toString(spatialKeyGenerator.toKey(location)));
+        System.out.println(Arrays.toString(timeKeyGenerator.toBytes(date)));
+        System.out.println(Arrays.toString(spatialKeyGenerator.toBytes(location)));
     }
 }

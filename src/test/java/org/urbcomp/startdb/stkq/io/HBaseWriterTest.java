@@ -1,9 +1,7 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeFirstSTKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 import junit.framework.TestCase;
 
@@ -17,7 +15,8 @@ public class HBaseWriterTest extends TestCase {
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
         String tableName = "test01";
         hBaseUtil.createTable(tableName, new String[]{"attr"});
-        AbstractSTKeyGenerator keyGenerator = new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator());
+//        AbstractSTKeyGenerator keyGenerator = new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator());
+        ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
         HBaseWriter hBaseWriter = new HBaseWriter(keyGenerator);
         DataProcessor dataProcessor = new DataProcessor();
         dataProcessor.setRate(0.01);

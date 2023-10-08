@@ -1,7 +1,13 @@
 package org.urbcomp.startdb.stkq.processor;
 
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+//import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -14,10 +20,9 @@ import java.util.*;
 
 public class QueryProcessor {
     private final String tableName;
-    private final AbstractSTKeyGenerator generator;
-    private final boolean filterInMemory;
-    private final boolean filterInDb;
-    private final boolean parallel;
+    private boolean filterInMemory = false;
+    private STFilter stFilter;
+    private STKeyGenerator stKeyGenerator;
 
     long queryHBaseTime = 0;
     long queryBloomTime = 0;
@@ -27,10 +32,6 @@ public class QueryProcessor {
 
     public long getQueryBloomTime() {
         return queryBloomTime;
-    }
-
-    public long getFilterTime() {
-        return generator.getFilterTime();
     }
 
     public long getAllSize() {
@@ -55,13 +56,15 @@ public class QueryProcessor {
         return sum;
     }
 
-    public QueryProcessor(String tableName, AbstractSTKeyGenerator rangeGenerator, boolean filterInMemory,
-                          boolean filterInDb, boolean parallel) {
+    public QueryProcessor(String tableName, STKeyGenerator keyGenerator) {
         this.tableName = tableName;
-        this.generator = rangeGenerator;
-        this.filterInMemory = filterInMemory;
-        this.filterInDb = filterInDb;
-        this.parallel = parallel;
+        this.stKeyGenerator = keyGenerator;
+    }
+
+    public QueryProcessor(String tableName, STFilter stFilter) {
+        this.tableName = tableName;
+        this.stFilter = stFilter;
+        filterInMemory = true;
     }
 
     public long getQueryHBaseTime() {
@@ -76,9 +79,9 @@ public class QueryProcessor {
 
         long begin = System.currentTimeMillis();
         if (filterInMemory) {
-            ranges = generator.toFilteredKeyRanges(query);
+            ranges = stFilter.shrinkAndTransform(query);
         } else {
-            ranges = generator.toKeyRanges(query);
+            ranges = stKeyGenerator.toBytesRanges(query);
         }
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;
@@ -87,7 +90,7 @@ public class QueryProcessor {
         allCount += getRangesSize(ranges);
 
         begin = System.currentTimeMillis();
-        scanResults = HBaseQueryProcessor.scan(tableName, ranges, query, filterInDb, parallel);
+        scanResults = HBaseQueryProcessor.scan(tableName, ranges, query);
         end = System.currentTimeMillis();
         queryHBaseTime += end - begin;
 

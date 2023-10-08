@@ -2,9 +2,12 @@ package org.urbcomp.startdb.stkq.initialization;
 
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
+//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
@@ -39,8 +42,10 @@ public class BatchWriteWithRepeat {
 
         String inPathName = "/usr/data/tweetSample.csv";
 
-        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+//        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+//        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+        ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+        TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
 
         List<Put> puts = new ArrayList<>();
 
@@ -112,8 +117,10 @@ public class BatchWriteWithRepeat {
                     }
 
                     Location location = new Location(lat, lon);
-                    byte[] sCode = sKeyGenerator.toKey(location);
-                    byte[] tCode = tKeyGenerator.toKey(date);
+//                    byte[] sCode = sKeyGenerator.toKey(location);
+//                    byte[] tCode = tKeyGenerator.toKey(date);
+                    byte[] sCode = sKeyGenerator.toBytes(location);
+                    byte[] tCode = tKeyGenerator.toBytes(date);
 
                     for (int i = 0; i < 1000; ++i) {
                         Put put = new Put(ByteUtil.concat(sCode, tCode, Bytes.toBytes(ID)));
