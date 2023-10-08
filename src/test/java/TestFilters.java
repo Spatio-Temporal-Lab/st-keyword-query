@@ -1,5 +1,4 @@
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -148,7 +147,7 @@ public class TestFilters {
         long end = System.currentTimeMillis();
         checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter) + " " + ObjectSizeCalculator.getObjectSize(stFilter));
+                RamUsageEstimator.humanSizeOf(stFilter));
         System.out.println("Filter Memory Usage: " + stFilter.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
@@ -165,7 +164,7 @@ public class TestFilters {
         end = System.currentTimeMillis();
         checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter1) + " " + ObjectSizeCalculator.getObjectSize(stFilter1));
+                RamUsageEstimator.humanSizeOf(stFilter1));
         System.out.println("Filter Memory Usage: " + stFilter1.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
@@ -181,7 +180,7 @@ public class TestFilters {
         end = System.currentTimeMillis();
         checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter2) + " " + ObjectSizeCalculator.getObjectSize(stFilter2));
+                RamUsageEstimator.humanSizeOf(stFilter2));
         System.out.println("Filter Memory Usage: " + stFilter2.size());
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
