@@ -80,35 +80,6 @@ public class TestFilters {
     }
 
     @Test
-    public void testRangeFilters() {
-        IRangeFilter[] filters = {
-                new TRosetta(3),
-                new SRosetta(3),
-                new STRosetta(3)
-        };
-
-        for (IRangeFilter filter : filters) {
-            long start = System.currentTimeMillis();
-            insertIntoRangeFilter(filter);
-            long end = System.currentTimeMillis();
-            System.out.println(filter.getClass().getSimpleName() + " insert Time: " + (end - start));
-        }
-
-        for (IRangeFilter filter : filters) {
-            long start = System.currentTimeMillis();
-            List<List<byte[]>> results = shrinkByRangeFilter(filter);
-            long end = System.currentTimeMillis();
-            checkNoFalsePositive(results);
-
-            String className = filter.getClass().getSimpleName();
-            System.out.println(className + " query Time: " + (end - start));
-            System.out.println(className + " result Size: " + results.stream().mapToInt(List::size).sum());
-            System.out.println(className + " memory Usage " + RamUsageEstimator.humanSizeOf(filter));
-            System.out.println(filter);
-        }
-    }
-
-    @Test
     public void testSacrifice() {
 
         ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 16);
@@ -233,11 +204,6 @@ public class TestFilters {
         }
     }
 
-    private static void insertIntoRangeFilter(IRangeFilter filter) {
-        for (STObject object : SAMPLE_DATA) {
-            filter.insert(object);
-        }
-    }
     private static void insertIntoSTFilter(AbstractSTFilter stFilter) {
         for (STObject object : SAMPLE_DATA) {
             stFilter.insert(object);
@@ -255,15 +221,6 @@ public class TestFilters {
 
     private static List<byte[]> shrinkByFilter(IFilter filter, Query query) {
         return filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
-    }
-
-    private static List<List<byte[]>> shrinkByRangeFilter(IRangeFilter filter) {
-        List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : QUERIES) {
-            List<byte[]> filterResult = filter.shrink(query);
-            results.add(filterResult);
-        }
-        return results;
     }
 
     private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter) {
