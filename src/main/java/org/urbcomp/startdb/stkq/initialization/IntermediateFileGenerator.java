@@ -58,17 +58,6 @@ public class IntermediateFileGenerator {
         filter.writeTo(Files.newOutputStream(Paths.get(outputPath)));
     }
 
-    public static void testSizeofInfiniFilter() {
-        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 10);
-        filter.set_expand_autonomously(true);
-
-        for (int i = 0; i < 1000_0000; ++i) {
-            filter.insert(i, false);
-        }
-
-        System.out.println(RamUsageEstimator.humanSizeOf(filter));
-    }
-
     public static void writeSTCount() throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
 //        Map<BytesKey, Long> map = dataProcessor.generateCount("/usr/data/tweetAll.csv");
@@ -82,7 +71,7 @@ public class IntermediateFileGenerator {
         o.writeObject(map);
     }
 
-    public static void writeDistribution() throws ParseException, IOException {
+    public static void writeDistribution() throws IOException {
         DataProcessor dataProcessor = new DataProcessor();
         ArrayList<Map> maps = dataProcessor.generateDistribution("/usr/data/tweetAll.csv");
         System.out.println("st count: " + maps.get(0).size());

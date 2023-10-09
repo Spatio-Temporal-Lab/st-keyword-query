@@ -1,15 +1,14 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

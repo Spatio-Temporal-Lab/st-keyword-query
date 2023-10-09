@@ -3,7 +3,6 @@ package org.urbcomp.startdb.stkq.processor;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;

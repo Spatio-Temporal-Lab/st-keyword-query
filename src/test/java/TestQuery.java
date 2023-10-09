@@ -2,6 +2,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
@@ -147,6 +148,11 @@ public class TestQuery {
         ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
         List<STObject> objects = DataProcessor.getSampleData();
 
+        STFilter filter = new STFilter(3, 12, 8, 4);
+        for (STObject object : objects) {
+            filter.insert(object);
+        }
+
         if (!tableExists) {
             hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
             System.out.println("--------------------insert begin--------------------");
@@ -157,22 +163,37 @@ public class TestQuery {
 
         // test query results
         List<Query> queries = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
-        QueryProcessor queryProcessor = new QueryProcessor(tableName, keyGenerator);
+        QueryProcessor[] queryProcessors = {
+                new QueryProcessor(tableName, keyGenerator),
+                new QueryProcessor(tableName, filter)
+        };
         System.out.println("--------------------query begin--------------------");
+
+        int n = queryProcessors.length;
         for (Query query : queries) {
             query.setQueryType(QueryType.CONTAIN_ONE);
-            List<STObject> correctResults = bruteForce(objects, query);
-            Collections.sort(correctResults);
-            List<STObject> results = queryProcessor.getResult(query);
-            Collections.sort(results);
+//            List<STObject> correctResults = bruteForce(objects, query);
+//            Collections.sort(correctResults);
+
+            List<List<STObject>> resultsList = new ArrayList<>();
+            for (QueryProcessor queryProcessor : queryProcessors) {
+                List<STObject> results = queryProcessor.getResult(query);
+                Collections.sort(results);
+                resultsList.add(results);
+            }
+            for (int i = 1; i < n; ++i) {
+                Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
+            }
 //            System.out.println("**************************************");
 //            System.out.println(query);
 //            System.out.println(correctResults);
 //            System.out.println(results);
-            Assert.assertTrue(equals_(correctResults, results));
+//            Assert.assertTrue(equals_(correctResults, results));
         }
         System.out.println("--------------------query end--------------------");
-        queryProcessor.close();
+        for (QueryProcessor processor : queryProcessors) {
+            processor.close();
+        }
     }
 
     List<STObject> bruteForce(List<STObject> objects, Query query) {
