@@ -5,6 +5,7 @@ import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.util.STKUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,7 +16,7 @@ import java.util.concurrent.Executors;
 
 public class HBaseQueryProcessor {
     private final static HBaseUtil hBaseUtil;
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     static ExecutorService service = Executors.newCachedThreadPool();
 
@@ -52,54 +53,11 @@ public class HBaseQueryProcessor {
                 return;
             }
 
-            QueryType queryType = query.getQueryType();
-
             for (Map<String, String> map : scanResult) {
-
-                Location loc = new Location(map.get("loc"));
-                if (!loc.in(query.getMBR())) {
-                    continue;
+//                System.out.println(map);
+                if (STKUtil.check(map, query)) {
+                    result.add(map);
                 }
-
-                ArrayList<String> keywords_ = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
-
-                Date date;
-                try {
-                    synchronized (sdf) {
-                        date = sdf.parse(map.get("time"));
-                    }
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-                if (date.before(query.getStartTime()) || date.after(query.getEndTime())) {
-                    continue;
-                }
-
-                if (queryType.equals(QueryType.CONTAIN_ONE)) {
-                    boolean flag = false;
-                    for (String s : query.getKeywords()) {
-                        if (keywords_.contains(s)) {
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (!flag) {
-                        continue;
-                    }
-                } else if (queryType.equals(QueryType.CONTAIN_ALL)) {
-                    boolean flag = true;
-                    for (String s : query.getKeywords()) {
-                        if (!keywords_.contains(s)) {
-                            flag = false;
-                            break;
-                        }
-                    }
-                    if (!flag) {
-                        continue;
-                    }
-                }
-
-                result.add(map);
             }
 
             cdl.countDown();

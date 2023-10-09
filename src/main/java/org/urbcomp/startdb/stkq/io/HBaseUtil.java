@@ -18,6 +18,12 @@ public class HBaseUtil {
     public static Connection connection;
 
     public static Admin admin;
+    private static final HBaseUtil defaultUtil;
+
+    static {
+        defaultUtil = new HBaseUtil();
+        defaultUtil.init("192.168.137.207");
+    }
 
     // 建立连接
     public void init(String zookeeper) {
@@ -33,9 +39,7 @@ public class HBaseUtil {
     }
 
     public static HBaseUtil getDefaultHBaseUtil() {
-        HBaseUtil hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("192.168.110.32");
-        return hBaseUtil;
+        return defaultUtil;
     }
 
     public Connection getConnection() {

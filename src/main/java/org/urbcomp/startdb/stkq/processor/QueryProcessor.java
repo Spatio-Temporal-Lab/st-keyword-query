@@ -1,13 +1,9 @@
 package org.urbcomp.startdb.stkq.processor;
 
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-//import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.AbstractSTKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -22,7 +18,7 @@ public class QueryProcessor {
     private final String tableName;
     private boolean filterInMemory = false;
     private STFilter stFilter;
-    private STKeyGenerator stKeyGenerator;
+    private ISTKeyGeneratorNew stKeyGenerator;
 
     long queryHBaseTime = 0;
     long queryBloomTime = 0;
@@ -56,7 +52,7 @@ public class QueryProcessor {
         return sum;
     }
 
-    public QueryProcessor(String tableName, STKeyGenerator keyGenerator) {
+    public QueryProcessor(String tableName, ISTKeyGeneratorNew keyGenerator) {
         this.tableName = tableName;
         this.stKeyGenerator = keyGenerator;
     }
@@ -85,6 +81,11 @@ public class QueryProcessor {
         }
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;
+
+//        System.out.println("ranges = ");
+//        for (Range<byte[]> range : ranges) {
+//            System.out.println(Arrays.toString(range.getLow()) + " " + Arrays.toString(range.getHigh()));
+//        }
 
         allSize += ranges.size();
         allCount += getRangesSize(ranges);

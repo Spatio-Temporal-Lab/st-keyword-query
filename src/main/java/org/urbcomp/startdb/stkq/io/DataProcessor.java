@@ -581,8 +581,11 @@ public class DataProcessor {
         List<STObject> objects = new ArrayList<>();
         try (BufferedReader in = new BufferedReader(new FileReader(TWEET_SAMPLE_FILE))) {
             String line;
+            int id = 0;
             while ((line = in.readLine()) != null) {
-                objects.add(new STObject(line));
+                STObject object = new STObject(line);
+                object.setID(id++);
+                objects.add(object);
             }
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);

@@ -69,10 +69,9 @@ public class STKeyGenerator implements ISTKeyGeneratorNew {
         List<Range<byte[]>> stRanges = new ArrayList<>();
         for (Range<Long> sRange : sRanges) {
             for (long s = sRange.getLow(); s <= sRange.getHigh(); ++s) {
-                long sAfterShift = s << T_BIT_COUNT;
                 stRanges.add(new Range<>(
-                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(sAfterShift), timeKeyGenerator.numberToBytes(tRangeLow)),
-                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(sAfterShift), timeKeyGenerator.numberToBytes(tRangeHigh))));
+                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(s), timeKeyGenerator.numberToBytes(tRangeLow)),
+                        ByteUtil.concat(spatialKeyGenerator.numberToBytes(s), timeKeyGenerator.numberToBytes(tRangeHigh))));
             }
         }
         return stRanges;

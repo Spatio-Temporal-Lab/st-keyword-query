@@ -92,6 +92,10 @@ public class STObject implements Serializable, Comparable<STObject> {
     public int compareTo(STObject stObject) {
         return Long.compare(ID, stObject.getID());
     }
+
+    public void setID(int id) {
+        ID = id;
+    }
 }
 
 

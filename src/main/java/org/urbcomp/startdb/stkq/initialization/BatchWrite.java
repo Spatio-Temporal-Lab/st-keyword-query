@@ -97,7 +97,7 @@ public class BatchWrite {
                         keywords.add(builder.toString());
                     }
 
-                    if (keywords.size() == 0) {
+                    if (keywords.isEmpty()) {
                         continue;
                     }
 
