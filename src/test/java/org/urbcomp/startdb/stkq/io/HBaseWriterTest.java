@@ -17,13 +17,13 @@ public class HBaseWriterTest extends TestCase {
         hBaseUtil.createTable(tableName, new String[]{"attr"});
 //        AbstractSTKeyGenerator keyGenerator = new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator());
         ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
-        HBaseWriter hBaseWriter = new HBaseWriter(keyGenerator);
+        HBaseWriter hBaseWriter = new HBaseWriter();
         DataProcessor dataProcessor = new DataProcessor();
         dataProcessor.setRate(0.01);
         ArrayList<STObject> objects = new ArrayList<>();
         for (int i = 1; i <= 1; ++i) {
             objects.addAll(dataProcessor.getSTObjects("E:\\data\\tweet\\" + "tweet_" + i + ".csv"));
         }
-        hBaseWriter.putObjects(tableName, objects, 5000);
+        hBaseWriter.putObjects(tableName, keyGenerator, objects, 5000);
     }
 }

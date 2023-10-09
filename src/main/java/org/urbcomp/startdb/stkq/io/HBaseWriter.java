@@ -18,14 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HBaseWriter {
-    private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
-    private final ISTKeyGeneratorNew keyGenerator;
+    private static final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-    public HBaseWriter(ISTKeyGeneratorNew keyGenerator) {
-        this.keyGenerator = keyGenerator;
-    }
-
-    public void putObjects(String tableName, List<STObject> objects, int batchSize) throws IOException {
+    public static void putObjects(String tableName, ISTKeyGeneratorNew keyGenerator, List<STObject> objects, int batchSize) throws IOException {
         List<Put> puts = new ArrayList<>();
 
         final BufferedMutator.ExceptionListener listener = (e, mutator) -> {

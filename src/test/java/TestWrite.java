@@ -49,10 +49,10 @@ public class TestWrite {
 //                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
 //                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
                     ISTKeyGeneratorNew generator = generators[i];
-                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
+                    HBaseWriter hBaseWriter = new HBaseWriter();
                     hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
                     long start = System.currentTimeMillis();
-                    hBaseWriter.putObjects(tableName, objects, 5000);
+                    hBaseWriter.putObjects(tableName, generator, objects, 5000);
                     long end = System.currentTimeMillis();
                     allTime += end - start;
                     System.out.println(tableName + " cost " + (end - start) + "ms");

@@ -156,8 +156,8 @@ public class TestQuery {
         if (!tableExists) {
             hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
             System.out.println("--------------------insert begin--------------------");
-            HBaseWriter writer = new HBaseWriter(keyGenerator);
-            writer.putObjects(tableName, objects, 1000);
+            HBaseWriter writer = new HBaseWriter();
+            writer.putObjects(tableName, keyGenerator, objects, 1000);
             System.out.println("--------------------insert end--------------------");
         }
 
