@@ -12,6 +12,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,22 +48,18 @@ public abstract class AbstractSTFilter {
 
     byte[] getSKey(long s) {
         return ByteUtil.getKByte(s & sMask, sBytes);
-//        return sKeyGenerator.numberToBytes(s);
     }
 
     private byte[] getSIndex(long s) {
         return ByteUtil.getKByte(s >> sBits, sIndexBytes);
-//        return new byte[]{0};
     }
 
     byte[] getTKey(int t) {
         return ByteUtil.getKByte(t & tMask, tBytes);
-//        return tKeyGenerator.numberToBytes(t);
     }
 
     private byte[] getTIndex(int t) {
         return ByteUtil.getKByte(t >> tBits, tIndexBytes);
-//        return new byte[]{0};
     }
 
     BytesKey getSTIndex(long s, int t) {
@@ -124,4 +121,12 @@ public abstract class AbstractSTFilter {
     }
 
     public long size() { return RamUsageEstimator.sizeOf(this); }
+
+    public void out() throws IOException {}
+
+    public void in() {}
+
+    public List<byte[]> shrinkWithIO(Query query) throws IOException {
+        return null;
+    }
 }

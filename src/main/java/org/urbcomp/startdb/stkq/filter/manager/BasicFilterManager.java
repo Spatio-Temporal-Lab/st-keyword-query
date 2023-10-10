@@ -3,8 +3,10 @@ package org.urbcomp.startdb.stkq.filter.manager;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
+import org.urbcomp.startdb.stkq.io.HBaseWriter;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,5 +36,10 @@ public class BasicFilterManager extends AbstractFilterManager {
             size += RamUsageEstimator.sizeOf(filterEntry.getValue());
         }
         return size;
+    }
+
+    public void out() throws IOException {
+        String tableName = "basicFilters";
+        HBaseWriter.putFilters(tableName, filters);
     }
 }

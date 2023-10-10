@@ -15,6 +15,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -190,6 +191,17 @@ public class TestFilters {
         }
     }
 
+    @Test
+    public void testSTFilterIO() throws IOException {
+        int sBits = 8;
+        int tBits = 4;
+        AbstractSTFilter stFilter = new STFilter(3, 13, sBits, tBits);
+        insertIntoSTFilter(stFilter);
+        stFilter.out();
+        List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
+        checkNoFalsePositive(results);
+    }
+
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
             byte[] spatialKey = spatialKeyGenerator.toBytes(object.getLocation());
@@ -227,6 +239,15 @@ public class TestFilters {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<byte[]> filterResult = stFilter.shrink(query);
+            results.add(filterResult);
+        }
+        return results;
+    }
+
+    private List<List<byte[]>> shrinkBySTFilterWithIO(AbstractSTFilter stFilter) throws IOException {
+        List<List<byte[]>> results = new ArrayList<>();
+        for (Query query : QUERIES_SMALL) {
+            List<byte[]> filterResult = stFilter.shrinkWithIO(query);
             results.add(filterResult);
         }
         return results;

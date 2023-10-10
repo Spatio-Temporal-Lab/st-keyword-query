@@ -1,21 +1,28 @@
 package org.urbcomp.startdb.stkq.io;
 
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.BufferedMutatorParams;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.urbcomp.startdb.stkq.filter.IFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class HBaseWriter {
     private static final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
@@ -67,6 +74,45 @@ public class HBaseWriter {
                 puts.clear();
             }
         }
+    }
+
+    public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) throws IOException {
+
+        System.out.println("begin put filters");
+        if (hBaseUtil.existsTable(tableName)) {
+            return;
+        } else {
+            hBaseUtil.createTable(tableName, new String[]{"attr"});
+        }
+
+        int i = 0;
+        try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
+            System.out.println("????????????????????????????????????????????????");
+            System.out.println(filters.size());
+            for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
+                System.out.println("filter " + i + " write begin");
+                byte[] key = entry.getKey().getArray();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                entry.getValue().writeTo(bos);
+                byte[] value = bos.toByteArray();
+
+                Put put = new Put(key);
+                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("array"), value);
+                table.put(put);
+                System.out.println("filter " + i + " write finish");
+                ++i;
+            }
+        }
+    }
+
+    public static IFilter getFilter(String tableName, byte[] key) throws IOException {
+        byte[] values = hBaseUtil.getCell(tableName, key, "attr", "array");
+        if (values == null) {
+            return null;
+        }
+        ByteArrayInputStream bis = new ByteArrayInputStream(values);
+        ChainedInfiniFilter temp = new ChainedInfiniFilter();
+        return new InfiniFilter(temp.read(bis));
     }
 
     // write some unused data

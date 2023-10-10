@@ -147,7 +147,7 @@ public class HBaseUtil {
     }
 
     // 扫描一格内容
-    public String getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
+    public byte[] getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             Get get = new Get(rowKey);
             get.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column));
@@ -158,7 +158,7 @@ public class HBaseUtil {
             if (CollectionUtils.isEmpty(cells)) {
                 return null;
             }
-            return new String(CellUtil.cloneValue(cells.get(0)), StandardCharsets.UTF_8);
+            return CellUtil.cloneValue(cells.get(0));
         }
     }
 

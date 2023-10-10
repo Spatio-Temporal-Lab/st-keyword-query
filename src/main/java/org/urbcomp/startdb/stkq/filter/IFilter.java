@@ -7,6 +7,7 @@ import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,4 +50,5 @@ public interface IFilter {
     int appSize();
     int size();
 
+    default void writeTo(ByteArrayOutputStream bos) {}
 }
