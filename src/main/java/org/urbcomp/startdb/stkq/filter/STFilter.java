@@ -3,7 +3,7 @@ package org.urbcomp.startdb.stkq.filter;
 import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.io.HBaseWriter;
+import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -77,7 +77,7 @@ public class STFilter extends AbstractSTFilter {
     }
 
     @Override
-    public List<byte[]> shrinkWithIO(Query query) throws IOException {
+    public List<byte[]> shrinkWithIO(Query query) {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
@@ -93,7 +93,7 @@ public class STFilter extends AbstractSTFilter {
             for (long s = sLow; s <= sHigh; ++s) {
                 for (int t = tLow; t <= tHigh; ++t) {
                     byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
-                    if (checkInFilter(HBaseWriter.getFilter("basicFilters", getSTIndex(s, t).getArray()), stKey, kKeys, queryType)) {
+                    if (checkInFilter(RedisIO.getFilter(getSTIndex(s, t).getArray()), stKey, kKeys, queryType)) {
                         results.add(ByteUtil.concat(
                                 sKeyGenerator.numberToBytes(s),
                                 tKeyGenerator.numberToBytes(t)
@@ -146,6 +146,48 @@ public class STFilter extends AbstractSTFilter {
             }
         }
 
+        return results;
+    }
+
+    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query) {
+        Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
+        List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
+        int tLow = tRange.getLow();
+        int tHigh = tRange.getHigh();
+
+        List<Range<byte[]>> results = new ArrayList<>();
+        QueryType queryType = query.getQueryType();
+        List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
+
+        for (Range<Long> sRange : sRanges) {
+            long sLow = sRange.getLow();
+            long sHigh = sRange.getHigh();
+            for (long s = sLow; s <= sHigh; ++s) {
+                List<Range<Integer>> queue = new ArrayList<>();
+                for (int t = tLow; t <= tHigh; ++t) {
+                    byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
+                    if (checkInFilter(RedisIO.getFilter(getSTIndex(s, t).getArray()), stKey, kKeys, queryType)) {
+                        if (queue.isEmpty()) {
+                            queue.add(new Range<>(t, t));
+                        } else {
+                            Range<Integer> last = queue.get(queue.size() - 1);
+                            if (last.getHigh() + 1 == t) {
+                                last.setHigh(t);
+                            } else {
+                                queue.add(new Range<>(t, t));
+                            }
+                        }
+                    }
+                }
+                byte[] sKey = sKeyGenerator.numberToBytes(s);
+                for (Range<Integer> range : queue) {
+                    results.add(new Range<>(
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
+                    );
+                }
+            }
+        }
         return results;
     }
 

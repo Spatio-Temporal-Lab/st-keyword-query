@@ -4,9 +4,9 @@ import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
+import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.io.HBaseWriter;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -149,15 +149,14 @@ public class TestQuery {
         List<STObject> objects = DataProcessor.getSampleData();
 
         STFilter filter = new STFilter(3, 12, 8, 4);
-        for (STObject object : objects) {
-            filter.insert(object);
-        }
+//        for (STObject object : objects) {
+//            filter.insert(object);
+//        }
 
         if (!tableExists) {
             hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
             System.out.println("--------------------insert begin--------------------");
-            HBaseWriter writer = new HBaseWriter();
-            writer.putObjects(tableName, keyGenerator, objects, 1000);
+            HBaseIO.putObjects(tableName, keyGenerator, objects, 1000);
             System.out.println("--------------------insert end--------------------");
         }
 
@@ -170,6 +169,8 @@ public class TestQuery {
         System.out.println("--------------------query begin--------------------");
 
         int n = queryProcessors.length;
+
+        long begin = System.currentTimeMillis();
         for (Query query : queries) {
             query.setQueryType(QueryType.CONTAIN_ONE);
 //            List<STObject> correctResults = bruteForce(objects, query);
@@ -190,7 +191,9 @@ public class TestQuery {
 //            System.out.println(results);
 //            Assert.assertTrue(equals_(correctResults, results));
         }
+        long end = System.currentTimeMillis();
         System.out.println("--------------------query end--------------------");
+        System.out.println((end - begin) + " ms");
         for (QueryProcessor processor : queryProcessors) {
             processor.close();
         }

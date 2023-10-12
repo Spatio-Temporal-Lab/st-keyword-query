@@ -1,6 +1,6 @@
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.io.HBaseWriter;
+import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
@@ -49,10 +49,10 @@ public class TestWrite {
 //                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
 //                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
                     ISTKeyGeneratorNew generator = generators[i];
-                    HBaseWriter hBaseWriter = new HBaseWriter();
-                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
+                    HBaseIO hBaseIO = new HBaseIO();
+                    hBaseIO.putUnusedData(tableName, generator.getByteCount(), 100000);
                     long start = System.currentTimeMillis();
-                    hBaseWriter.putObjects(tableName, generator, objects, 5000);
+                    hBaseIO.putObjects(tableName, generator, objects, 5000);
                     long end = System.currentTimeMillis();
                     allTime += end - start;
                     System.out.println(tableName + " cost " + (end - start) + "ms");

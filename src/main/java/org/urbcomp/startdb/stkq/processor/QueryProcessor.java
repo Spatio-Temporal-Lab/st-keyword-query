@@ -74,7 +74,8 @@ public class QueryProcessor {
 
         long begin = System.currentTimeMillis();
         if (filterInMemory) {
-            ranges = stFilter.shrinkAndTransform(query);
+//            ranges = stFilter.shrinkAndTransform(query);
+            ranges = stFilter.shrinkWithIOAndTransform(query);
         } else {
             ranges = stKeyGenerator.toBytesRanges(query);
         }

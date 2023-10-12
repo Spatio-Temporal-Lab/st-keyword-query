@@ -3,7 +3,7 @@ package org.urbcomp.startdb.stkq.filter.manager;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.io.HBaseWriter;
+import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.io.IOException;
@@ -40,6 +40,6 @@ public class BasicFilterManager extends AbstractFilterManager {
 
     public void out() throws IOException {
         String tableName = "basicFilters";
-        HBaseWriter.putFilters(tableName, filters);
+        RedisIO.putFilters(tableName, filters);
     }
 }

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HBaseWriter {
+public class HBaseIO {
     private static final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
     public static void putObjects(String tableName, ISTKeyGeneratorNew keyGenerator, List<STObject> objects, int batchSize) throws IOException {
@@ -85,12 +85,9 @@ public class HBaseWriter {
             hBaseUtil.createTable(tableName, new String[]{"attr"});
         }
 
-        int i = 0;
         try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
-            System.out.println("????????????????????????????????????????????????");
             System.out.println(filters.size());
             for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
-                System.out.println("filter " + i + " write begin");
                 byte[] key = entry.getKey().getArray();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 entry.getValue().writeTo(bos);
@@ -99,8 +96,6 @@ public class HBaseWriter {
                 Put put = new Put(key);
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("array"), value);
                 table.put(put);
-                System.out.println("filter " + i + " write finish");
-                ++i;
             }
         }
     }
