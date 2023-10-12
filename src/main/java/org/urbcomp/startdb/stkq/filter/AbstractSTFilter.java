@@ -19,12 +19,12 @@ import java.util.List;
 public abstract class AbstractSTFilter {
     private final int sBytes;
     private final int tBytes;
-    private final int sBits;
-    private final int tBits;
-    private final long sMask;
-    private final int tMask;
-    private final int sIndexBytes;
-    private final int tIndexBytes;
+    protected final int sBits;
+    protected final int tBits;
+    protected final long sMask;
+    protected final int tMask;
+    protected final int sIndexBytes;
+    protected final int tIndexBytes;
 
     protected final ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
     protected final TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();

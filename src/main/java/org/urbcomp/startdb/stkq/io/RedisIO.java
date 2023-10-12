@@ -9,7 +9,6 @@ import redis.clients.jedis.JedisPool;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Map;
 
 public class RedisIO {
@@ -44,5 +43,9 @@ public class RedisIO {
         ByteArrayInputStream bis = new ByteArrayInputStream(values);
         ChainedInfiniFilter temp = new ChainedInfiniFilter();
         return new InfiniFilter(temp.read(bis));
+    }
+
+    public static void close() {
+        jedis.close();
     }
 }

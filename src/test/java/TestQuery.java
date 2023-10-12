@@ -3,10 +3,7 @@ import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.STFilter;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.io.HBaseIO;
-import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
-import org.urbcomp.startdb.stkq.io.HBaseUtil;
+import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -163,7 +160,7 @@ public class TestQuery {
         // test query results
         List<Query> queries = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
         QueryProcessor[] queryProcessors = {
-                new QueryProcessor(tableName, keyGenerator),
+//                new QueryProcessor(tableName, keyGenerator),
                 new QueryProcessor(tableName, filter)
         };
         System.out.println("--------------------query begin--------------------");
@@ -197,6 +194,8 @@ public class TestQuery {
         for (QueryProcessor processor : queryProcessors) {
             processor.close();
         }
+
+        RedisIO.close();
     }
 
     List<STObject> bruteForce(List<STObject> objects, Query query) {
