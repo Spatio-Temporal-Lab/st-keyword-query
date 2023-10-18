@@ -4,6 +4,7 @@ import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.HSTFilter;
+import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
@@ -150,7 +151,8 @@ public class TestQuery {
 
         AbstractSTFilter[] filter = {
                 new STFilter(3, 12, 8, 4),
-                new HSTFilter(3, 14, 8, 4)
+                new HSTFilter(3, 14, 8, 4),
+                new LRUSTFilter(3, 14, 8, 4)
         };
 //        filter[0].load();
 //        for (STObject object : objects) {
@@ -170,7 +172,7 @@ public class TestQuery {
         QueryProcessor[] queryProcessors = {
 //                new QueryProcessor(tableName, keyGenerator),
 //                new QueryProcessor(tableName, filter[0]),
-                new QueryProcessor(tableName, filter[1])
+                new QueryProcessor(tableName, filter[2])
         };
         System.out.println("--------------------query begin--------------------");
 

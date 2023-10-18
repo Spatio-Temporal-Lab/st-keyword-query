@@ -109,12 +109,11 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
     public IFilter getWithIO(BytesKey index) {
         FilterWithHotness hFilter = filters.get(index);
         if (hFilter == null) {
-            IFilter filter = RedisIO.getFilter(1, index.getArray());
-//            IFilter filter = RedisIO.getFilter(0, index.getArray());
+//            IFilter filter = RedisIO.getFilter(1, index.getArray());
+            IFilter filter = RedisIO.getFilter(0, index.getArray());
             if (filter != null) {
                 ramUsage += RamUsageEstimator.sizeOf(filter);
                 if (ramUsage > MAX_RAM_USAGE) {
-//                    System.out.println("remove");
                     Iterator<Map.Entry<Long, Set<IFilter>>> iterator = sortedFilters.entrySet().iterator();
                     while (iterator.hasNext()) {
                         Map.Entry<Long, Set<IFilter>> entry = iterator.next();
