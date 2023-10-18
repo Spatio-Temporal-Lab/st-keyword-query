@@ -47,4 +47,9 @@ public class InfiniFilter implements IFilter {
     public void writeTo(ByteArrayOutputStream bos) {
         filter.writeTo(bos);
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(filter.get_fingerprint_length());
+    }
 }

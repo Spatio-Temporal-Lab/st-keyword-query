@@ -175,71 +175,12 @@ public class STFilter extends AbstractSTFilter {
     }
 
     public List<Range<byte[]>> shrinkWithIOAndTransform(Query query) {
-        Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
-        List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
-        int tLow = tRange.getLow();
-        int tHigh = tRange.getHigh();
+        return super.shrinkWithIOAndTransform(query, 0);
+    }
 
-        int tIndexMin = tLow >> tBits;
-        int tIndexMax = tHigh >> tBits;
-
-        List<Range<byte[]>> results = new ArrayList<>();
-        QueryType queryType = query.getQueryType();
-        List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
-
-        for (Range<Long> sRange : sRanges) {
-            long sLow = sRange.getLow();
-            long sHigh = sRange.getHigh();
-
-            long sIndexMin = sLow >> sBits;
-            long sIndexMax = sHigh >> sBits;
-
-            for (long sIndex = sIndexMin; sIndex <= sIndexMax; ++sIndex) {
-                for (int tIndex = tIndexMin; tIndex <= tIndexMax; ++tIndex) {
-                    byte[] stIndex = ByteUtil.concat(ByteUtil.getKByte(sIndex, sIndexBytes), ByteUtil.getKByte(tIndex, tIndexBytes));
-                    IFilter filter = RedisIO.getFilter(stIndex);
-
-                    if (filter == null) {
-                        continue;
-                    }
-
-                    long sMin = Math.max(sIndex << sBits, sLow);
-                    long sMax = Math.min(sIndex << sBits | sMask, sHigh);
-
-                    int tMin = Math.max(tIndex << tBits, tLow);
-                    int tMax = Math.min(tIndex << tBits | tMask, tHigh);
-
-                    for (long s = sMin; s <= sMax; ++s) {
-                        List<Range<Integer>> queue = new ArrayList<>();
-                        for (int t = tMin; t <= tMax; ++t) {
-                            byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
-                            if (checkInFilter(filter, stKey, kKeys, queryType)) {
-                                if (queue.isEmpty()) {
-                                    queue.add(new Range<>(t, t));
-                                } else {
-                                    Range<Integer> last = queue.get(queue.size() - 1);
-                                    if (last.getHigh() + 1 == t) {
-                                        last.setHigh(t);
-                                    } else {
-                                        queue.add(new Range<>(t, t));
-                                    }
-                                }
-                            }
-                        }
-                        byte[] sKey = sKeyGenerator.numberToBytes(s);
-                        for (Range<Integer> range : queue) {
-                            results.add(new Range<>(
-                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
-                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
-                            );
-                        }
-                    }
-
-                }
-            }
-        }
-
-        return results;
+    @Override
+    public IFilter getWithIO(byte[] stIndex) {
+        return filterManager.getWithIO(new BytesKey(stIndex));
     }
 
     @Override
@@ -253,7 +194,6 @@ public class STFilter extends AbstractSTFilter {
     }
 
     @Override
-    public void in() {
-        super.in();
+    public void load() {
     }
 }

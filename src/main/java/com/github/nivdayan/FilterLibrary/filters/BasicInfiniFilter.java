@@ -275,13 +275,7 @@ public class BasicInfiniFilter extends QuotientFilter implements Serializable
 				long actual_fp_length = fingerprintLength - (generation + 1);
 				long real_fingerprint = fingerprint & ((1L << actual_fp_length) - 1);
 
-//				System.out.println(fingerprintLength);
-//				System.out.println(actual_fp_length);
-//				System.out.println(generation + " " + existing_fingerprint);
 				long updated_fingerprint = ((1L << (generation + 1)) - 2) << (actual_fp_length - 1) | setZero(real_fingerprint, (int) (actual_fp_length - 1));
-//				System.out.println(fingerprint + " " + Long.toBinaryString(fingerprint) + "\n" +
-//						updated_fingerprint + " " + Long.toBinaryString(updated_fingerprint));
-//				System.out.println("*********************");
 
 				new_qf.insert(updated_fingerprint, bucket, false);
 

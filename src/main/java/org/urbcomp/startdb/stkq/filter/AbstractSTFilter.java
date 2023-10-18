@@ -2,6 +2,7 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
@@ -15,6 +16,7 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AbstractSTFilter {
     private final int sBytes;
@@ -120,13 +122,92 @@ public abstract class AbstractSTFilter {
         return results;
     }
 
+    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query, int db) {
+        Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
+        List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
+        int tLow = tRange.getLow();
+        int tHigh = tRange.getHigh();
+
+        int tIndexMin = tLow >> tBits;
+        int tIndexMax = tHigh >> tBits;
+
+        List<Range<byte[]>> results = new ArrayList<>();
+        QueryType queryType = query.getQueryType();
+        List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
+
+        for (Range<Long> sRange : sRanges) {
+            long sLow = sRange.getLow();
+            long sHigh = sRange.getHigh();
+
+            long sIndexMin = sLow >> sBits;
+            long sIndexMax = sHigh >> sBits;
+
+            for (long sIndex = sIndexMin; sIndex <= sIndexMax; ++sIndex) {
+                for (int tIndex = tIndexMin; tIndex <= tIndexMax; ++tIndex) {
+                    byte[] stIndex = ByteUtil.concat(ByteUtil.getKByte(sIndex, sIndexBytes), ByteUtil.getKByte(tIndex, tIndexBytes));
+//                    IFilter filter = RedisIO.getFilter(db, stIndex);
+                    IFilter filter = getWithIO(stIndex);
+
+                    if (filter == null) {
+                        continue;
+                    }
+
+                    long sMin = Math.max(sIndex << sBits, sLow);
+                    long sMax = Math.min(sIndex << sBits | sMask, sHigh);
+
+                    int tMin = Math.max(tIndex << tBits, tLow);
+                    int tMax = Math.min(tIndex << tBits | tMask, tHigh);
+
+                    for (long s = sMin; s <= sMax; ++s) {
+                        List<Range<Integer>> queue = new ArrayList<>();
+                        for (int t = tMin; t <= tMax; ++t) {
+                            byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
+                            if (checkInFilter(filter, stKey, kKeys, queryType)) {
+                                if (queue.isEmpty()) {
+                                    queue.add(new Range<>(t, t));
+                                } else {
+                                    Range<Integer> last = queue.get(queue.size() - 1);
+                                    if (last.getHigh() + 1 == t) {
+                                        last.setHigh(t);
+                                    } else {
+                                        queue.add(new Range<>(t, t));
+                                    }
+                                }
+                            }
+                        }
+                        byte[] sKey = sKeyGenerator.numberToBytes(s);
+                        for (Range<Integer> range : queue) {
+                            results.add(new Range<>(
+                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
+                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
+                            );
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return results;
+    }
+
+    public IFilter getWithIO(byte[] stIndex) {
+        return null;
+    }
+
+    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query) {
+        return shrinkWithIOAndTransform(query, 0);
+    }
+
     public long size() { return RamUsageEstimator.sizeOf(this); }
 
     public void out() throws IOException {}
 
-    public void in() {}
+    public void load() {}
 
     public List<byte[]> shrinkWithIO(Query query) throws IOException {
         return null;
     }
+
+
 }

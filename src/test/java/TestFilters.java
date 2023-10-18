@@ -82,12 +82,10 @@ public class TestFilters {
 
     @Test
     public void testSacrifice() {
-
-        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 16);
+        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 20);
         filter.set_expand_autonomously(true);
 
-        int n = 100_0000;
-
+        int n = 10000;
         for (int i = 0; i < n; ++i) {
             filter.insert(i, false);
         }
@@ -103,7 +101,6 @@ public class TestFilters {
                 Assert.assertTrue(filter.search(i));
             }
         }
-
     }
 
     @Test

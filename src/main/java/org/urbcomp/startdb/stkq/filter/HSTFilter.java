@@ -32,6 +32,10 @@ public class HSTFilter extends AbstractSTFilter {
         }
     }
 
+    public IFilter get(byte[] stIndex) {
+        return filterManager.getWithIO(new BytesKey(stIndex));
+    }
+
     public List<byte[]> shrink(Query query) {
         if (first) {
             filterManager.build();
@@ -66,8 +70,26 @@ public class HSTFilter extends AbstractSTFilter {
         return results;
     }
 
+    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query) {
+        return super.shrinkWithIOAndTransform(query, 1);
+    }
+
+    @Override
+    public IFilter getWithIO(byte[] stIndex) {
+        return filterManager.getWithIO(new BytesKey(stIndex));
+    }
+
+    @Override
+    public void out() {
+        filterManager.out();
+    }
+
     @Override
     public long size() {
         return filterManager.size();
+    }
+
+    public void compress() {
+        filterManager.compress();
     }
 }

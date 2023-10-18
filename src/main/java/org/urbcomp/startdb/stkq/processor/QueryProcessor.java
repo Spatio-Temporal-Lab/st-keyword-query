@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.processor;
 
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
@@ -16,7 +17,7 @@ import java.util.*;
 public class QueryProcessor {
     private final String tableName;
     private boolean filterInMemory = false;
-    private STFilter stFilter;
+    private AbstractSTFilter stFilter;
     private ISTKeyGeneratorNew stKeyGenerator;
 
     long queryHBaseTime = 0;
@@ -56,7 +57,7 @@ public class QueryProcessor {
         this.stKeyGenerator = keyGenerator;
     }
 
-    public QueryProcessor(String tableName, STFilter stFilter) {
+    public QueryProcessor(String tableName, AbstractSTFilter stFilter) {
         this.tableName = tableName;
         this.stFilter = stFilter;
         filterInMemory = true;

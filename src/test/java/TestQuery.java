@@ -2,6 +2,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.HSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
@@ -140,12 +142,17 @@ public class TestQuery {
     public void testQueryCorrectness() throws IOException, ParseException, InterruptedException {
         // create table
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
-        String tableName = "tweetSample";
+//        String tableName = "tweetSample";
+        String tableName = "testTweet";
         boolean tableExists = hBaseUtil.existsTable(tableName);
         ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
         List<STObject> objects = DataProcessor.getSampleData();
 
-        STFilter filter = new STFilter(3, 12, 8, 4);
+        AbstractSTFilter[] filter = {
+                new STFilter(3, 12, 8, 4),
+                new HSTFilter(3, 14, 8, 4)
+        };
+//        filter[0].load();
 //        for (STObject object : objects) {
 //            filter.insert(object);
 //        }
@@ -158,10 +165,12 @@ public class TestQuery {
         }
 
         // test query results
-        List<Query> queries = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
+//        List<Query> queries = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
+        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
         QueryProcessor[] queryProcessors = {
 //                new QueryProcessor(tableName, keyGenerator),
-                new QueryProcessor(tableName, filter)
+//                new QueryProcessor(tableName, filter[0]),
+                new QueryProcessor(tableName, filter[1])
         };
         System.out.println("--------------------query begin--------------------");
 
@@ -191,8 +200,13 @@ public class TestQuery {
         long end = System.currentTimeMillis();
         System.out.println("--------------------query end--------------------");
         System.out.println((end - begin) + " ms");
+
         for (QueryProcessor processor : queryProcessors) {
+            System.out.println(processor.getAllSize());
             processor.close();
+        }
+        for (AbstractSTFilter filter_ : filter) {
+            System.out.println("filter ram size: " + filter_.size());
         }
 
         RedisIO.close();

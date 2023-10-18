@@ -20,8 +20,8 @@ public class IntermediateFileGenerator {
 
 //        writeInfiniFilter();
 //        writeSTCount();
-//        writeDistribution();
-        writeKeywords();
+        writeDistribution();
+//        writeKeywords();
 //        writeBf();
     }
 

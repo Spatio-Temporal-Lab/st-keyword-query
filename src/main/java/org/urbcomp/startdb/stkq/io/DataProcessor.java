@@ -5,15 +5,19 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
+import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.HSTFilter;
+import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.manager.HotnessAwareFilterManager;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.BytesKey;
+import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -345,6 +349,68 @@ public class DataProcessor {
         return map;
     }
 
+    public void putFiltersToRedis(AbstractSTFilter stFilter, String path) throws ParseException, IOException {
+        double maxLat = -100.0;
+        double minLat = 100.0;
+        double maxLon = -200.0;
+        double minLon = 200.0;
+
+        //实现对象读取
+        String dateString = "1900-02-23 00:00";
+        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
+        Date initFrom = new Date();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+
+                stFilter.insert(cur);
+
+                minLat = Math.min(minLat, cur.getLat());
+                minLon = Math.min(minLon, cur.getLon());
+                maxLat = Math.max(maxLat, cur.getLat());
+                maxLon = Math.max(maxLon, cur.getLon());
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
+                }
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+//        for (Query query : queries) {
+//            query.setQueryType(QueryType.CONTAIN_ONE);
+//            stFilter.shrink(query);
+//        }
+
+//        ((HSTFilter) stFilter).compress();
+//        System.out.println(stFilter.size());
+        stFilter.out();
+        System.out.println(minLat);
+        System.out.println(minLon);
+        System.out.println(maxLat);
+        System.out.println(maxLon);
+        System.out.println(initFrom);
+        System.out.println(initEnd);
+    }
+
     public ChainedInfiniFilter generateOneFilter(String path) throws ParseException {
         double maxLat = -100.0;
         double minLat = 100.0;
@@ -572,5 +638,17 @@ public class DataProcessor {
             throw new RuntimeException(e);
         }
         return objects;
+    }
+
+    public static void main(String[] args) throws ParseException, IOException {
+        DataProcessor dataProcessor = new DataProcessor();
+        //
+        int sBits = 8;
+        int tBits = 4;
+        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
+//        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
+        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
+        //792433880 755.7M
+        //798493496 761.5M
     }
 }

@@ -1,9 +1,5 @@
 package org.urbcomp.startdb.stkq.util;
 
-import org.urbcomp.startdb.stkq.io.DataProcessor;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
@@ -13,8 +9,6 @@ import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.*;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 
@@ -120,7 +114,7 @@ public class QueryGenerator {
         }
     }
 
-    public static void generateZipfQueries(int size, double skew) {
+    public static void generateZipfQueries(String fileName, int size, double skew) {
         List<BytesKey> stKeySortByObjectCount;
         Map<BytesKey, Set<String>> key2Words;
 
@@ -146,7 +140,8 @@ public class QueryGenerator {
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
         SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
-        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
+//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
+        String path = new File("").getAbsolutePath() + "/src/main/resources/" + fileName;
         System.out.println(path);
         File file = new File(path);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -290,7 +285,10 @@ public class QueryGenerator {
             throw new RuntimeException(e);
         }
 
-        List<STObject> objects = DataProcessor.getSampleData();
-        generateZipfQueries(objects, 5_0000, 1.2);
+        generateZipfQueries("queriesZipf.csv", 1_0000, 1.2);
+        generateZipfQueries("queriesZipfBig.csv", 5_0000, 1.2);
+
+//        List<STObject> objects = DataProcessor.getSampleData();
+//        generateZipfQueries(objects, 5_0000, 1.2);
     }
 }
