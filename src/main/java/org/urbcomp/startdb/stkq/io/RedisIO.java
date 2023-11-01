@@ -62,6 +62,23 @@ public class RedisIO {
         }
     }
 
+    public static void putLRUFilters(String tableName, Map<BytesKey, IFilter> filters) {
+        Jedis jedis2 = jedis[2];
+        System.out.println(filters.size());
+        if (jedis2.get(tableName) != null) {
+            return;
+        }
+        System.out.println("begin to put lru filters");
+        jedis2.set(tableName, tableName);
+        for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
+            byte[] key = entry.getKey().getArray();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            entry.getValue().writeTo(bos);
+            byte[] value = bos.toByteArray();
+            jedis2.set(key, value);
+        }
+    }
+
     public static IFilter getFilter(int db, byte[] key) {
         byte[] values = jedis[db].get(key);
         if (values == null) {

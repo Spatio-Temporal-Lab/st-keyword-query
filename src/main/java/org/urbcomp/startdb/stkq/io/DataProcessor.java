@@ -8,6 +8,7 @@ import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.HSTFilter;
+import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.HotnessAwareFilterManager;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
@@ -394,14 +395,14 @@ public class DataProcessor {
             ex.printStackTrace();
         }
 
-//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
-//        for (Query query : queries) {
-//            query.setQueryType(QueryType.CONTAIN_ONE);
-//            stFilter.shrink(query);
-//        }
-
-//        ((HSTFilter) stFilter).compress();
-//        System.out.println(stFilter.size());
+        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+        for (Query query : queries) {
+            query.setQueryType(QueryType.CONTAIN_ONE);
+            stFilter.shrink(query);
+        }
+//
+        ((LRUSTFilter) stFilter).compress();
+        System.out.println(stFilter.size());
         stFilter.out();
         System.out.println(minLat);
         System.out.println(minLon);
@@ -645,8 +646,9 @@ public class DataProcessor {
         //
         int sBits = 8;
         int tBits = 4;
-        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
+//        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
 //        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
+        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
         dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
         //792433880 755.7M
         //798493496 761.5M
