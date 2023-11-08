@@ -14,7 +14,9 @@ public abstract class Filter implements Serializable {
 	abstract boolean expand();
 	protected abstract boolean _delete(long large_hash);
 	abstract protected boolean _insert(long large_hash, boolean insert_only_if_no_match);
+	protected boolean _insert(long large_hash, int t, boolean insert_only_if_no_match) {return true;}
 	abstract protected boolean _search(long large_hash);
+	protected boolean _search(long large_hash, int t) { return true; }
 
 
 	public boolean delete(long input) {
@@ -45,6 +47,11 @@ public abstract class Filter implements Serializable {
 		ByteBuffer input_buffer = ByteBuffer.wrap(input);
 		return _insert(HashFunctions.xxhash(input_buffer), insert_only_if_no_match);
 	}
+
+	public boolean insert(byte[] input, int t, boolean insert_only_if_no_match, int seed) {
+		ByteBuffer input_buffer = ByteBuffer.wrap(input);
+		return _insert(HashFunctions.xxhash(input_buffer, seed), t, insert_only_if_no_match);
+	}
 	
 	public boolean search(long input) {
 		return _search(get_hash(input));
@@ -58,6 +65,20 @@ public abstract class Filter implements Serializable {
 	public boolean search(byte[] input) {
 		ByteBuffer input_buffer = ByteBuffer.wrap(input);
 		return _search(HashFunctions.xxhash(input_buffer));
+	}
+
+	public boolean search(byte[] input, int t, int seed) {
+		ByteBuffer input_buffer = ByteBuffer.wrap(input);
+		return _search(HashFunctions.xxhash(input_buffer, seed), t);
+	}
+
+	public boolean search(byte[] input, int l, int r, int seed) {
+		for (int i = l; i <= r; ++i) {
+			if (search(input, i, seed)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	long get_hash(long input) {

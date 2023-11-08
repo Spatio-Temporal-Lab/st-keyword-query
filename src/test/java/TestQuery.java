@@ -1,5 +1,8 @@
+import org.apache.hadoop.hbase.client.ClientScanner;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
@@ -154,10 +157,6 @@ public class TestQuery {
                 new HSTFilter(3, 14, 8, 4),
                 new LRUSTFilter(3, 14, 8, 4)
         };
-//        filter[0].load();
-//        for (STObject object : objects) {
-//            filter.insert(object);
-//        }
 
         if (!tableExists) {
             hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
@@ -167,22 +166,23 @@ public class TestQuery {
         }
 
         // test query results
-//        List<Query> queries = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
         List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
         QueryProcessor[] queryProcessors = {
-//                new QueryProcessor(tableName, keyGenerator),
+                new QueryProcessor(tableName, keyGenerator),
 //                new QueryProcessor(tableName, filter[0]),
                 new QueryProcessor(tableName, filter[2])
         };
         System.out.println("--------------------query begin--------------------");
 
         int n = queryProcessors.length;
+        int ii = 0;
 
         long begin = System.currentTimeMillis();
         for (Query query : queries) {
             query.setQueryType(QueryType.CONTAIN_ONE);
-//            List<STObject> correctResults = bruteForce(objects, query);
-//            Collections.sort(correctResults);
+//            if (++ii > 100) {
+//                break;
+//            }
 
             List<List<STObject>> resultsList = new ArrayList<>();
             for (QueryProcessor queryProcessor : queryProcessors) {
@@ -190,14 +190,10 @@ public class TestQuery {
                 Collections.sort(results);
                 resultsList.add(results);
             }
+//            System.out.println(resultsList);
             for (int i = 1; i < n; ++i) {
                 Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
             }
-//            System.out.println("**************************************");
-//            System.out.println(query);
-//            System.out.println(correctResults);
-//            System.out.println(results);
-//            Assert.assertTrue(equals_(correctResults, results));
         }
         long end = System.currentTimeMillis();
         System.out.println("--------------------query end--------------------");
@@ -226,14 +222,7 @@ public class TestQuery {
 
     @Test
     public void test() throws ParseException {
-        //38.91093026 -76.9358177 2012-04-02 12:00:53
-        ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
-        System.out.println(Arrays.toString(sKeyGenerator.toBytes(new Location(38.91093026, -76.9358177))));
-        System.out.println(Arrays.toString(tKeyGenerator.toBytes(DateUtil.getDate("2012-04-02 12:00:53"))));
-        /*
-        * [13, -9, -56, -73]
-        * [1, -93, -108]
-        * */
+        Logger logger = LoggerFactory.getLogger(ClientScanner.class);
+        System.out.println(logger.isDebugEnabled());
     }
 }

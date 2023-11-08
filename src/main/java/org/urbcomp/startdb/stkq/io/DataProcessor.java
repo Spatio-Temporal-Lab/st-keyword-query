@@ -395,13 +395,13 @@ public class DataProcessor {
             ex.printStackTrace();
         }
 
-        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
-        for (Query query : queries) {
-            query.setQueryType(QueryType.CONTAIN_ONE);
-            stFilter.shrink(query);
-        }
-//
-        ((LRUSTFilter) stFilter).compress();
+//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+//        for (Query query : queries) {
+//            query.setQueryType(QueryType.CONTAIN_ONE);
+//            stFilter.shrink(query);
+//        }
+//        ((LRUSTFilter) stFilter).compress();
+
         System.out.println(stFilter.size());
         stFilter.out();
         System.out.println(minLat);
@@ -646,10 +646,11 @@ public class DataProcessor {
         //
         int sBits = 8;
         int tBits = 4;
-//        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
+        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
 //        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
-        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
-        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
+//        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
+//        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
+        dataProcessor.putFiltersToRedis(stFilter, "/home/hadoop/data/tweetAll.csv");
         //792433880 755.7M
         //798493496 761.5M
     }

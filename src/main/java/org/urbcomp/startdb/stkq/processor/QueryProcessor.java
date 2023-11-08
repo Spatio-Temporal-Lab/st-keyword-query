@@ -10,6 +10,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
+import org.urbcomp.startdb.stkq.util.STKUtil;
 
 import java.text.ParseException;
 import java.util.*;
@@ -69,7 +70,7 @@ public class QueryProcessor {
 
     public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException {
 
-        List<Map<String, String>> scanResults;
+        List<Map<String, String>> scanResults = new ArrayList<>();
 
         List<Range<byte[]>> ranges;
 
@@ -98,10 +99,17 @@ public class QueryProcessor {
 
         ArrayList<STObject> result = new ArrayList<>();
         for (Map<String, String> map : scanResults) {
-            Location loc = new Location(map.get("loc"));
-            Date date = DateUtil.getDate(map.get("time"));
-            ArrayList<String> keywords = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
-            result.add(new STObject(Long.parseLong(map.get("id")), loc.getLat(), loc.getLon(), date, keywords));
+
+//                System.out.println(map);
+            if (STKUtil.check(map, query)) {
+                Location loc = new Location(map.get("loc"));
+                Date date = DateUtil.getDate(map.get("time"));
+                ArrayList<String> keywords = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
+                result.add(new STObject(Long.parseLong(map.get("id")), loc.getLat(), loc.getLon(), date, keywords));
+//                result.add(map);
+            }
+
+
         }
 
         return result;

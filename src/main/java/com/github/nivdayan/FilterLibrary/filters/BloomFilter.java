@@ -21,6 +21,16 @@ public class BloomFilter extends Filter {
 		hash_type = HashType.xxh;		
 		current_num_entries = 0;
 	}
+
+	public BloomFilter(int new_num_entries, int new_bits_per_entry, int seed) {
+		max_num_entries = new_num_entries;
+		filter = new QuickBitVectorWrapper(new_bits_per_entry,  (int)max_num_entries);
+		num_bits = new_bits_per_entry * max_num_entries;
+		bits_per_entry = new_bits_per_entry;
+		num_hash_functions = 1;
+		hash_type = HashType.xxh;
+		current_num_entries = 0;
+	}
 	
 	@Override
 	boolean rejuvenate(long key) {
@@ -58,6 +68,14 @@ public class BloomFilter extends Filter {
 	}
 
 	@Override
+	protected boolean _insert(long large_hash, int t, boolean insert_only_if_no_match) {
+		long target_bit = Math.abs((large_hash + t) % num_bits);
+		filter.set(target_bit, true);
+		current_num_entries++;
+		return true;
+	}
+
+	@Override
 	protected boolean _search(long large_hash) {
 		
 		long target_bit = Math.abs(large_hash % num_bits);
@@ -73,6 +91,12 @@ public class BloomFilter extends Filter {
 		}
 		return true;
 	}
+
+	@Override
+	protected boolean _search(long large_hash, int t) {
+		long target_bit = Math.abs((large_hash + t) % num_bits);
+        return filter.get(target_bit);
+    }
 
 	@Override
 	public long get_num_entries(boolean include_all_internal_filters) {

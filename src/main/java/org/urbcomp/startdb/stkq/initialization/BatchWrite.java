@@ -31,12 +31,17 @@ public class BatchWrite {
         String tableName = "testTweet";
 
         if (hBaseUtil.existsTable(tableName)) {
-            hBaseUtil.truncateTable(tableName);
-        } else {
+            hBaseUtil.deleteTable(tableName);
             hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
+//            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
+//            hBaseUtil.truncateTable(tableName);
+        } else {
+            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
         }
 
-        String inPathName = "E:\\data\\tweet\\tweetAll.csv";
+//        String inPathName = "E:\\data\\tweet\\tweetAll.csv";
+//        String inPathName = "/usr/data/tweetAll.csv";
+        String inPathName = "/home/hadoop/data/tweetAll.csv";
 
 //        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
 //        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();

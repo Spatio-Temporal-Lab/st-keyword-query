@@ -49,6 +49,11 @@ public class HashFunctions {
 		return XxHash.xxHash64(buffer, 0L);
 	}
 
+	public static long xxhash(ByteBuffer buffer, long seed){
+		buffer.rewind();
+		return XxHash.xxHash64(buffer, seed);
+	}
+
 	public static long xxhash(long input){
 		return XxHash.xxHash64(input, 0L);
 	}

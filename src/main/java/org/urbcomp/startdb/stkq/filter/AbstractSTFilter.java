@@ -14,8 +14,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractSTFilter {
@@ -135,6 +134,8 @@ public abstract class AbstractSTFilter {
         QueryType queryType = query.getQueryType();
         List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
 
+        ArrayList<Long> keysLong = new ArrayList<>();
+
         for (Range<Long> sRange : sRanges) {
             long sLow = sRange.getLow();
             long sHigh = sRange.getHigh();
@@ -157,36 +158,68 @@ public abstract class AbstractSTFilter {
 
                     int tMin = Math.max(tIndex << tBits, tLow);
                     int tMax = Math.min(tIndex << tBits | tMask, tHigh);
+//                    System.out.printf("%d %d %d %d\n", sMin, sMax, tMin, tMax);
 
                     for (long s = sMin; s <= sMax; ++s) {
-                        List<Range<Integer>> queue = new ArrayList<>();
+//                        List<Range<Integer>> queue = new ArrayList<>();
                         for (int t = tMin; t <= tMax; ++t) {
                             byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
                             if (checkInFilter(filter, stKey, kKeys, queryType)) {
-                                if (queue.isEmpty()) {
-                                    queue.add(new Range<>(t, t));
-                                } else {
-                                    Range<Integer> last = queue.get(queue.size() - 1);
-                                    if (last.getHigh() + 1 == t) {
-                                        last.setHigh(t);
-                                    } else {
-                                        queue.add(new Range<>(t, t));
-                                    }
-                                }
+                                keysLong.add(s << tKeyGenerator.getBits() | t);
+//                                if (queue.isEmpty()) {
+//                                    queue.add(new Range<>(t, t));
+//                                } else {
+//                                    Range<Integer> last = queue.get(queue.size() - 1);
+//                                    if (last.getHigh() + 1 == t) {
+//                                        last.setHigh(t);
+//                                    } else {
+//                                        queue.add(new Range<>(t, t));
+//                                    }
+//                                }
                             }
                         }
-                        byte[] sKey = sKeyGenerator.numberToBytes(s);
-                        for (Range<Integer> range : queue) {
-                            results.add(new Range<>(
-                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
-                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
-                            );
-                        }
+//                        byte[] sKey = sKeyGenerator.numberToBytes(s);
+//                        for (Range<Integer> range : queue) {
+//                            System.out.printf("# %d %d %d %s\n", s, range.getLow(), range.getHigh(), Arrays.toString(sKey));
+//                            results.add(new Range<>(
+//                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
+//                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
+//                            );
+//                        }
                     }
 
                 }
             }
         }
+
+        keysLong.sort(Comparator.naturalOrder());
+        int mask = (1 << tKeyGenerator.getBits()) - 1;
+        List<Range<Long>> temp = new ArrayList<>();
+        for (long keyLong : keysLong) {
+            if (temp.isEmpty()) {
+                temp.add(new Range<>(keyLong, keyLong));
+            } else {
+                Range<Long> last = temp.get(temp.size() - 1);
+                if (last.getHigh() + 1 >= keyLong) {
+                    last.setHigh(keyLong);
+                } else {
+                    temp.add(new Range<>(keyLong, keyLong));
+                }
+            }
+        }
+
+        results = temp.stream().map(
+                rl -> {
+                    byte[] sKey = sKeyGenerator.numberToBytes(rl.getLow() >> tKeyGenerator.getBits());
+                    int tLow_ = (int) (rl.getLow() & mask);
+                    int thigh_ = (int) (rl.getHigh() & mask);
+
+                    return new Range<>(
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(tLow_)),
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(thigh_))
+                    );
+                }
+        ).collect(Collectors.toList());
 
         return results;
     }

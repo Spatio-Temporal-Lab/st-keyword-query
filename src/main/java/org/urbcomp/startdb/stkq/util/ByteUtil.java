@@ -7,7 +7,7 @@ public class ByteUtil {
         k = Math.min(k, 4);
         byte[] targets = new byte[k];
         for (int i = k - 1; i >= 0; --i) {
-            targets[k - 1 - i] = (byte) (num >>> (i << 3) & 0xFF);
+            targets[k - 1 - i] = (byte) (num >> (i << 3) & 0xFF);
         }
         return targets;
     }
@@ -16,7 +16,7 @@ public class ByteUtil {
         k = Math.min(k, 8);
         byte[] targets = new byte[k];
         for (int i = k - 1; i >= 0; --i) {
-            targets[k - 1 - i] = (byte) (num >>> (i << 3) & 0xFF);
+            targets[k - 1 - i] = (byte) (num >> (i << 3) & 0xFF);
         }
         return targets;
     }

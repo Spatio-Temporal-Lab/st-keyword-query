@@ -1,12 +1,16 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.urbcomp.startdb.stkq.constant.QueryType;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -22,13 +26,14 @@ public class HBaseUtil {
 
     static {
         defaultUtil = new HBaseUtil();
-        defaultUtil.init("192.168.137.207");
+//        defaultUtil.init("192.168.137.207:2181");
+        defaultUtil.init("10.242.6.16:2181,10.242.6.17:2181,10.242.6.18:2181,10.242.6.19:2181,10.242.6.20:2181");
     }
 
     // 建立连接
     public void init(String zookeeper) {
         configuration = HBaseConfiguration.create();
-        configuration.set("hbase.zookeeper.property.clientPort", "2181");
+//        configuration.set("hbase.zookeeper.property.clientPort", "2181");
         configuration.set("hbase.zookeeper.quorum", zookeeper);
         try {
             connection = ConnectionFactory.createConnection(configuration);
@@ -105,7 +110,7 @@ public class HBaseUtil {
                     ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
             columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
             if (bloomType.equals(BloomType.ROWPREFIX_FIXED_LENGTH)) {
-                columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(7));
+                columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(6));
             }
             builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
             admin.createTable(builder.build());
@@ -230,6 +235,46 @@ public class HBaseUtil {
                     rs.close();
                 }
             }
+        }
+    }
+
+    public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd, MultiRowRangeFilter filter) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            ResultScanner rs = null;
+            try {
+                Scan scan = new Scan();
+                scan.setFilter(filter);
+
+                scan = scan.withStartRow(rowkeyStart, true);
+                scan = scan.withStopRow(rowkeyEnd, true);
+                scan.setCaching(1000);
+                rs = table.getScanner(scan);
+
+                List<Map<String, String>> dataList = new ArrayList<>();
+                for (Result r : rs) {
+                    Map<String, String> objectMap = new HashMap<>();
+                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
+                    for (Cell cell : r.listCells()) {
+                        String qualifier = new String(CellUtil.cloneQualifier(cell));
+                        String value;
+                        if (qualifier.equals("id")) {
+                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                        }
+                        else {
+                            value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                        }
+                        objectMap.put(qualifier, value);
+                    }
+                    dataList.add(objectMap);
+                }
+                return dataList;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
