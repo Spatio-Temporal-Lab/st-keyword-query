@@ -6,8 +6,6 @@ import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.HSTFilter;
 import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
@@ -54,9 +52,7 @@ public class Main {
     public static void testQueryCorrectness() throws IOException, ParseException, InterruptedException {
         // create table
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
-//        String tableName = "tweetSample";
         String tableName = "testTweet";
-        boolean tableExists = hBaseUtil.existsTable(tableName);
         ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
 
         AbstractSTFilter[] filter = {
@@ -65,18 +61,10 @@ public class Main {
                 new LRUSTFilter(3, 14, 8, 4)
         };
 
-//        if (!tableExists) {
-//            hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
-//            System.out.println("--------------------insert begin--------------------");
-//            HBaseIO.putObjects(tableName, keyGenerator, objects, 1000);
-//            System.out.println("--------------------insert end--------------------");
-//        }
-
         // test query results
         List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
         QueryProcessor[] queryProcessors = {
                 new QueryProcessor(tableName, keyGenerator),
-//                new QueryProcessor(tableName, filter[0]),
                 new QueryProcessor(tableName, filter[2])
         };
         System.out.println("--------------------query begin--------------------");

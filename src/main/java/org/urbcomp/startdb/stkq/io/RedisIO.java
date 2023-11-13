@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
 public class RedisIO {
-    private static final Jedis[] jedis = new Jedis[3];
+    private static final Jedis[] jedis = new Jedis[4];
 
     static {
         try(JedisPool pool = new JedisPool("localhost", 6379)) {
@@ -23,6 +23,8 @@ public class RedisIO {
             jedis[1].select(1);
             jedis[2] = pool.getResource();
             jedis[2].select(2);
+            jedis[3] = pool.getResource();
+            jedis[3].select(3);
         }
     }
 
@@ -91,6 +93,16 @@ public class RedisIO {
 
     public static IFilter getFilter(byte[] key) {
         return getFilter(0, key);
+    }
+
+    public static void set(int db, byte[] key, byte[] value) {
+        Jedis con = jedis[db];
+        con.set(key, value);
+    }
+
+    public static byte[] get(int db, byte[] key) {
+        Jedis con = jedis[db];
+        return con.get(key);
     }
 
     public static void close() {

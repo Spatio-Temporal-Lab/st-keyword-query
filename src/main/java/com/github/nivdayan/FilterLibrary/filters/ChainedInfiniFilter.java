@@ -69,27 +69,27 @@ public class ChainedInfiniFilter extends BasicInfiniFilter implements Serializab
 	long unary_mask = 0;
 
 	public void writeTo(OutputStream os) {
-		Output output = new Output(os);
-		output.writeLong(slot_mask);
-		output.writeLong(fingerprint_mask);
-		output.writeLong(unary_mask);
+	Output output = new Output(os);
+	output.writeLong(slot_mask);
+	output.writeLong(fingerprint_mask);
+	output.writeLong(unary_mask);
 
-		this.writeTo(output);
+	this.writeTo(output);
 
-		output.writeInt(chain.size());
-		for (BasicInfiniFilter basicInfiniFilter : chain) {
-			basicInfiniFilter.writeTo(output);
-		}
-
-		if (secondary_IF != null) {
-			output.writeByte(1);
-			secondary_IF.writeTo(output);
-		} else {
-			output.writeByte(0);
-		}
-		output.flush();
-		output.close();
+	output.writeInt(chain.size());
+	for (BasicInfiniFilter basicInfiniFilter : chain) {
+		basicInfiniFilter.writeTo(output);
 	}
+
+	if (secondary_IF != null) {
+		output.writeByte(1);
+		secondary_IF.writeTo(output);
+	} else {
+		output.writeByte(0);
+	}
+	output.flush();
+	output.close();
+}
 
 	public ChainedInfiniFilter read(InputStream is) {
 		ChainedInfiniFilter infiniFilter = new ChainedInfiniFilter();

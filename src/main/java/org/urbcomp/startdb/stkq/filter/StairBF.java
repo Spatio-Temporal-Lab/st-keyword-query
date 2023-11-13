@@ -1,21 +1,35 @@
 package org.urbcomp.startdb.stkq.filter;
 
 import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
+import jdk.internal.util.xml.impl.Input;
+import org.apache.lucene.util.RamUsageEstimator;
+import org.urbcomp.startdb.stkq.io.RedisIO;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
+import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StairBF {
-    private final int level;
-    private final int minT;
-    private final int maxT;
-    private final BloomFilter[][] bfs;
+    private int level;
+    private int minT;
+    private int maxT;
+    private BloomFilter[][] bfs;
+    protected final ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+    protected final TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
+    protected final KeywordKeyGeneratorNew kKeyGenerator = new KeywordKeyGeneratorNew();
     /*
     * [l,mid),[mid,r]
     * */
@@ -60,6 +74,15 @@ public class StairBF {
         }
         if (i == 0) {
             bfs[0][0].insert(code, t, false, 0);
+        }
+    }
+
+    public void insert(STObject object) {
+        byte[] sBytes = sKeyGenerator.toBytes(object.getLocation());
+        int t = tKeyGenerator.toNumber(object.getTime());
+        byte[] tBytes = tKeyGenerator.numberToBytes(t);
+        for (String keyword : object.getKeywords()) {
+            insert(ByteUtil.concat(kKeyGenerator.toBytes(keyword), sBytes, tBytes), t);
         }
     }
 
@@ -158,5 +181,107 @@ public class StairBF {
             }
         }
         return result;
+    }
+
+    public List<Range<byte[]>> shrinkAndTransform(Query query) {
+        List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
+        Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
+
+        List<Range<byte[]>> results = new ArrayList<>();
+
+        byte[][] wordsCode = query.getKeywords().stream()
+                .map(kKeyGenerator::toBytes).toArray(byte[][]::new);
+
+        int tStart = tRange.getLow();
+        int tEnd = tRange.getHigh();
+
+        ArrayList<Long> keysLong = new ArrayList<>();
+        for (Range<Long> sRange : sRanges) {
+            long sRangeStart = sRange.getLow();
+            long sRangeEnd = sRange.getHigh();
+            for (long i = sRangeStart; i <= sRangeEnd; ++i) {
+                for (int j = tStart; j <= tEnd; ++j) {
+                    byte[] stKey = ByteUtil.concat(sKeyGenerator.numberToBytes(i), tKeyGenerator.numberToBytes(j));
+                    for (byte[] wordCode : wordsCode) {
+                        byte[] key = ByteUtil.concat(wordCode, stKey);
+                        if (query(key, j)) {
+                            keysLong.add(i << tKeyGenerator.getBits() | j);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        keysLong.sort(Comparator.naturalOrder());
+        int mask = (1 << tKeyGenerator.getBits()) - 1;
+        List<Range<Long>> temp = new ArrayList<>();
+        for (long keyLong : keysLong) {
+            if (temp.isEmpty()) {
+                temp.add(new Range<>(keyLong, keyLong));
+            } else {
+                Range<Long> last = temp.get(temp.size() - 1);
+                if (last.getHigh() + 1 >= keyLong) {
+                    last.setHigh(keyLong);
+                } else {
+                    temp.add(new Range<>(keyLong, keyLong));
+                }
+            }
+        }
+
+        results = temp.stream().map(
+                rl -> {
+                    byte[] sKey = sKeyGenerator.numberToBytes(rl.getLow() >> tKeyGenerator.getBits());
+                    int tLow_ = (int) (rl.getLow() & mask);
+                    int thigh_ = (int) (rl.getHigh() & mask);
+
+                    return new Range<>(
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(tLow_)),
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(thigh_))
+                    );
+                }
+        ).collect(Collectors.toList());
+
+        return results;
+    }
+
+    public long size() {
+        return RamUsageEstimator.sizeOf(this);
+    }
+
+    public void out() {
+        RedisIO.set(3, "level".getBytes(), ByteUtil.getKByte(level, 4));
+        RedisIO.set(3, "minT".getBytes(), ByteUtil.getKByte(minT, 4));
+        RedisIO.set(3, "maxT".getBytes(), ByteUtil.getKByte(maxT, 4));
+        int id = 0;
+        for (BloomFilter[] bfs_ : bfs) {
+            for (BloomFilter bf : bfs_) {
+                try(ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                    bf.writeTo(os);
+                    RedisIO.set(3, ByteUtil.getKByte(id, 4), os.toByteArray());
+                    ++id;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    public void init() {
+        level = ByteUtil.toInt(RedisIO.get(3, "level".getBytes()));
+        minT = ByteUtil.toInt(RedisIO.get(3, "minT".getBytes()));
+        maxT = ByteUtil.toInt(RedisIO.get(3, "maxT".getBytes()));
+
+        bfs = new BloomFilter[level][];
+        bfs[0] = new BloomFilter[1];
+
+        BloomFilter temp = new BloomFilter();
+        bfs[0][0] = temp.read(new ByteArrayInputStream(RedisIO.get(3, ByteUtil.getKByte(0, 4))));
+        for (int i = 1; i < level; ++i) {
+            bfs[i] = new BloomFilter[2];
+            for (int j = 0; j < 2; ++j) {
+                bfs[i][j] = temp.read(new ByteArrayInputStream(RedisIO.get(3, ByteUtil.getKByte(i * 2 - 1 + j, 4))));
+            }
+        }
     }
 }

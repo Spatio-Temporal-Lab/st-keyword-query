@@ -1,6 +1,5 @@
+import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import org.apache.commons.math3.util.Pair;
-import org.apache.directory.shared.kerberos.codec.apRep.actions.ApRepInit;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -17,12 +16,15 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestFilters {
 //    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
@@ -151,6 +153,7 @@ public class TestFilters {
         start = System.currentTimeMillis();
         List<List<byte[]>> results = shrinkByFilter(bf);
         end = System.currentTimeMillis();
+
         System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(bf));
         System.out.println("Query Time " + ": " + (end - start));
         System.out.println("Result Size" + ": " + results.stream().mapToInt(List::size).sum());
@@ -276,6 +279,35 @@ public class TestFilters {
         checkNoFalsePositive(results);
     }
 
+    @Test
+    public void testStairBFIO() {
+        StairBF bf = new StairBF(5,100, 20, 0, 1000);
+
+        int n = 1000;
+        for (int i = 0; i < n; ++i) {
+            bf.insert(intToByte4(i), i);
+        }
+        for (int i = 0; i < n; ++i) {
+            Assert.assertTrue(bf.query(intToByte4(i), i));
+        }
+        int err0 = 0;
+        for (int i = n; i < n + n; ++i) {
+            if (bf.query(intToByte4(i), i)) {
+                ++err0;
+            }
+        }
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        bf.out();
+        bf.init();
+        for (int i = n; i < n + n; ++i) {
+            if (bf.query(intToByte4(i), i)) {
+                --err0;
+            }
+        }
+        Assert.assertEquals(err0, 0);
+    }
+
     private static void insertIntoFilter(IFilter filter) {
         for (STObject object : SAMPLE_DATA) {
             byte[] spatialKey = spatialKeyGenerator.toBytes(object.getLocation());
@@ -293,7 +325,6 @@ public class TestFilters {
             }
         }
     }
-
 
     private void insertIntoFilter(StairBF bf) {
         for (STObject object : SAMPLE_DATA) {

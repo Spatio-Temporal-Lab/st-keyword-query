@@ -1,7 +1,12 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
 import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class BloomFilter extends Filter {
 
@@ -11,6 +16,47 @@ public class BloomFilter extends Filter {
 	long current_num_entries;
 	long bits_per_entry;
 	int num_hash_functions;
+
+	public void writeTo(OutputStream os) {
+
+		Output output = new Output(os);
+
+		QuickBitVectorWrapper quickBitVectorWrapper = (QuickBitVectorWrapper) filter;
+		output.writeInt(quickBitVectorWrapper.bs.length);
+
+		if (quickBitVectorWrapper.bs.length > 0) {
+			output.writeLongs(quickBitVectorWrapper.bs, 0, quickBitVectorWrapper.bs.length);
+		}
+
+		output.writeLong(num_bits);
+		output.writeLong(max_num_entries);
+		output.writeLong(current_num_entries);
+		output.writeLong(bits_per_entry);
+		output.writeInt(num_hash_functions);
+		output.close();
+	}
+
+	public BloomFilter() {}
+
+	public BloomFilter read(InputStream is) {
+		BloomFilter bf = new BloomFilter();
+
+		Input input = new Input(is);
+
+		int len = input.readInt();
+		bf.filter = new QuickBitVectorWrapper();
+		if (len > 0) {
+			((QuickBitVectorWrapper) (bf.filter)).bs = input.readLongs(len);
+		}
+		bf.num_bits = input.readLong();
+		bf.max_num_entries = input.readLong();
+		bf.current_num_entries = input.readLong();
+		bf.bits_per_entry = input.readLong();
+		bf.num_hash_functions = input.readInt();
+		bf.hash_type = HashType.xxh;
+		input.close();
+		return bf;
+	}
 
 	public BloomFilter(int new_num_entries, int new_bits_per_entry) {
 		max_num_entries = new_num_entries;

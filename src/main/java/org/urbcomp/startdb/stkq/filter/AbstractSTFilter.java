@@ -2,7 +2,6 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
@@ -14,7 +13,9 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class AbstractSTFilter {
@@ -146,7 +147,6 @@ public abstract class AbstractSTFilter {
             for (long sIndex = sIndexMin; sIndex <= sIndexMax; ++sIndex) {
                 for (int tIndex = tIndexMin; tIndex <= tIndexMax; ++tIndex) {
                     byte[] stIndex = ByteUtil.concat(ByteUtil.getKByte(sIndex, sIndexBytes), ByteUtil.getKByte(tIndex, tIndexBytes));
-//                    IFilter filter = RedisIO.getFilter(db, stIndex);
                     IFilter filter = getWithIO(stIndex);
 
                     if (filter == null) {
@@ -158,34 +158,14 @@ public abstract class AbstractSTFilter {
 
                     int tMin = Math.max(tIndex << tBits, tLow);
                     int tMax = Math.min(tIndex << tBits | tMask, tHigh);
-//                    System.out.printf("%d %d %d %d\n", sMin, sMax, tMin, tMax);
 
                     for (long s = sMin; s <= sMax; ++s) {
-//                        List<Range<Integer>> queue = new ArrayList<>();
                         for (int t = tMin; t <= tMax; ++t) {
                             byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
                             if (checkInFilter(filter, stKey, kKeys, queryType)) {
                                 keysLong.add(s << tKeyGenerator.getBits() | t);
-//                                if (queue.isEmpty()) {
-//                                    queue.add(new Range<>(t, t));
-//                                } else {
-//                                    Range<Integer> last = queue.get(queue.size() - 1);
-//                                    if (last.getHigh() + 1 == t) {
-//                                        last.setHigh(t);
-//                                    } else {
-//                                        queue.add(new Range<>(t, t));
-//                                    }
-//                                }
                             }
                         }
-//                        byte[] sKey = sKeyGenerator.numberToBytes(s);
-//                        for (Range<Integer> range : queue) {
-//                            System.out.printf("# %d %d %d %s\n", s, range.getLow(), range.getHigh(), Arrays.toString(sKey));
-//                            results.add(new Range<>(
-//                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getLow())),
-//                                    ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(range.getHigh())))
-//                            );
-//                        }
                     }
 
                 }

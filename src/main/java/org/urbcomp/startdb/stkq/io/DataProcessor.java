@@ -6,10 +6,7 @@ import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
-import org.urbcomp.startdb.stkq.filter.HSTFilter;
-import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
-import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.filter.manager.HotnessAwareFilterManager;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -351,6 +348,68 @@ public class DataProcessor {
     }
 
     public void putFiltersToRedis(AbstractSTFilter stFilter, String path) throws ParseException, IOException {
+        double maxLat = -100.0;
+        double minLat = 100.0;
+        double maxLon = -200.0;
+        double minLon = 200.0;
+
+        //实现对象读取
+        String dateString = "1900-02-23 00:00";
+        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
+        Date initFrom = new Date();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
+            String line;
+
+            boolean first = true;
+
+            while ((line = br.readLine()) != null) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+
+                STObject cur = getSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+
+                stFilter.insert(cur);
+
+                minLat = Math.min(minLat, cur.getLat());
+                minLon = Math.min(minLon, cur.getLon());
+                maxLat = Math.max(maxLat, cur.getLat());
+                maxLon = Math.max(maxLon, cur.getLon());
+                if (cur.getTime().before(initFrom)) {
+                    initFrom = cur.getTime();
+                }
+                if (cur.getTime().after(initEnd)) {
+                    initEnd = cur.getTime();
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
+//        for (Query query : queries) {
+//            query.setQueryType(QueryType.CONTAIN_ONE);
+//            stFilter.shrink(query);
+//        }
+//        ((LRUSTFilter) stFilter).compress();
+
+        System.out.println(stFilter.size());
+        stFilter.out();
+        System.out.println(minLat);
+        System.out.println(minLon);
+        System.out.println(maxLat);
+        System.out.println(maxLon);
+        System.out.println(initFrom);
+        System.out.println(initEnd);
+    }
+
+    public void putFiltersToRedis(StairBF stFilter, String path) throws ParseException {
         double maxLat = -100.0;
         double minLat = 100.0;
         double maxLon = -200.0;
