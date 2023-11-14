@@ -4,6 +4,8 @@ import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.lucene.util.RamUsageEstimator;
+import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
@@ -281,6 +283,9 @@ public class DataProcessor {
         ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
         TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
 
+        int tMin = Integer.MAX_VALUE;
+        int tMax = -1;
+
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
             String line;
@@ -298,29 +303,33 @@ public class DataProcessor {
                     continue;
                 }
 
-                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+                int tNow = timeKeyGenerator.toNumber(cur.getTime());
+                tMin = Math.min(tNow, tMin);
+                tMax = Math.max(tNow, tMax);
 
-                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
-                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
-
-                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
-                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
-                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
-
-                ChainedInfiniFilter filter;
-                if (map.get(bfID) == null) {
-                    filter = new ChainedInfiniFilter(3, 10);
-                    filter.set_expand_autonomously(true);
-                    map.put(bfID, filter);
-                } else {
-                    filter = map.get(bfID);
-                }
-
-                for (String keyword : cur.getKeywords()) {
-                    byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
-                    filter.insert(insertValue, false);
-                }
+//                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
+//                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
+//
+//                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
+//                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
+//
+//                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
+//                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
+//                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
+//
+//                ChainedInfiniFilter filter;
+//                if (map.get(bfID) == null) {
+//                    filter = new ChainedInfiniFilter(3, 10);
+//                    filter.set_expand_autonomously(true);
+//                    map.put(bfID, filter);
+//                } else {
+//                    filter = map.get(bfID);
+//                }
+//
+//                for (String keyword : cur.getKeywords()) {
+//                    byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
+//                    filter.insert(insertValue, false);
+//                }
 
                 minLat = Math.min(minLat, cur.getLat());
                 minLon = Math.min(minLon, cur.getLon());
@@ -337,6 +346,8 @@ public class DataProcessor {
             ex.printStackTrace();
         }
 
+        System.out.println("tMin = " + tMin);
+        System.out.println("tMax = " + tMax);
         System.out.println(minLat);
         System.out.println(minLon);
         System.out.println(maxLat);
@@ -453,13 +464,6 @@ public class DataProcessor {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
-//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
-//        for (Query query : queries) {
-//            query.setQueryType(QueryType.CONTAIN_ONE);
-//            stFilter.shrink(query);
-//        }
-//        ((LRUSTFilter) stFilter).compress();
 
         System.out.println(stFilter.size());
         stFilter.out();
@@ -702,14 +706,20 @@ public class DataProcessor {
 
     public static void main(String[] args) throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
-        //
+        //t:[107376,113887]
         int sBits = 8;
         int tBits = 4;
-        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
+        int tMin = 107376;
+        int tMax = 113887;
+//        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
 //        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
 //        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
 //        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
-        dataProcessor.putFiltersToRedis(stFilter, "/home/hadoop/data/tweetAll.csv");
+//        dataProcessor.putFiltersToRedis(stFilter, "/home/hadoop/data/tweetAll.csv");
+//        dataProcessor.generateSTDividedFilter("E:\\data\\tweetAll.csv");
+
+        StairBF bf = new StairBF(8, 42000, 20, tMin, tMax);
+        dataProcessor.putFiltersToRedis(bf, "/home/hadoop/data/tweetAll.csv");
         //792433880 755.7M
         //798493496 761.5M
     }
