@@ -2,17 +2,16 @@ package org.urbcomp.startdb.stkq;
 
 import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
-import org.urbcomp.startdb.stkq.filter.HSTFilter;
-import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
-import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
+import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
+import org.urbcomp.startdb.stkq.processor.StairQueryProcessor;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
 import java.io.IOException;
@@ -61,11 +60,16 @@ public class Main {
                 new LRUSTFilter(3, 14, 8, 4)
         };
 
+        StairBF bf = new StairBF(1, 1, 1, 1, 1);
+        bf.init();
+
         // test query results
-        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
-        QueryProcessor[] queryProcessors = {
-                new QueryProcessor(tableName, keyGenerator),
-                new QueryProcessor(tableName, filter[2])
+//        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
+        List<Query> queries = QueryGenerator.getQueries("queriesZipfNew.csv");
+        BasicQueryProcessor[] queryProcessors = {
+//                new QueryProcessor(tableName, keyGenerator),
+                new QueryProcessor(tableName, filter[2]),
+//                new StairQueryProcessor(tableName, bf)
         };
         System.out.println("--------------------query begin--------------------");
 
@@ -76,7 +80,7 @@ public class Main {
             query.setQueryType(QueryType.CONTAIN_ONE);
 
             List<List<STObject>> resultsList = new ArrayList<>();
-            for (QueryProcessor queryProcessor : queryProcessors) {
+            for (BasicQueryProcessor queryProcessor : queryProcessors) {
                 List<STObject> results = queryProcessor.getResult(query);
                 Collections.sort(results);
                 resultsList.add(results);
@@ -89,7 +93,7 @@ public class Main {
         System.out.println("--------------------query end--------------------");
         System.out.println((end - begin) + " ms");
 
-        for (QueryProcessor processor : queryProcessors) {
+        for (BasicQueryProcessor processor : queryProcessors) {
             System.out.println(processor.getAllSize());
             processor.close();
         }

@@ -719,6 +719,7 @@ public class DataProcessor {
 //        dataProcessor.generateSTDividedFilter("E:\\data\\tweetAll.csv");
 
         StairBF bf = new StairBF(8, 42000, 20, tMin, tMax);
+//        dataProcessor.putFiltersToRedis(bf, "/usr/data/tweetAll.csv");
         dataProcessor.putFiltersToRedis(bf, "/home/hadoop/data/tweetAll.csv");
         //792433880 755.7M
         //798493496 761.5M

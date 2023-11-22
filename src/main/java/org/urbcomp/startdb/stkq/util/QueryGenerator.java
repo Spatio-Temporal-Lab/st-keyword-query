@@ -191,6 +191,83 @@ public class QueryGenerator {
         }
     }
 
+    public static void generateZipfQueriesNew(String fileName, int size, double skew) {
+        List<BytesKey> stKeySortByObjectCount;
+        Map<BytesKey, Set<String>> key2Words;
+
+        try(FileInputStream fin = new FileInputStream("/usr/data/st2Count.txt");
+            ObjectInputStream ois = new ObjectInputStream(fin)
+        ) {
+            stKeySortByObjectCount = MapUtil.sortByTime((Map<BytesKey, Integer>) ois.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        try(FileInputStream fin = new FileInputStream("/usr/data/st2Words.txt");
+            ObjectInputStream ois = new ObjectInputStream(fin)
+        ) {
+            key2Words = (Map<BytesKey, Set<String>>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        ZipfGenerator stKeyGenerator = new ZipfGenerator(stKeySortByObjectCount.size(), skew);
+
+        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
+        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+        SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
+
+//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
+        String path = new File("").getAbsolutePath() + "/src/main/resources/" + fileName;
+        System.out.println(path);
+        File file = new File(path);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+
+            int writeCount = 0;
+            while (writeCount < size) {
+
+                int stId = stKeySortByObjectCount.size() - stKeyGenerator.next();
+                BytesKey bytesKey = stKeySortByObjectCount.get(stId);
+                byte[] bytesKeyArray = bytesKey.getArray();
+                byte[] sKey = Arrays.copyOfRange(bytesKeyArray, 0, 4);
+
+                byte[] tKey = Arrays.copyOfRange(bytesKeyArray, 4, 7);
+
+                long sKeyLong = ByteUtil.toLong(sKey);
+                long[] originS = curve.point(sKeyLong);
+                double lat = normalizedLat.denormalize((int) originS[0]);
+                double lon = normalizedLon.denormalize((int) originS[1]);
+
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
+                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
+                writer.write(",");
+                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
+                writer.write(",");
+
+                Date date = DateUtil.getDateAfterHours(ByteUtil.toInt(tKey));
+                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
+                writer.write(",");
+                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
+                ArrayList<String> keywords;
+
+                if (random.nextDouble() < 0.5) {
+                    keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));
+                } else {
+                    keywords = getRandomKeywords();
+                }
+
+                for (String keyword : keywords) {
+                    writer.write("," + keyword);
+                }
+                writer.newLine();
+                ++writeCount;
+                System.out.println(writeCount);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void generateZipfQueries(List<STObject> objects, int size, double skew) {
         List<BytesKey> stKeySortByObjectCount;
         Map<BytesKey, Set<String>> key2Words = new HashMap<>();
@@ -285,8 +362,9 @@ public class QueryGenerator {
             throw new RuntimeException(e);
         }
 
-        generateZipfQueries("queriesZipf.csv", 1_0000, 1.2);
-        generateZipfQueries("queriesZipfBig.csv", 5_0000, 1.2);
+//        generateZipfQueries("queriesZipf.csv", 1_0000, 1.2);
+//        generateZipfQueries("queriesZipfBig.csv", 5_0000, 1.2);
+        generateZipfQueriesNew("queriesZipfNew.csv", 5_0000, 1.2);
 
 //        List<STObject> objects = DataProcessor.getSampleData();
 //        generateZipfQueries(objects, 5_0000, 1.2);
