@@ -3,15 +3,18 @@ package org.urbcomp.startdb.stkq;
 import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
+import org.urbcomp.startdb.stkq.processor.AbstractQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
-import org.urbcomp.startdb.stkq.processor.StairQueryProcessor;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
 import java.io.IOException;
@@ -55,9 +58,12 @@ public class Main {
         ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
 
         AbstractSTFilter[] filter = {
-                new STFilter(3, 12, 8, 4),
-                new HSTFilter(3, 14, 8, 4),
-                new LRUSTFilter(3, 14, 8, 4)
+                new STFilter(8, 4, new BasicFilterManager(3, 12)),
+                new STFilter(8, 4, new HFilterManager(3, 14)),
+                new STFilter(8, 4, new LRUFilterManager(3, 14)),
+//                new STFilter(3, 12, 8, 4),
+//                new HSTFilter(3, 14, 8, 4),
+//                new LRUSTFilter(3, 14, 8, 4)
         };
 
         StairBF bf = new StairBF(1, 1, 1, 1, 1);
@@ -66,10 +72,10 @@ public class Main {
         // test query results
 //        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
         List<Query> queries = QueryGenerator.getQueries("queriesZipfNew.csv");
-        BasicQueryProcessor[] queryProcessors = {
-//                new QueryProcessor(tableName, keyGenerator),
-                new QueryProcessor(tableName, filter[2]),
-//                new StairQueryProcessor(tableName, bf)
+        AbstractQueryProcessor[] queryProcessors = {
+                new BasicQueryProcessor(tableName, keyGenerator),
+                new QueryProcessor(tableName, filter[0]),
+                new QueryProcessor(tableName, bf)
         };
         System.out.println("--------------------query begin--------------------");
 
@@ -80,7 +86,7 @@ public class Main {
             query.setQueryType(QueryType.CONTAIN_ONE);
 
             List<List<STObject>> resultsList = new ArrayList<>();
-            for (BasicQueryProcessor queryProcessor : queryProcessors) {
+            for (AbstractQueryProcessor queryProcessor : queryProcessors) {
                 List<STObject> results = queryProcessor.getResult(query);
                 Collections.sort(results);
                 resultsList.add(results);
@@ -93,7 +99,7 @@ public class Main {
         System.out.println("--------------------query end--------------------");
         System.out.println((end - begin) + " ms");
 
-        for (BasicQueryProcessor processor : queryProcessors) {
+        for (AbstractQueryProcessor processor : queryProcessors) {
             System.out.println(processor.getAllSize());
             processor.close();
         }

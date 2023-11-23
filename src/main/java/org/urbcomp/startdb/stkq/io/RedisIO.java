@@ -13,18 +13,15 @@ import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
 public class RedisIO {
-    private static final Jedis[] jedis = new Jedis[4];
+    private static final int CONNECT_COUNT = 4;
+    private static final Jedis[] jedis = new Jedis[CONNECT_COUNT];
 
     static {
         try(JedisPool pool = new JedisPool("localhost", 6379)) {
-            jedis[0] = pool.getResource();
-            jedis[0].select(0);
-            jedis[1] = pool.getResource();
-            jedis[1].select(1);
-            jedis[2] = pool.getResource();
-            jedis[2].select(2);
-            jedis[3] = pool.getResource();
-            jedis[3].select(3);
+            for (int i = 0; i < CONNECT_COUNT; ++i) {
+                jedis[i] = pool.getResource();
+                jedis[i].select(i);
+            }
         }
     }
 

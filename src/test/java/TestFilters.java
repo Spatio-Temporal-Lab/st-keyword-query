@@ -1,4 +1,3 @@
-import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
@@ -6,6 +5,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.manager.AHFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
@@ -16,15 +18,11 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class TestFilters {
 //    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
@@ -86,15 +84,6 @@ public class TestFilters {
 
     }
 
-    public static byte[] intToByte4(int i) {
-        byte[] targets = new byte[4];
-        targets[3] = (byte) (i & 0xFF);
-        targets[2] = (byte) (i >> 8 & 0xFF);
-        targets[1] = (byte) (i >> 16 & 0xFF);
-        targets[0] = (byte) (i >> 24 & 0xFF);
-        return targets;
-    }
-
     @Test
     public void testStairBf() {
         int minT = 0;
@@ -143,18 +132,18 @@ public class TestFilters {
     @Test
     public void testStairBfShrink() {
         System.out.printf("#%d %d\n", minT, maxT);
-        StairBF bf = new StairBF(8, 10000, 20, minT, maxT);
+        ISTKFilter sbf = new StairBF(8, 10000, 20, minT, maxT);
 
         long start = System.currentTimeMillis();
-        insertIntoFilter(bf);
+        insertIntoSTFilter(sbf);
         long end = System.currentTimeMillis();
         System.out.println("Insert Time " +": " + (end - start));
 
         start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkByFilter(bf);
+        List<List<byte[]>> results = shrinkBySTFilter(sbf);
         end = System.currentTimeMillis();
 
-        System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(bf));
+        System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(sbf));
         System.out.println("Query Time " + ": " + (end - start));
         System.out.println("Result Size" + ": " + results.stream().mapToInt(List::size).sum());
         checkNoFalsePositive(results);
@@ -187,7 +176,8 @@ public class TestFilters {
     public void testSTFilter() {
         int sBits = 8;
         int tBits = 4;
-        AbstractSTFilter stFilter = new STFilter(3, 13, sBits, tBits);
+//        AbstractSTFilter stFilter = new STFilter(3, 13, sBits, tBits);
+        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
 
         insertIntoSTFilter(stFilter);
 
@@ -204,7 +194,8 @@ public class TestFilters {
         System.out.println("------------------------------------------------------------------");
 
 
-        AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sBits, tBits);
+//        AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sBits, tBits);
+        AbstractSTFilter stFilter1 = new STFilter(sBits, tBits, new HFilterManager(3, 14));
         insertIntoSTFilter(stFilter1);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
         System.out.println("Filter Memory Usage: " + stFilter1.size());
@@ -220,7 +211,8 @@ public class TestFilters {
 
         System.out.println("------------------------------------------------------------------");
 
-        AbstractSTFilter stFilter2 = new AHSTFilter(3, 14, sBits, tBits);
+//        AbstractSTFilter stFilter2 = new AHSTFilter(3, 14, sBits, tBits);
+        AbstractSTFilter stFilter2 = new STFilter(sBits, tBits, new AHFilterManager(3, 13));
         insertIntoSTFilter(stFilter2);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " + RamUsageEstimator.humanSizeOf(stFilter2));
         System.out.println("Filter Memory Usage: " + stFilter2.size());
@@ -269,10 +261,10 @@ public class TestFilters {
     }
 
     @Test
-    public void testSTFilterIO() throws IOException {
+    public void testSTFilterIO() {
         int sBits = 8;
         int tBits = 4;
-        AbstractSTFilter stFilter = new STFilter(3, 13, sBits, tBits);
+        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
 //        insertIntoSTFilter(stFilter);
 //        stFilter.out();
         List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
@@ -297,7 +289,6 @@ public class TestFilters {
             }
         }
 
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
         bf.out();
         bf.init();
         for (int i = n; i < n + n; ++i) {
@@ -315,7 +306,6 @@ public class TestFilters {
             byte[] timeKey = timeKeyGenerator.numberToBytes(t);
             minT = Math.min(minT, t);
             maxT = Math.max(maxT, t);
-//            byte[] timeKey = timeKeyGenerator.toBytes(object.getTime());
             for (String s : object.getKeywords()) {
                 byte[] key = ByteUtil.concat(
                         keywordGenerator.toBytes(s),
@@ -326,22 +316,7 @@ public class TestFilters {
         }
     }
 
-    private void insertIntoFilter(StairBF bf) {
-        for (STObject object : SAMPLE_DATA) {
-            byte[] spatialKey = spatialKeyGenerator.toBytes(object.getLocation());
-            int t = timeKeyGenerator.toNumber(object.getTime());
-            byte[] timeKey = timeKeyGenerator.numberToBytes(t);
-            for (String s : object.getKeywords()) {
-                byte[] key = ByteUtil.concat(
-                        keywordGenerator.toBytes(s),
-                        spatialKey,
-                        timeKey);
-                bf.insert(key, t);
-            }
-        }
-    }
-
-    private static void insertIntoSTFilter(AbstractSTFilter stFilter) {
+    private static void insertIntoSTFilter(ISTKFilter stFilter) {
         for (STObject object : SAMPLE_DATA) {
             stFilter.insert(object);
         }
@@ -356,20 +331,7 @@ public class TestFilters {
         return results;
     }
 
-    private static List<List<byte[]>> shrinkByFilter(StairBF bf) {
-        List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : QUERIES_SMALL) {
-            List<byte[]> filterResult = bf.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
-            results.add(filterResult);
-        }
-        return results;
-    }
-
-    private static List<byte[]> shrinkByFilter(IFilter filter, Query query) {
-        return filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
-    }
-
-    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter) {
+    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<byte[]> filterResult = stFilter.shrink(query);
@@ -378,17 +340,13 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilterWithIO(AbstractSTFilter stFilter) throws IOException {
+    private List<List<byte[]>> shrinkBySTFilterWithIO(AbstractSTFilter stFilter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES_SMALL) {
             List<byte[]> filterResult = stFilter.shrinkWithIO(query);
             results.add(filterResult);
         }
         return results;
-    }
-
-    private List<byte[]> shrinkBySTFilter(AbstractSTFilter stFilter, Query query) {
-        return stFilter.shrink(query);
     }
 
     private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter, List<Query> queries) {
@@ -415,4 +373,12 @@ public class TestFilters {
         }
     }
 
+    private static byte[] intToByte4(int i) {
+        byte[] targets = new byte[4];
+        targets[3] = (byte) (i & 0xFF);
+        targets[2] = (byte) (i >> 8 & 0xFF);
+        targets[1] = (byte) (i >> 16 & 0xFF);
+        targets[0] = (byte) (i >> 24 & 0xFF);
+        return targets;
+    }
 }

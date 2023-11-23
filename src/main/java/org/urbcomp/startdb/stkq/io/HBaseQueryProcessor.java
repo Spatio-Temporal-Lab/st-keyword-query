@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 public class HBaseQueryProcessor {
     private final static HBaseUtil hBaseUtil;
-//    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     static ExecutorService service = Executors.newCachedThreadPool();
 
@@ -78,7 +77,7 @@ public class HBaseQueryProcessor {
                     ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
         }
         cdl.await();
-//
+
 //        List<MultiRowRangeFilter.RowRange> rowRanges = new ArrayList<>();
 //        rowRanges = ranges.stream().map(range -> new MultiRowRangeFilter.RowRange(ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)), true,
 //                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), true)).collect(Collectors.toList());

@@ -18,7 +18,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class AbstractSTFilter {
+public abstract class AbstractSTFilter implements ISTKFilter {
     private final int sBytes;
     private final int tBytes;
     protected final int sBits;
@@ -131,7 +131,7 @@ public abstract class AbstractSTFilter {
         int tIndexMin = tLow >> tBits;
         int tIndexMax = tHigh >> tBits;
 
-        List<Range<byte[]>> results = new ArrayList<>();
+        List<Range<byte[]>> results;
         QueryType queryType = query.getQueryType();
         List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
 
@@ -208,7 +208,7 @@ public abstract class AbstractSTFilter {
         return null;
     }
 
-    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) {
         return shrinkWithIOAndTransform(query, 0);
     }
 
@@ -218,7 +218,7 @@ public abstract class AbstractSTFilter {
 
     public void load() {}
 
-    public List<byte[]> shrinkWithIO(Query query) throws IOException {
+    public List<byte[]> shrinkWithIO(Query query) {
         return null;
     }
 

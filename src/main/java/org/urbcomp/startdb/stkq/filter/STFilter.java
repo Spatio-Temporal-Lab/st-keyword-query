@@ -2,7 +2,7 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class STFilter extends AbstractSTFilter {
-    private final BasicFilterManager filterManager;
+    private final AbstractFilterManager filterManager;
 
-    public STFilter(int log2Size, int bitsPerKey, int sBits, int tBits) {
+    public STFilter(int sBits, int tBits, AbstractFilterManager filterManager) {
         super(sBits, tBits);
-        filterManager = new BasicFilterManager(log2Size, bitsPerKey);
+        this.filterManager = filterManager;
     }
 
     public void insert(STObject stObject) {

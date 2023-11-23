@@ -6,7 +6,6 @@ import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,14 +32,12 @@ public class BasicFilterManager extends AbstractFilterManager {
     public IFilter getWithIO(BytesKey index) {
         IFilter filter = filters.get(index);
         if (filter == null) {
-//            filter = RedisIO.getFilter(0, index.getArray());
             filter = RedisIO.getFilter(0, index.getArray());
             if (filter != null) {
                 filters.put(index, filter);
             }
             return filter;
         }
-//        System.out.println("OK");
         return filter;
     }
 
@@ -52,7 +49,7 @@ public class BasicFilterManager extends AbstractFilterManager {
         return size;
     }
 
-    public void out() throws IOException {
+    public void out() {
         String tableName = "basicFilters";
         RedisIO.putFilters(tableName, filters);
     }

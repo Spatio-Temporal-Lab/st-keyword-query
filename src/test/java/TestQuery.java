@@ -6,16 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
-import org.urbcomp.startdb.stkq.filter.HSTFilter;
-import org.urbcomp.startdb.stkq.filter.LRUSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.*;
-import org.urbcomp.startdb.stkq.keyGenerator.*;
-import org.urbcomp.startdb.stkq.model.Location;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
+import org.urbcomp.startdb.stkq.processor.AbstractQueryProcessor;
+import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
-import org.urbcomp.startdb.stkq.util.DateUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
@@ -26,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,8 +76,8 @@ public class TestQuery {
         System.out.println(end - start);
 
 
-        QueryProcessor[] processors = new QueryProcessor[]{
-                new QueryProcessor(tableName, new STKeyGenerator())
+        BasicQueryProcessor[] processors = new BasicQueryProcessor[]{
+                new BasicQueryProcessor(tableName, new STKeyGenerator())
         };
 
         List<List<List<STObject>>> results = new ArrayList<>(processors.length);
@@ -153,9 +154,12 @@ public class TestQuery {
         List<STObject> objects = DataProcessor.getSampleData();
 
         AbstractSTFilter[] filter = {
-                new STFilter(3, 12, 8, 4),
-                new HSTFilter(3, 14, 8, 4),
-                new LRUSTFilter(3, 14, 8, 4)
+//                new STFilter(3, 12, 8, 4),
+//                new HSTFilter(3, 14, 8, 4),
+//                new LRUSTFilter(3, 14, 8, 4)
+                new STFilter(8, 4, new BasicFilterManager(3, 12)),
+                new STFilter(8, 4, new HFilterManager(3, 14)),
+                new STFilter(8, 4, new LRUFilterManager(3, 14)),
         };
 
         if (!tableExists) {
@@ -167,14 +171,14 @@ public class TestQuery {
 
         // test query results
         List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
-        QueryProcessor[] queryProcessors = {
-                new QueryProcessor(tableName, keyGenerator),
-//                new QueryProcessor(tableName, filter[0]),
+        AbstractQueryProcessor[] processors = {
+                new BasicQueryProcessor(tableName, keyGenerator),
+                new QueryProcessor(tableName, filter[0]),
                 new QueryProcessor(tableName, filter[2])
         };
         System.out.println("--------------------query begin--------------------");
 
-        int n = queryProcessors.length;
+        int n = processors.length;
         int ii = 0;
 
         long begin = System.currentTimeMillis();
@@ -185,8 +189,8 @@ public class TestQuery {
 //            }
 
             List<List<STObject>> resultsList = new ArrayList<>();
-            for (QueryProcessor queryProcessor : queryProcessors) {
-                List<STObject> results = queryProcessor.getResult(query);
+            for (AbstractQueryProcessor processor : processors) {
+                List<STObject> results = processor.getResult(query);
                 Collections.sort(results);
                 resultsList.add(results);
             }
@@ -199,7 +203,7 @@ public class TestQuery {
         System.out.println("--------------------query end--------------------");
         System.out.println((end - begin) + " ms");
 
-        for (QueryProcessor processor : queryProcessors) {
+        for (AbstractQueryProcessor processor : processors) {
             System.out.println(processor.getAllSize());
             processor.close();
         }

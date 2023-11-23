@@ -7,14 +7,14 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.util.*;
 
-public class AppHFilterManager extends AbstractFilterManager {
+public class AHFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
     private static final int UPDATE_TIME = 10000;
     private static final int MAX_UPDATE_TIME = 50000;
     private final Map<BytesKey, FilterWithIdx> filters = new HashMap<>();
     private final List<FilterWithIdx> sortedFilters = new ArrayList<>();
 
-    public AppHFilterManager(int log2Size, int bitsPerKey) {
+    public AHFilterManager(int log2Size, int bitsPerKey) {
         super(log2Size, bitsPerKey);
     }
 
@@ -82,10 +82,6 @@ public class AppHFilterManager extends AbstractFilterManager {
     public IFilter get(BytesKey index) {
         FilterWithIdx filterWithIdx = filters.get(index);
         return filterWithIdx == null ? null : filterWithIdx.filter;
-    }
-
-    public IFilter getAndUpdate(BytesKey index) {
-        return update(index);
     }
 
     public List<FilterWithIdx> getFilters() {

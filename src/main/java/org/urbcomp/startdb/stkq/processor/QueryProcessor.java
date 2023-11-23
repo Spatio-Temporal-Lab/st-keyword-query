@@ -1,6 +1,6 @@
 package org.urbcomp.startdb.stkq.processor;
 
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.ISTKFilter;
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -8,28 +8,17 @@ import org.urbcomp.startdb.stkq.model.Range;
 
 import java.util.List;
 
-public class QueryProcessor extends BasicQueryProcessor {
-    private AbstractSTFilter stFilter;
+public class QueryProcessor extends AbstractQueryProcessor {
+    private ISTKFilter filter;
 
-    public QueryProcessor(String tableName, ISTKeyGeneratorNew keyGenerator) {
-        super(tableName, keyGenerator);
-    }
-
-    public QueryProcessor(String tableName,  AbstractSTFilter stFilter) {
-        super(tableName, null);
-        this.stFilter = stFilter;
-        filterInMemory = true;
-    }
-
-    public QueryProcessor(String tableName, ISTKeyGeneratorNew keyGenerator, AbstractSTFilter stFilter) {
-        super(tableName, keyGenerator);
-        this.stFilter = stFilter;
-        filterInMemory = true;
+    public QueryProcessor(String tableName, ISTKFilter filter) {
+        super(tableName);
+        this.filter = filter;
     }
 
     @Override
-    public List<Range<byte[]>> shrink(Query query) {
-        return stFilter.shrinkWithIOAndTransform(query);
+    public List<Range<byte[]>> getRanges(Query query) {
+        return filter.shrinkAndMerge(query);
     }
 
     public void close() {

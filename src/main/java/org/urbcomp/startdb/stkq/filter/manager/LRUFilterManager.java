@@ -6,8 +6,9 @@ import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class LRUFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
@@ -59,10 +60,6 @@ public class LRUFilterManager extends AbstractFilterManager {
         return filter;
     }
 
-    public int getUpdateSize(int size, int k) {
-        return size - k * 50000;
-    }
-
     public IFilter update(BytesKey index) {
         IFilter filter = filters.get(index);
 
@@ -71,7 +68,6 @@ public class LRUFilterManager extends AbstractFilterManager {
         }
 
         ++queryCount;
-
 
         if (queryCount % UPDATE_TIME == 0 && queryCount <= MAX_UPDATE_TIME) {
 
@@ -95,10 +91,6 @@ public class LRUFilterManager extends AbstractFilterManager {
         }
 
         return filter;
-    }
-
-    public IFilter getAndUpdate(BytesKey index) {
-        return update(index);
     }
 
     public long size() {
@@ -125,7 +117,7 @@ public class LRUFilterManager extends AbstractFilterManager {
         }
     }
 
-    public void out() throws IOException {
+    public void out() {
         String tableName = "lruFilters";
         System.out.println("lru filters put: ");
         RedisIO.putLRUFilters(tableName, filters);

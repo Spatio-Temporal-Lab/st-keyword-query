@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.filter.manager;
 
-import com.google.common.collect.TreeMultiset;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
@@ -9,7 +8,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.util.*;
 
-public class HotnessAwareFilterManager extends AbstractFilterManager {
+public class HFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
     private long ramUsage = 0;
     private final long MAX_RAM_USAGE = 50 * 1024 * 1024;
@@ -18,7 +17,7 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
     private final TreeMap<Long, Set<IFilter>> sortedFilters = new TreeMap<>();
 
-    public HotnessAwareFilterManager(int log2Size, int bitsPerKey) {
+    public HFilterManager(int log2Size, int bitsPerKey) {
         super(log2Size, bitsPerKey);
     }
 
@@ -41,10 +40,6 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             Set<IFilter> filterSet = sortedFilters.computeIfAbsent(count, k -> new HashSet<>());
             filterSet.add(filter.getFilter());
         }
-    }
-
-    public int getUpdateSize(int size, int k) {
-        return size - k * 50000;
     }
 
     public IFilter update(BytesKey index) {
@@ -109,7 +104,6 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
     public IFilter getWithIO(BytesKey index) {
         FilterWithHotness hFilter = filters.get(index);
         if (hFilter == null) {
-//            IFilter filter = RedisIO.getFilter(1, index.getArray());
             IFilter filter = RedisIO.getFilter(0, index.getArray());
             if (filter != null) {
                 ramUsage += RamUsageEstimator.sizeOf(filter);
@@ -140,39 +134,6 @@ public class HotnessAwareFilterManager extends AbstractFilterManager {
             return filter;
         }
         return hFilter.getFilter();
-    }
-
-    public IFilter getAndUpdate(BytesKey index) {
-        return update(index);
-    }
-
-    public static void main(String[] args) {
-        TreeMultiset<FilterWithHotness> set = TreeMultiset.create();
-
-        int n = 3;
-        FilterWithHotness[] filters = new FilterWithHotness[n];
-        for (int i = 0; i < n; ++i) {
-            filters[i] = new FilterWithHotness(new InfiniFilter());
-            filters[i].setHotness(i);
-            set.add(filters[i]);
-        }
-        int i = 0;
-        for (FilterWithHotness filter : set) {
-            if (++i == 11) {
-                break;
-            }
-            System.out.println("1: " + set);
-            set.remove(filter);
-            System.out.println("2: " + set);
-            filter.setHotness(filter.getHotness() + n - 1);
-            set.add(filter);
-            System.out.println("3: " + set);
-        }
-        System.out.println(set);
-    }
-
-    public Map<BytesKey, FilterWithHotness> getFilters() {
-        return filters;
     }
 
     public long size() {

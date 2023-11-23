@@ -1,7 +1,6 @@
 package org.urbcomp.startdb.stkq.filter;
 
 import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
-import jdk.internal.util.xml.impl.Input;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
@@ -16,13 +15,12 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StairBF {
+public class StairBF implements ISTKFilter {
     private int level;
     private int minT;
     private int maxT;
@@ -153,14 +151,14 @@ public class StairBF {
         }
     }
 
-    public List<byte[]> shrink(Query query, ISpatialKeyGeneratorNew sKeyGenerator, TimeKeyGeneratorNew tKeyGenerator, KeywordKeyGeneratorNew keywordGenerator) {
+    public List<byte[]> shrink(Query query) {
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
 
         List<byte[]> result = new ArrayList<>();
 
         byte[][] wordsCode = query.getKeywords().stream()
-                .map(keywordGenerator::toBytes).toArray(byte[][]::new);
+                .map(kKeyGenerator::toBytes).toArray(byte[][]::new);
 
         int tStart = tRange.getLow();
         int tEnd = tRange.getHigh();
@@ -183,7 +181,7 @@ public class StairBF {
         return result;
     }
 
-    public List<Range<byte[]>> shrinkAndTransform(Query query) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) {
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
 
