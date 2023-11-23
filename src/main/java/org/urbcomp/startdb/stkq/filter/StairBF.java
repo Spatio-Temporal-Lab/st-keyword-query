@@ -3,10 +3,10 @@ package org.urbcomp.startdb.stkq.filter;
 import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.io.RedisIO;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
@@ -25,9 +25,9 @@ public class StairBF implements ISTKFilter {
     private int minT;
     private int maxT;
     private BloomFilter[][] bfs;
-    protected final ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-    protected final TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
-    protected final KeywordKeyGeneratorNew kKeyGenerator = new KeywordKeyGeneratorNew();
+    protected final ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+    protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+    protected final KeywordKeyGenerator kKeyGenerator = new KeywordKeyGenerator();
     /*
     * [l,mid),[mid,r]
     * */

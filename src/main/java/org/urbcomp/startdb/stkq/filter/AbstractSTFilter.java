@@ -2,10 +2,10 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -28,9 +28,9 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected final int sIndexBytes;
     protected final int tIndexBytes;
 
-    protected final ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-    protected final TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
-    protected final KeywordKeyGeneratorNew kKeyGenerator = new KeywordKeyGeneratorNew();
+    protected final ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+    protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+    protected final KeywordKeyGenerator kKeyGenerator = new KeywordKeyGenerator();
 
     public AbstractSTFilter(int sBits, int tBits) {
         this.sBits = sBits;

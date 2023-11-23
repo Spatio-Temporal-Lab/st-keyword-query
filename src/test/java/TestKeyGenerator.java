@@ -1,6 +1,6 @@
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -23,7 +23,7 @@ public class TestKeyGenerator {
         testSTKeyGenerator(new TSKeyGenerator());
     }
 
-    private void testSTKeyGenerator(ISTKeyGeneratorNew keyGenerator) {
+    private void testSTKeyGenerator(ISTKeyGenerator keyGenerator) {
         for (STObject object : SAMPLE_DATA) {
             long stKey = keyGenerator.toNumber(object);
             List<Range<Long>> stRanges = keyGenerator.toNumberRanges(getQueryByObject(object));

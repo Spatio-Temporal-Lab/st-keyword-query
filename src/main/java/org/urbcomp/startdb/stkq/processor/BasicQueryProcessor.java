@@ -1,16 +1,16 @@
 package org.urbcomp.startdb.stkq.processor;
 
 import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 
 import java.util.List;
 
 public class BasicQueryProcessor extends AbstractQueryProcessor {
-    private ISTKeyGeneratorNew keyGenerator;
+    private ISTKeyGenerator keyGenerator;
 
-    public BasicQueryProcessor(String tableName, ISTKeyGeneratorNew keyGenerator) {
+    public BasicQueryProcessor(String tableName, ISTKeyGenerator keyGenerator) {
         super(tableName);
         this.keyGenerator = keyGenerator;
     }

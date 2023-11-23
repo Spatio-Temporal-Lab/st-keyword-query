@@ -12,17 +12,17 @@ import scala.Tuple2;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Z2SpatialKeyGeneratorNew implements ISpatialKeyGeneratorNew {
+public class Z2SpatialKeyGenerator implements ISpatialKeyGenerator {
     private final Z2SFC z2;
     private static final int BYTE_COUNT = Constant.SPATIAL_BYTE_COUNT;
 
     private static final int DEFAULT_PRECISION = 14;
 
-    public Z2SpatialKeyGeneratorNew() {
+    public Z2SpatialKeyGenerator() {
         this(DEFAULT_PRECISION);
     }
 
-    public Z2SpatialKeyGeneratorNew(int precision) {
+    public Z2SpatialKeyGenerator(int precision) {
         z2 = new Z2SFC(precision);
     }
 

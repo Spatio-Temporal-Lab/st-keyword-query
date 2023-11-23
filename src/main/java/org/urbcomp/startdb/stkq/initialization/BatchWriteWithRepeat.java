@@ -5,9 +5,9 @@ import org.urbcomp.startdb.stkq.io.HBaseUtil;
 //import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
 //import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
 //import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
@@ -44,8 +44,8 @@ public class BatchWriteWithRepeat {
 
 //        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
 //        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
-        ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
         List<Put> puts = new ArrayList<>();
 

@@ -1,7 +1,7 @@
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.HBaseIO;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
@@ -31,7 +31,7 @@ public class TestWrite {
 //                new SpatialFirstSTKeyGenerator(new HilbertSpatialKeyGenerator(), new TimeKeyGenerator()),
 //                new ShardSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator())
 //        };
-        ISTKeyGeneratorNew[] generators = new ISTKeyGeneratorNew[]{
+        ISTKeyGenerator[] generators = new ISTKeyGenerator[]{
                 new STKeyGenerator(),
                 new TSKeyGenerator(),
         };
@@ -48,7 +48,7 @@ public class TestWrite {
 //                    AbstractSTKeyGenerator generator = generators[i];
 //                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
 //                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
-                    ISTKeyGeneratorNew generator = generators[i];
+                    ISTKeyGenerator generator = generators[i];
                     HBaseIO hBaseIO = new HBaseIO();
                     hBaseIO.putUnusedData(tableName, generator.getByteCount(), 100000);
                     long start = System.currentTimeMillis();

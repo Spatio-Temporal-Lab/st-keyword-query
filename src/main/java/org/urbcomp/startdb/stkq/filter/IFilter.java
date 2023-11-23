@@ -1,8 +1,8 @@
 package org.urbcomp.startdb.stkq.filter;
 
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -13,8 +13,8 @@ import java.util.List;
 
 public interface IFilter {
     // todo 这个方法需要放在query processor里面
-    default List<byte[]> shrink(Query query, ISpatialKeyGeneratorNew sKeyGenerator, TimeKeyGeneratorNew tKeyGenerator,
-                KeywordKeyGeneratorNew keywordGenerator) {
+    default List<byte[]> shrink(Query query, ISpatialKeyGenerator sKeyGenerator, TimeKeyGenerator tKeyGenerator,
+                                KeywordKeyGenerator keywordGenerator) {
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
 

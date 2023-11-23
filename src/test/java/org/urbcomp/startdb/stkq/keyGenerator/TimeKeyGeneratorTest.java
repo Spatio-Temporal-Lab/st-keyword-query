@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertArrayEquals;
 
 public class TimeKeyGeneratorTest extends TestCase {
-    TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+    TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
     public void testToKey() throws ParseException {
         Date date = DateUtil.getDate("2000-01-01 00:00:00");

@@ -11,7 +11,7 @@ import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.*;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
@@ -150,7 +150,7 @@ public class TestQuery {
 //        String tableName = "tweetSample";
         String tableName = "testTweet";
         boolean tableExists = hBaseUtil.existsTable(tableName);
-        ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
+        ISTKeyGenerator keyGenerator = new STKeyGenerator();
         List<STObject> objects = DataProcessor.getSampleData();
 
         AbstractSTFilter[] filter = {

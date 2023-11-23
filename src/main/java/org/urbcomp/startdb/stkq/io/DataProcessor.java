@@ -6,9 +6,9 @@ import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.filter.*;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -205,8 +205,8 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -274,8 +274,8 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
         int tMin = Integer.MAX_VALUE;
         int tMax = -1;
@@ -482,8 +482,8 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
 
         ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 20);
@@ -552,8 +552,8 @@ public class DataProcessor {
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
 
-        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -614,8 +614,8 @@ public class DataProcessor {
         Map<BytesKey, Integer> st2Count = new HashMap<>();
         Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
 
-        ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
         Random random = new Random();
 
         try (BufferedReader br = new BufferedReader(

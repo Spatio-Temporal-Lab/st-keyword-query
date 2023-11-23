@@ -5,6 +5,6 @@ import org.urbcomp.startdb.stkq.model.Range;
 
 import java.util.List;
 
-public interface IKeyRangeGeneratorNew<T> {
+public interface IKeyRangeGenerator<T> {
     List<Range<T>> toNumberRanges(Query query);
 }

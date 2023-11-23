@@ -3,9 +3,9 @@ package org.urbcomp.startdb.stkq.util;
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.*;
 
 import java.io.*;
@@ -276,8 +276,8 @@ public class QueryGenerator {
 
 //        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
 //        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
-        ISpatialKeyGeneratorNew sKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        TimeKeyGeneratorNew tKeyGenerator = new TimeKeyGeneratorNew();
+        ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
         for (STObject object : objects) {
 //            BytesKey key = new BytesKey(ByteUtil.concat(

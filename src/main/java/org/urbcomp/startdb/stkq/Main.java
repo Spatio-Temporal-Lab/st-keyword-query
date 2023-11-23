@@ -8,7 +8,7 @@ import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
@@ -55,7 +55,7 @@ public class Main {
         // create table
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
         String tableName = "testTweet";
-        ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
+        ISTKeyGenerator keyGenerator = new STKeyGenerator();
 
         AbstractSTFilter[] filter = {
                 new STFilter(8, 4, new BasicFilterManager(3, 12)),

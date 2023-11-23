@@ -1,6 +1,6 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.STObject;
 import junit.framework.TestCase;
@@ -16,7 +16,7 @@ public class HBaseIOTest extends TestCase {
         String tableName = "test01";
         hBaseUtil.createTable(tableName, new String[]{"attr"});
 //        AbstractSTKeyGenerator keyGenerator = new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator());
-        ISTKeyGeneratorNew keyGenerator = new STKeyGenerator();
+        ISTKeyGenerator keyGenerator = new STKeyGenerator();
         DataProcessor dataProcessor = new DataProcessor();
         dataProcessor.setRate(0.01);
         ArrayList<STObject> objects = new ArrayList<>();

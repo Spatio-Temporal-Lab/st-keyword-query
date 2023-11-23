@@ -9,20 +9,20 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TSKeyGenerator implements ISTKeyGeneratorNew {
+public class TSKeyGenerator implements ISTKeyGenerator {
 
-    private final ISpatialKeyGeneratorNew spatialKeyGenerator;
-    private final TimeKeyGeneratorNew timeKeyGenerator;
+    private final ISpatialKeyGenerator spatialKeyGenerator;
+    private final TimeKeyGenerator timeKeyGenerator;
     private final static int S_BYTE_COUNT = Constant.SPATIAL_BYTE_COUNT;
     private final static int T_BYTE_COUNT = Constant.TIME_BYTE_COUNT;
     private final static int S_BIT_COUNT = S_BYTE_COUNT * 8;
 
     public TSKeyGenerator() {
-        this.spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        this.timeKeyGenerator = new TimeKeyGeneratorNew();
+        this.spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        this.timeKeyGenerator = new TimeKeyGenerator();
     }
 
-    public TSKeyGenerator(ISpatialKeyGeneratorNew spatialKeyGenerator, TimeKeyGeneratorNew timeKeyGenerator) {
+    public TSKeyGenerator(ISpatialKeyGenerator spatialKeyGenerator, TimeKeyGenerator timeKeyGenerator) {
         this.spatialKeyGenerator = spatialKeyGenerator;
         this.timeKeyGenerator = timeKeyGenerator;
     }

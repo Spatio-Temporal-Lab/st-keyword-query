@@ -15,8 +15,8 @@ import java.util.Date;
 public class SpatialTimeKeyGeneratorTest extends TestCase {
 //    TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 //    SpatialKeyGenerator spatialKeyGenerator = new SpatialKeyGenerator();
-    TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
-    ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
+    TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+    ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
     public void testToKeyRanges() throws ParseException {
         Date date = DateUtil.getDate("2010-06-06 12:00:00");
         Date left = DateUtil.getDate("2010-06-06 11:00:00");

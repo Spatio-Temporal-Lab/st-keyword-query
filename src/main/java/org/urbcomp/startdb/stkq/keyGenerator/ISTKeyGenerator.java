@@ -7,7 +7,7 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.util.List;
 
-public interface ISTKeyGeneratorNew extends IKeyGeneratorNew<STObject, Long>, IKeyRangeGeneratorNew<Long>{
+public interface ISTKeyGenerator extends IKeyGenerator<STObject, Long>, IKeyRangeGenerator<Long> {
     default byte[] toDatabaseKey(STObject stObject) {
         return ByteUtil.concat(toBytes(stObject), ByteUtil.longToByte(stObject.getID()));
     }

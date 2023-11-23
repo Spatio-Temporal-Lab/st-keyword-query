@@ -17,7 +17,7 @@ public class SpatialKeyGeneratorTest extends TestCase {
 
     public void testToKey() {
 //        SpatialKeyGenerator generator = new SpatialKeyGenerator();
-        ISpatialKeyGeneratorNew generator = new Z2SpatialKeyGeneratorNew();
+        ISpatialKeyGenerator generator = new Z2SpatialKeyGenerator();
         byte[] bytes1 = generator.toBytes(new Location(0, 0));
         assertNotEquals(ByteUtil.getValue(bytes1), BigInteger.valueOf(0));
         byte[] bytes2 = generator.toBytes(new Location(-90, -180));

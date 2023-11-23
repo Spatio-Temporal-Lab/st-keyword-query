@@ -9,7 +9,7 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -27,7 +27,7 @@ import java.util.Map;
 public class HBaseIO {
     private static final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-    public static void putObjects(String tableName, ISTKeyGeneratorNew keyGenerator, List<STObject> objects, int batchSize) throws IOException {
+    public static void putObjects(String tableName, ISTKeyGenerator keyGenerator, List<STObject> objects, int batchSize) throws IOException {
         List<Put> puts = new ArrayList<>();
 
         final BufferedMutator.ExceptionListener listener = (e, mutator) -> {

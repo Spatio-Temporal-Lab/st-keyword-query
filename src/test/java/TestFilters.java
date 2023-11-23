@@ -9,10 +9,10 @@ import org.urbcomp.startdb.stkq.filter.manager.AHFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGeneratorNew;
-import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGeneratorNew;
+import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -32,9 +32,9 @@ public class TestFilters {
     private static final List<Query> QUERIES_SMALL = QueryGenerator.getQueries("queriesZipfSample.csv");
 
     private static final List<STObject> SAMPLE_DATA = DataProcessor.getSampleData();
-    private static final ISpatialKeyGeneratorNew spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-    private static final TimeKeyGeneratorNew timeKeyGenerator = new TimeKeyGeneratorNew();
-    private static final KeywordKeyGeneratorNew keywordGenerator = new KeywordKeyGeneratorNew();
+    private static final ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+    private static final TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
+    private static final KeywordKeyGenerator keywordGenerator = new KeywordKeyGenerator();
     private static List<List<byte[]>> GROUND_TRUTH_RANGES = new ArrayList<>();
 
     @BeforeClass
@@ -176,76 +176,36 @@ public class TestFilters {
     public void testSTFilter() {
         int sBits = 8;
         int tBits = 4;
-//        AbstractSTFilter stFilter = new STFilter(3, 13, sBits, tBits);
-        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
+        AbstractSTFilter[] stFilters = {
+                new STFilter(sBits, tBits, new BasicFilterManager(3, 13)),
+                new STFilter(sBits, tBits, new HFilterManager(3, 14)),
+                new STFilter(sBits, tBits, new AHFilterManager(3, 14))
+        };
 
-        insertIntoSTFilter(stFilter);
+        for (AbstractSTFilter stFilter : stFilters) {
+            insertIntoSTFilter(stFilter);
+        }
 
-        long start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
-        long end = System.currentTimeMillis();
-        checkNoFalsePositive(results);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter));
-        System.out.println("Filter Memory Usage: " + stFilter.size());
-        System.out.println("query Time: " + (end - start));
-        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+        for (AbstractSTFilter stFilter : stFilters) {
+            long start = System.currentTimeMillis();
+            List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
+            long end = System.currentTimeMillis();
+            checkNoFalsePositive(results);
+            System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
+                    RamUsageEstimator.humanSizeOf(stFilter));
+            System.out.println("Filter Memory Usage: " + stFilter.size());
+            System.out.println("query Time: " + (end - start));
+            System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+            System.out.println("------------------------------------------------------------------");
+        }
 
-        System.out.println("------------------------------------------------------------------");
-
-
-//        AbstractSTFilter stFilter1 = new HSTFilter(3, 14, sBits, tBits);
-        AbstractSTFilter stFilter1 = new STFilter(sBits, tBits, new HFilterManager(3, 14));
-        insertIntoSTFilter(stFilter1);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " + RamUsageEstimator.humanSizeOf(stFilter1));
-        System.out.println("Filter Memory Usage: " + stFilter1.size());
-        start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter1, QUERIES_SMALL);
-        end = System.currentTimeMillis();
-        checkNoFalsePositive(results);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter1) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter1));
-        System.out.println("Filter Memory Usage: " + stFilter1.size());
-        System.out.println("query Time: " + (end - start));
-        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
-
-        System.out.println("------------------------------------------------------------------");
-
-//        AbstractSTFilter stFilter2 = new AHSTFilter(3, 14, sBits, tBits);
-        AbstractSTFilter stFilter2 = new STFilter(sBits, tBits, new AHFilterManager(3, 13));
-        insertIntoSTFilter(stFilter2);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " + RamUsageEstimator.humanSizeOf(stFilter2));
-        System.out.println("Filter Memory Usage: " + stFilter2.size());
-        start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter2, QUERIES_SMALL);
-        end = System.currentTimeMillis();
-        checkNoFalsePositive(results);
-        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter2) + " " +
-                RamUsageEstimator.humanSizeOf(stFilter2));
-        System.out.println("Filter Memory Usage: " + stFilter2.size());
-        System.out.println("query Time: " + (end - start));
-        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
-
-        System.out.println("******************************************************************");
-
-
-        start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter);
-        end = System.currentTimeMillis();
-        System.out.println("query Time: " + (end - start));
-        System.out.println(results.stream().mapToInt(List::size).sum());
-
-        start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter1);
-        end = System.currentTimeMillis();
-        System.out.println("query Time: " + (end - start));
-        System.out.println(results.stream().mapToInt(List::size).sum());
-
-        start = System.currentTimeMillis();
-        results = shrinkBySTFilter(stFilter2);
-        end = System.currentTimeMillis();
-        System.out.println("query Time: " + (end - start));
-        System.out.println(results.stream().mapToInt(List::size).sum());
+        for (AbstractSTFilter stFilter : stFilters) {
+            long start = System.currentTimeMillis();
+            List<List<byte[]>> results = shrinkBySTFilter(stFilter);
+            long end = System.currentTimeMillis();
+            System.out.println("query Time: " + (end - start));
+            System.out.println(results.stream().mapToInt(List::size).sum());
+        }
     }
 
     @Test

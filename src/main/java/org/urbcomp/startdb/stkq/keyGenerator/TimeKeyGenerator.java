@@ -10,16 +10,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class TimeKeyGeneratorNew implements IKeyGeneratorNew<Date, Integer>, IKeyRangeGeneratorNew<Integer> {
+public class TimeKeyGenerator implements IKeyGenerator<Date, Integer>, IKeyRangeGenerator<Integer> {
     private final static int BYTE_COUNT = Constant.TIME_BYTE_COUNT;
     private final static int DEFAULT_HOURS_PER_BIN = 1;
     private final int hoursPerBin;
 
-    public TimeKeyGeneratorNew() {
+    public TimeKeyGenerator() {
         this(DEFAULT_HOURS_PER_BIN);
     }
 
-    public TimeKeyGeneratorNew(int hoursPerBin) {
+    public TimeKeyGenerator(int hoursPerBin) {
         this.hoursPerBin = hoursPerBin;
     }
 
