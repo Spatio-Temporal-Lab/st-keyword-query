@@ -94,10 +94,6 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     public void insert(STObject stObject) {
     }
 
-    public boolean check(STObject stObject) {
-        return false;
-    }
-
     public List<byte[]> shrink(Query query) {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
@@ -215,8 +211,6 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     public long size() { return RamUsageEstimator.sizeOf(this); }
 
     public void out() throws IOException {}
-
-    public void load() {}
 
     public List<byte[]> shrinkWithIO(Query query) {
         return null;

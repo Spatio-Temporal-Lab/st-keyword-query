@@ -90,6 +90,8 @@ public class AHFilterManager extends AbstractFilterManager {
 
     public long size() {
         System.out.println("filter count: " + filters.size());
+        System.out.println("map size: " + RamUsageEstimator.sizeOf(filters));
+        System.out.println("sorted filter size: " + RamUsageEstimator.sizeOf(sortedFilters));
         long size = 0;
         for (FilterWithIdx filter : sortedFilters) {
             size += RamUsageEstimator.sizeOf(filter.filter);

@@ -162,9 +162,7 @@ public class TestFilters {
         System.out.println(RamUsageEstimator.humanSizeOf(filter));
 
         for (int t = 0; t < 5; ++t) {
-            System.out.println("start " + t);
             filter.sacrifice();
-            System.out.println("end " + t);
             System.out.println(RamUsageEstimator.humanSizeOf(filter));
             for (int i = 0; i < n; ++i) {
                 Assert.assertTrue(filter.search(i));
@@ -176,15 +174,22 @@ public class TestFilters {
     public void testSTFilter() {
         int sBits = 8;
         int tBits = 4;
+
+        HFilterManager hFilterManager = new HFilterManager(3, 14);
+        AHFilterManager ahFilterManager = new AHFilterManager(3, 14);
+
         AbstractSTFilter[] stFilters = {
                 new STFilter(sBits, tBits, new BasicFilterManager(3, 13)),
-                new STFilter(sBits, tBits, new HFilterManager(3, 14)),
-                new STFilter(sBits, tBits, new AHFilterManager(3, 14))
+                new STFilter(sBits, tBits, hFilterManager),
+                new STFilter(sBits, tBits, ahFilterManager),
         };
 
         for (AbstractSTFilter stFilter : stFilters) {
             insertIntoSTFilter(stFilter);
         }
+
+        hFilterManager.build();
+        ahFilterManager.build();
 
         for (AbstractSTFilter stFilter : stFilters) {
             long start = System.currentTimeMillis();

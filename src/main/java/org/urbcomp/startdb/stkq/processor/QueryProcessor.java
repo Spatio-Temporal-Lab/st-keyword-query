@@ -8,7 +8,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 import java.util.List;
 
 public class QueryProcessor extends AbstractQueryProcessor {
-    private ISTKFilter filter;
+    private final ISTKFilter filter;
 
     public QueryProcessor(String tableName, ISTKFilter filter) {
         super(tableName);

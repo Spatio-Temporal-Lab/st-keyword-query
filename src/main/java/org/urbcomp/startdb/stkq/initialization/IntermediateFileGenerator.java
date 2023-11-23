@@ -34,20 +34,6 @@ public class IntermediateFileGenerator {
         o.writeObject(bloomFilter);
     }
 
-    public static void writeInfiniFilters() throws ParseException, IOException {
-        DataProcessor dataProcessor = new DataProcessor();
-        Map<BytesKey, ChainedInfiniFilter> filters = dataProcessor.generateSTDividedFilter("/usr/data/tweetAll.csv");
-        System.out.println(filters.size());
-
-        for (Map.Entry<BytesKey, ChainedInfiniFilter> entry : filters.entrySet()) {
-            String outputPath = "/usr/data/bloom/dynamicBloom/all" + Constant.S_FILTER_ITEM_LEVEL + Constant.T_FILTER_ITEM_LEVEL + "/" + entry.getKey() + ".txt";
-            entry.getValue().writeTo(Files.newOutputStream(Paths.get(outputPath)));
-            FileOutputStream f = new FileOutputStream(outputPath);
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(entry.getValue());
-        }
-    }
-
     public static void writeInfiniFilter() throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
 //        ChainedInfiniFilter filter = dataProcessor.generateOneFilter("/usr/data/tweetAll.csv");
@@ -77,12 +63,12 @@ public class IntermediateFileGenerator {
         System.out.println("st count: " + maps.get(0).size());
         System.out.println("st count: " + maps.get(1).size());
 
-        try(FileOutputStream f = new FileOutputStream("/usr/data/st2Count.txt");
-            ObjectOutputStream o = new ObjectOutputStream(f)) {
+        try (FileOutputStream f = new FileOutputStream("/usr/data/st2Count.txt");
+             ObjectOutputStream o = new ObjectOutputStream(f)) {
             o.writeObject(maps.get(0));
         }
-        try(FileOutputStream f = new FileOutputStream("/usr/data/st2Words.txt");
-            ObjectOutputStream o = new ObjectOutputStream(f)) {
+        try (FileOutputStream f = new FileOutputStream("/usr/data/st2Words.txt");
+             ObjectOutputStream o = new ObjectOutputStream(f)) {
             o.writeObject(maps.get(1));
         }
     }

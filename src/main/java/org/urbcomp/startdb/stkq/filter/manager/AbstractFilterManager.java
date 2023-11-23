@@ -6,6 +6,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 public class AbstractFilterManager implements IFilterManager {
     protected final int log2Size;
     protected final int bitsPerKey;
+
     public AbstractFilterManager(int log2Size, int bitsPerKey) {
         this.log2Size = log2Size;
         this.bitsPerKey = bitsPerKey;
@@ -27,6 +28,10 @@ public class AbstractFilterManager implements IFilterManager {
 
     }
 
+    public IFilter update(BytesKey index) {
+        return null;
+    }
+
     @Override
     public IFilter getAndCreateIfNoExists(BytesKey index) {
         return null;
@@ -39,11 +44,6 @@ public class AbstractFilterManager implements IFilterManager {
 
     @Override
     public IFilter getWithIO(BytesKey index) {
-        return null;
-    }
-
-    @Override
-    public IFilter update(BytesKey index) {
         return null;
     }
 

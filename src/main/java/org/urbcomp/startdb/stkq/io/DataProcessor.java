@@ -261,97 +261,6 @@ public class DataProcessor {
         return bloomFilter;
     }
 
-    public Map<BytesKey, ChainedInfiniFilter> generateSTDividedFilter(String path) throws ParseException {
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        Map<BytesKey, ChainedInfiniFilter> map = new HashMap<>();
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        int tMin = Integer.MAX_VALUE;
-        int tMax = -1;
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                int tNow = timeKeyGenerator.toNumber(cur.getTime());
-                tMin = Math.min(tNow, tMin);
-                tMax = Math.max(tNow, tMax);
-
-//                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-//                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
-//
-//                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
-//                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
-//
-//                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
-//                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
-//                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
-//
-//                ChainedInfiniFilter filter;
-//                if (map.get(bfID) == null) {
-//                    filter = new ChainedInfiniFilter(3, 10);
-//                    filter.set_expand_autonomously(true);
-//                    map.put(bfID, filter);
-//                } else {
-//                    filter = map.get(bfID);
-//                }
-//
-//                for (String keyword : cur.getKeywords()) {
-//                    byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
-//                    filter.insert(insertValue, false);
-//                }
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println("tMin = " + tMin);
-        System.out.println("tMax = " + tMax);
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-
-        return map;
-    }
-
     public void putFiltersToRedis(AbstractSTFilter stFilter, String path) throws ParseException, IOException {
         double maxLat = -100.0;
         double minLat = 100.0;
@@ -474,8 +383,6 @@ public class DataProcessor {
         double minLat = 100.0;
         double maxLon = -200.0;
         double minLon = 200.0;
-
-        Map<BytesKey, ChainedInfiniFilter> map = new HashMap<>();
 
         //实现对象读取
         String dateString = "1900-02-23 00:00";

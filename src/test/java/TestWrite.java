@@ -52,7 +52,7 @@ public class TestWrite {
                     HBaseIO hBaseIO = new HBaseIO();
                     hBaseIO.putUnusedData(tableName, generator.getByteCount(), 100000);
                     long start = System.currentTimeMillis();
-                    hBaseIO.putObjects(tableName, generator, objects, 5000);
+                    HBaseIO.putObjects(tableName, generator, objects, 5000);
                     long end = System.currentTimeMillis();
                     allTime += end - start;
                     System.out.println(tableName + " cost " + (end - start) + "ms");

@@ -34,19 +34,6 @@ public class STFilter extends AbstractSTFilter {
         }
     }
 
-    @Override
-    public boolean check(STObject stObject) {
-        long s = sKeyGenerator.toNumber(stObject.getLocation());
-        int t = tKeyGenerator.toNumber(stObject.getTime());
-
-        BytesKey stIndex = getSTIndex(s, t);
-        IFilter filter = filterManager.get(stIndex);
-        for (String keyword : stObject.getKeywords()) {
-            Assert.assertTrue(filter.check(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t))));
-        }
-        return true;
-    }
-
     public List<byte[]> shrink(Query query) {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
@@ -144,9 +131,5 @@ public class STFilter extends AbstractSTFilter {
     @Override
     public void out() throws IOException {
         filterManager.out();
-    }
-
-    @Override
-    public void load() {
     }
 }

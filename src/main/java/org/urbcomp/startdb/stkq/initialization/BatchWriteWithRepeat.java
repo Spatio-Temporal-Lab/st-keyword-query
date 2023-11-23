@@ -2,9 +2,6 @@ package org.urbcomp.startdb.stkq.initialization;
 
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.HilbertSpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
-//import org.urbcomp.startdb.stkq.keyGenerator.old.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -42,8 +39,6 @@ public class BatchWriteWithRepeat {
 
         String inPathName = "/usr/data/tweetSample.csv";
 
-//        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
-//        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
         ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
@@ -117,8 +112,6 @@ public class BatchWriteWithRepeat {
                     }
 
                     Location location = new Location(lat, lon);
-//                    byte[] sCode = sKeyGenerator.toKey(location);
-//                    byte[] tCode = tKeyGenerator.toKey(date);
                     byte[] sCode = sKeyGenerator.toBytes(location);
                     byte[] tCode = tKeyGenerator.toBytes(date);
 

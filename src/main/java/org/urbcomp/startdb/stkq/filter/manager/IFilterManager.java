@@ -10,7 +10,5 @@ public interface IFilterManager {
 
     IFilter getWithIO(BytesKey index);
 
-    IFilter update(BytesKey index);
-
     IFilter getAndUpdate(BytesKey index);
 }

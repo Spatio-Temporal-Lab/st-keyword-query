@@ -2,11 +2,12 @@ package org.urbcomp.startdb.stkq;
 
 import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.StairBF;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
-import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
@@ -37,23 +38,8 @@ public class Main {
         return true;
     }
 
-    private static boolean equals(List<List<STObject>> a1, List<List<STObject>> a2) {
-        int n = a1.size();
-        if (a2.size() != n) {
-            return false;
-        }
-        boolean f = true;
-        for (int i = 0; i < n; ++i) {
-            if (!equals_(a1.get(i), a2.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static void testQueryCorrectness() throws IOException, ParseException, InterruptedException {
+    public static void testQueryCorrectness() throws ParseException, InterruptedException {
         // create table
-        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
         String tableName = "testTweet";
         ISTKeyGenerator keyGenerator = new STKeyGenerator();
 
@@ -61,9 +47,6 @@ public class Main {
                 new STFilter(8, 4, new BasicFilterManager(3, 12)),
                 new STFilter(8, 4, new HFilterManager(3, 14)),
                 new STFilter(8, 4, new LRUFilterManager(3, 14)),
-//                new STFilter(3, 12, 8, 4),
-//                new HSTFilter(3, 14, 8, 4),
-//                new LRUSTFilter(3, 14, 8, 4)
         };
 
         StairBF bf = new StairBF(1, 1, 1, 1, 1);

@@ -13,12 +13,8 @@ import java.util.*;
 
 public abstract class AbstractQueryProcessor {
     protected final String tableName;
-//    protected boolean filterInMemory = false;
-//    protected final ISTKeyGeneratorNew stKeyGenerator;
-
     long queryHBaseTime = 0;
     long queryBloomTime = 0;
-
     long allSize = 0;
     long allCount = 0;
 
@@ -48,11 +44,6 @@ public abstract class AbstractQueryProcessor {
         return sum;
     }
 
-//    public BasicQueryProcessor(String tableName, ISTKeyGeneratorNew keyGenerator) {
-//        this.tableName = tableName;
-//        this.stKeyGenerator = keyGenerator;
-//    }
-
     public AbstractQueryProcessor(String tableName) {
         this.tableName = tableName;
     }
@@ -73,11 +64,6 @@ public abstract class AbstractQueryProcessor {
 
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
-
-//        if (filterInMemory) {
-//        } else {
-//            ranges = stKeyGenerator.toBytesRanges(query);
-//        }
 
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;

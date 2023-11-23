@@ -223,10 +223,4 @@ public class TestQuery {
         }
         return results;
     }
-
-    @Test
-    public void test() throws ParseException {
-        Logger logger = LoggerFactory.getLogger(ClientScanner.class);
-        System.out.println(logger.isDebugEnabled());
-    }
 }

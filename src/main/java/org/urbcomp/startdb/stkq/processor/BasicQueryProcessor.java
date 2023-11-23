@@ -8,7 +8,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 import java.util.List;
 
 public class BasicQueryProcessor extends AbstractQueryProcessor {
-    private ISTKeyGenerator keyGenerator;
+    private final ISTKeyGenerator keyGenerator;
 
     public BasicQueryProcessor(String tableName, ISTKeyGenerator keyGenerator) {
         super(tableName);
