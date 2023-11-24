@@ -1,6 +1,11 @@
 package org.urbcomp.startdb.stkq.util;
 
+import org.apache.commons.collections.ArrayStack;
+
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ByteUtil {
     public static byte[] getKByte(int num, int k) {
@@ -21,8 +26,20 @@ public class ByteUtil {
         return targets;
     }
 
-    public static byte[] longToByte(long num) {
+    public static byte[] longToBytes(long num) {
         return getKByte(num, 8);
+    }
+
+    public static byte[] longToBytesWithoutPrefixZero(long num) {
+        byte[] origin = getKByte(num, 8);
+        int i = 0;
+        while (i < 8 && origin[i] == 0) {
+            ++i;
+        }
+        if (i == 8) {
+            return new byte[]{0};
+        }
+        return Arrays.copyOfRange(origin, i, 8);
     }
 
     public static byte[] concat(byte[]... values) {

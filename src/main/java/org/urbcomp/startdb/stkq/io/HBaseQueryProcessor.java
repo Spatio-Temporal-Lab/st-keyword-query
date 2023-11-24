@@ -73,8 +73,8 @@ public class HBaseQueryProcessor {
         cdl = new CountDownLatch(ranges.size());
         for (Range<byte[]> range : ranges) {
             service.submit(new ScanThread(tableName,
-                    ByteUtil.concat(range.getLow(), ByteUtil.longToByte(0)),
-                    ByteUtil.concat(range.getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), query, result));
+                    ByteUtil.concat(range.getLow(), ByteUtil.longToBytes(0)),
+                    ByteUtil.concat(range.getHigh(), ByteUtil.longToBytes(Long.MAX_VALUE)), query, result));
         }
         cdl.await();
 

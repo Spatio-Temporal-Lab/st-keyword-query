@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ISTKeyGenerator extends IKeyGenerator<STObject, Long>, IKeyRangeGenerator<Long> {
     default byte[] toDatabaseKey(STObject stObject) {
-        return ByteUtil.concat(toBytes(stObject), ByteUtil.longToByte(stObject.getID()));
+        return ByteUtil.concat(toBytes(stObject), ByteUtil.longToBytes(stObject.getID()));
     }
 
     List<Range<byte[]>> toBytesRanges(Query query);

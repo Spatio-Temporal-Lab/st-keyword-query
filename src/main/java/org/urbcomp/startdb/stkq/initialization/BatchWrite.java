@@ -109,8 +109,10 @@ public class BatchWrite {
                     byte[] sCode = sKeyGenerator.toBytes(location);
                     byte[] tCode = tKeyGenerator.toBytes(date);
 
-                    Put put = new Put(ByteUtil.concat(sCode, tCode,  Bytes.toBytes(ID)));
-                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID));
+//                    Put put = new Put(ByteUtil.concat(sCode, tCode,  Bytes.toBytes(ID)));
+//                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(ID));
+                    Put put = new Put(ByteUtil.concat(sCode, tCode,  ByteUtil.longToBytesWithoutPrefixZero(ID)));
+                    put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), ByteUtil.longToBytesWithoutPrefixZero(ID));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(location.toString()));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(date)));
                     put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(String.join(" ", keywords)));

@@ -119,7 +119,7 @@ public class HBaseIO {
             rubbish[i] = -1;
         }
         for (int i = 0; i < size; ++i) {
-            Put put = new Put(ByteUtil.concat(rubbish, ByteUtil.longToByte(i)));
+            Put put = new Put(ByteUtil.concat(rubbish, ByteUtil.longToBytes(i)));
             put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(i));
             put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(i));
             put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(i));

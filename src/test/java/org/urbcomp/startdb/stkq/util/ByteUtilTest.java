@@ -3,6 +3,8 @@ package org.urbcomp.startdb.stkq.util;
 import junit.framework.TestCase;
 import org.junit.Assert;
 
+import java.util.Arrays;
+
 public class ByteUtilTest extends TestCase {
     public void testToInt() {
         assertEquals(1, ByteUtil.toInt(new byte[]{1}));
@@ -24,6 +26,18 @@ public class ByteUtilTest extends TestCase {
             for (int j = 1; j <= 8; ++j) {
                 Assert.assertEquals(i, ByteUtil.getBytesCountByBitsCount((i - 1) * 8 + j));
             }
+        }
+    }
+
+    public void testLongToBytesWithoutPrefixZero() {
+        long i = 0;
+        Assert.assertArrayEquals(ByteUtil.longToBytesWithoutPrefixZero(i), new byte[]{0});
+        i = Integer.MAX_VALUE;
+        Assert.assertArrayEquals(ByteUtil.longToBytesWithoutPrefixZero(i), new byte[]{127, -1, -1, -1});
+        i = Long.MAX_VALUE;
+        Assert.assertArrayEquals(ByteUtil.longToBytesWithoutPrefixZero(i), new byte[]{127, -1, -1, -1, -1, -1, -1, -1});
+        for (long j = 1; j < 255; ++j) {
+            Assert.assertArrayEquals(ByteUtil.longToBytesWithoutPrefixZero(j), new byte[]{(byte) j});
         }
     }
 }
