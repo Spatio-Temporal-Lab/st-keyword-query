@@ -13,9 +13,11 @@ import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.processor.AbstractQueryProcessor;
+import org.urbcomp.startdb.stkq.processor.BDIAQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
@@ -148,10 +150,12 @@ public class TestQuery {
         // create table
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 //        String tableName = "tweetSample";
-        String tableName = "testTweet";
-        boolean tableExists = hBaseUtil.existsTable(tableName);
-        ISTKeyGenerator keyGenerator = new STKeyGenerator();
-        List<STObject> objects = DataProcessor.getSampleData();
+        String tableName1 = "testTweet";
+        String tableName2 = "testTweetBDIA";
+
+        boolean tableExists = hBaseUtil.existsTable(tableName1);
+        ISTKeyGenerator keyGenerator1 = new STKeyGenerator();
+        ISTKeyGenerator keyGenerator2 = new TSKeyGenerator();
 
         AbstractSTFilter[] filter = {
 //                new STFilter(3, 12, 8, 4),
@@ -162,19 +166,13 @@ public class TestQuery {
                 new STFilter(8, 4, new LRUFilterManager(3, 14)),
         };
 
-        if (!tableExists) {
-            hBaseUtil.createTable(tableName, new String[]{"attr"});// write data into HBase
-            System.out.println("--------------------insert begin--------------------");
-            HBaseIO.putObjects(tableName, keyGenerator, objects, 1000);
-            System.out.println("--------------------insert end--------------------");
-        }
-
         // test query results
         List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
         AbstractQueryProcessor[] processors = {
-                new BasicQueryProcessor(tableName, keyGenerator),
-                new QueryProcessor(tableName, filter[0]),
-                new QueryProcessor(tableName, filter[2])
+                new BasicQueryProcessor(tableName1, keyGenerator1),
+                new BDIAQueryProcessor(tableName2, keyGenerator2)
+//                new QueryProcessor(tableName1, filter[0]),
+//                new QueryProcessor(tableName1, filter[2])
         };
         System.out.println("--------------------query begin--------------------");
 
@@ -183,6 +181,7 @@ public class TestQuery {
 
         long begin = System.currentTimeMillis();
         for (Query query : queries) {
+            System.out.println(query);
             query.setQueryType(QueryType.CONTAIN_ONE);
 //            if (++ii > 100) {
 //                break;
@@ -195,6 +194,16 @@ public class TestQuery {
                 resultsList.add(results);
             }
 //            System.out.println(resultsList);
+            System.out.println("-----------------------------");
+            System.out.println(resultsList.get(0).size());
+            for (STObject object : resultsList.get(0)) {
+                System.out.println(object);
+            }
+            System.out.println("******************************");
+            System.out.println(resultsList.get(1).size());
+            for (STObject object : resultsList.get(1)) {
+                System.out.println(object);
+            }
             for (int i = 1; i < n; ++i) {
                 Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
             }
@@ -210,6 +219,66 @@ public class TestQuery {
         for (AbstractSTFilter filter_ : filter) {
             System.out.println("filter ram size: " + filter_.size());
         }
+
+        RedisIO.close();
+    }
+
+    @Test
+    public void testSystem() throws IOException, ParseException, InterruptedException {
+        // create table
+        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
+        ISTKeyGenerator keyGenerator1 = new STKeyGenerator();
+        ISTKeyGenerator keyGenerator2 = new TSKeyGenerator();
+        List<STObject> objects = DataProcessor.getSampleData().subList(0, 1000);
+
+        String tableName1 = "testTweetSample";
+        if (!hBaseUtil.existsTable(tableName1)) {
+            hBaseUtil.createTable(tableName1, new String[]{"attr"});// write data into HBase
+            System.out.println("--------------------insert begin--------------------");
+            HBaseIO.putObjects(tableName1, keyGenerator1, objects, 1000);
+            System.out.println("--------------------insert end--------------------");
+        }
+        String tableName2 = "testTweetSampleBDIA";
+        if (!hBaseUtil.existsTable(tableName2)) {
+            hBaseUtil.createTable(tableName2, new String[]{"attr"});// write data into HBase
+            System.out.println("--------------------insert begin--------------------");
+            HBaseIO.putObjectsBDIA(tableName2, keyGenerator2, objects, 1000);
+            System.out.println("--------------------insert end--------------------");
+        }
+//        else  {
+//            hBaseUtil.truncateTable(tableName);
+//        }
+
+        // test query results
+        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
+        AbstractQueryProcessor processor1 = new BasicQueryProcessor(tableName1, keyGenerator1);
+        AbstractQueryProcessor processor2 = new BDIAQueryProcessor(tableName2, keyGenerator2);
+
+        System.out.println("--------------------query begin--------------------");
+
+        long begin = System.currentTimeMillis();
+
+        for (Query query : queries) {
+            query.setQueryType(QueryType.CONTAIN_ONE);
+
+            List<STObject> results = bruteForce(objects, query);
+            Collections.sort(results);
+
+            List<STObject> results1 = processor1.getResult(query);
+            Collections.sort(results1);
+
+            List<STObject> results2 = processor2.getResult(query);
+            Collections.sort(results2);
+
+            Assert.assertTrue(equals_(results, results1));
+            Assert.assertTrue(equals_(results, results2));
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("--------------------query end--------------------");
+        System.out.println((end - begin) + " ms");
+
+        System.out.println(processor1.getAllSize());
+        processor1.close();
 
         RedisIO.close();
     }

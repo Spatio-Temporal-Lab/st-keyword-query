@@ -36,7 +36,7 @@ public abstract class AbstractQueryProcessor {
         return right - left + 1;
     }
 
-    private long getRangesSize(List<Range<byte[]>> ranges) {
+    long getRangesSize(List<Range<byte[]>> ranges) {
         long sum = 0;
         for (Range<byte[]> range : ranges) {
             sum += getRangeSize(range);

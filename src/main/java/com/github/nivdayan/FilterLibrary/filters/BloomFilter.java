@@ -11,7 +11,8 @@ import java.io.OutputStream;
 public class BloomFilter extends Filter {
 
 	Bitmap filter;
-	long num_bits; 
+
+	long num_bits;
 	long max_num_entries;
 	long current_num_entries;
 	long bits_per_entry;
@@ -58,6 +59,11 @@ public class BloomFilter extends Filter {
 		return bf;
 	}
 
+
+	public long getNum_bits() {
+		return num_bits;
+	}
+
 	public BloomFilter(int new_num_entries, int new_bits_per_entry) {
 		max_num_entries = new_num_entries;
 		filter = new QuickBitVectorWrapper(new_bits_per_entry,  (int)max_num_entries);
@@ -76,6 +82,18 @@ public class BloomFilter extends Filter {
 		num_hash_functions = 1;
 		hash_type = HashType.xxh;
 		current_num_entries = 0;
+	}
+
+	public BloomFilter(byte[] bytes, int num_hash_functions, long num_bits) {
+		filter = new QuickBitVectorWrapper(bytes);
+		this.num_hash_functions = num_hash_functions;
+		this.num_bits = num_bits;
+		hash_type = HashType.xxh;
+		current_num_entries = 0;
+	}
+
+	public byte[] getArray() {
+		return filter.getArray();
 	}
 	
 	@Override

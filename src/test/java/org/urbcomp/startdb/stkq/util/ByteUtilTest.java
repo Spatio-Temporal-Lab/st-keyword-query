@@ -29,6 +29,20 @@ public class ByteUtilTest extends TestCase {
         }
     }
 
+    public void testLongToBytes() {
+        long i = 0;
+        Assert.assertArrayEquals(ByteUtil.longToBytes(i), new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
+        i = Integer.MAX_VALUE;
+        Assert.assertArrayEquals(ByteUtil.longToBytes(i), new byte[]{0, 0, 0, 0, 127, -1, -1, -1});
+        i = Long.MAX_VALUE;
+        Assert.assertArrayEquals(ByteUtil.longToBytes(i), new byte[]{127, -1, -1, -1, -1, -1, -1, -1});
+        i = -1;
+        Assert.assertArrayEquals(ByteUtil.longToBytes(i), new byte[]{-1, -1, -1, -1, -1, -1, -1, -1});
+        for (long j = 1; j < 255; ++j) {
+            Assert.assertArrayEquals(ByteUtil.longToBytes(j), new byte[]{0, 0, 0, 0, 0, 0, 0, (byte) j});
+        }
+    }
+
     public void testLongToBytesWithoutPrefixZero() {
         long i = 0;
         Assert.assertArrayEquals(ByteUtil.longToBytesWithoutPrefixZero(i), new byte[]{0});

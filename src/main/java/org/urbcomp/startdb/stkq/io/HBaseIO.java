@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.io;
 
+import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.BufferedMutator;
@@ -20,9 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HBaseIO {
     private static final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
@@ -57,7 +56,8 @@ public class HBaseIO {
         try (BufferedMutator table = hBaseUtil.getConnection().getBufferedMutator(htConfig)) {
             for (STObject object : objects) {
                 Put put = new Put(keyGenerator.toDatabaseKey(object));
-                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(object.getID()));
+//                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), Bytes.toBytes(object.getID()));
+                put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("id"), ByteUtil.longToBytesWithoutPrefixZero(object.getID()));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("loc"), Bytes.toBytes(object.getLocation().toString()));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("time"), Bytes.toBytes(DateUtil.format(object.getTime())));
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("keywords"), Bytes.toBytes(object.getSentence()));
@@ -75,6 +75,79 @@ public class HBaseIO {
             }
         }
     }
+
+    public static void putObjectsBDIA(String tableName, ISTKeyGenerator keyGenerator, List<STObject> objects, int batchSize) throws IOException {
+        List<Put> puts = new ArrayList<>();
+        Map<BytesKey, BloomFilter> bfs = new HashMap<>();
+
+        final BufferedMutator.ExceptionListener listener = (e, mutator) -> {
+            String failTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+            System.out.println("fail time :" + failTime + " ,insert data fail,cause：" + e.getCause(0) + "，failed num：" + e.getNumExceptions());
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+            //重试
+            String retryTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+            System.out.println("its time to retry:" + retryTime);
+            for (int i = 0; i < e.getNumExceptions(); i++) {
+                org.apache.hadoop.hbase.client.Row row = null;
+                try {
+                    row = e.getRow(i);
+                    mutator.mutate((Put) row);
+                } catch (IOException ex) {
+                    System.out.println("insert data fail,please check hbase status and row info : " + row);
+                }
+            }
+        };
+
+        BufferedMutatorParams htConfig = new BufferedMutatorParams(TableName.valueOf(tableName)).writeBufferSize(10 * 1024 * 1024).listener(listener);
+
+        try (BufferedMutator table = hBaseUtil.getConnection().getBufferedMutator(htConfig)) {
+            for (STObject object : objects) {
+                byte[] tsCode = keyGenerator.toBytes(object);
+                Put put = new Put(tsCode);
+                byte[] idBytes = ByteUtil.longToBytesWithoutPrefixZero(object.getID());
+                ArrayList<String> keywords = object.getKeywords();
+                put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{0}, idBytes), Bytes.toBytes(object.getLocation().toString()));
+                put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{1}, idBytes), Bytes.toBytes(DateUtil.format(object.getTime())));
+                put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{2}, idBytes), Bytes.toBytes(String.join(" ", keywords)));
+
+                BloomFilter bf = bfs.get(new BytesKey(tsCode));
+                if (bf == null) {
+                    bf = new BloomFilter(100, 10);
+                    for (String s : keywords) {
+                        bf.insert(s, false);
+                    }
+                    bfs.put(new BytesKey(tsCode), bf);
+                } else {
+                    for (String s : keywords) {
+                        bf.insert(s, false);
+                    }
+                    bfs.put(new BytesKey(tsCode), bf);
+                }
+                puts.add(put);
+
+                if (puts.size() >= batchSize) {
+                    table.mutate(puts);
+                    puts.clear();
+                }
+            }
+
+            if (!puts.isEmpty()) {
+                table.mutate(puts);
+                puts.clear();
+            }
+
+            for (Map.Entry<BytesKey, BloomFilter> entry : bfs.entrySet()) {
+                Put put = new Put(entry.getKey().getArray());
+                put.addColumn(Bytes.toBytes("attr"), new byte[]{0}, entry.getValue().getArray());
+                table.mutate(put);
+            }
+        }
+    }
+
 
     public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) throws IOException {
 

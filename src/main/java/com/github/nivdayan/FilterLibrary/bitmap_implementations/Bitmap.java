@@ -9,6 +9,9 @@ public abstract class Bitmap implements Serializable {
 	public abstract void setFromTo(long from, long to, long value);
 	public abstract boolean get(long bit_index);
 	public abstract long getFromTo(long from, long to);
+	public byte[] getArray() {
+		return null;
+	}
 	
 	public static boolean get_fingerprint_bit(long index, long fingerprint) {
 		long mask = 1 << index;

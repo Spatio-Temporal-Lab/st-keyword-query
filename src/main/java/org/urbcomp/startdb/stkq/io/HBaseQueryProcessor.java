@@ -63,6 +63,43 @@ public class HBaseQueryProcessor {
             cdl.countDown();
         }
     }
+
+    static class BDIAScanThread extends Thread {
+        private final byte[] start;
+        private final byte[] end;
+        private final String tableName;
+        private final Query query;
+        private final List<Map<String, String>> result;
+
+        public BDIAScanThread(String tableName, byte[] s, byte[] e, Query query, List<Map<String, String>> result) {
+            this.start = s;
+            this.end = e;
+            this.tableName = tableName;
+            this.query = query;
+            this.result = result;
+        }
+
+        //覆写线程的run方法
+        @Override
+        public void run() {
+            List<Map<String, String>> scanResult = hBaseUtil.BDIAScan(tableName, keywords,
+                    start, end, query.getQueryType());
+
+            if (scanResult == null || scanResult.isEmpty()) {
+                cdl.countDown();
+                return;
+            }
+
+            for (Map<String, String> map : scanResult) {
+                if (STKUtil.check(map, query)) {
+                    result.add(map);
+                }
+            }
+
+            cdl.countDown();
+        }
+    }
+
     public static List<Map<String, String>> scan(String tableName, List<Range<byte[]>> ranges,
                                                  Query query) throws InterruptedException {
         if (ranges.isEmpty()) {
@@ -84,6 +121,22 @@ public class HBaseQueryProcessor {
 //        MultiRowRangeFilter filter = new MultiRowRangeFilter(rowRanges);
 //        return hBaseUtil.scan(tableName, ByteUtil.concat(ranges.get(0).getLow(), ByteUtil.longToByte(0)),
 //                ByteUtil.concat(ranges.get(ranges.size() - 1).getHigh(), ByteUtil.longToByte(Long.MAX_VALUE)), filter);
+        return result;
+    }
+
+    public static List<Map<String, String>> scanBDIA(String tableName, List<Range<byte[]>> ranges,
+                                                 Query query) throws InterruptedException {
+        if (ranges.isEmpty()) {
+            return new ArrayList<>();
+        }
+        keywords = query.getKeywords().toArray(new String[0]);
+        List<Map<String, String>> result = Collections.synchronizedList(new ArrayList<>());
+        cdl = new CountDownLatch(ranges.size());
+        for (Range<byte[]> range : ranges) {
+            service.submit(new BDIAScanThread(tableName,range.getLow(), range.getHigh(), query, result));
+        }
+        cdl.await();
+
         return result;
     }
 

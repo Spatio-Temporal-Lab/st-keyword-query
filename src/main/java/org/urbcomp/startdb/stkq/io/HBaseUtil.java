@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.io;
 
+import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -11,6 +12,10 @@ import org.apache.hadoop.hbase.filter.MultiRowRangeFilter;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.model.BytesKey;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.util.STKUtil;
+import scala.util.control.Exception;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -156,6 +161,21 @@ public class HBaseUtil {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             Get get = new Get(rowKey);
             get.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column));
+
+            Result result = table.get(get);
+            List<Cell> cells = result.listCells();
+
+            if (CollectionUtils.isEmpty(cells)) {
+                return null;
+            }
+            return CellUtil.cloneValue(cells.get(0));
+        }
+    }
+
+    public byte[] getCell(String tableName, byte[] rowKey, byte[] columnFamily, byte[] column) throws IOException {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            Get get = new Get(rowKey);
+            get.addColumn(columnFamily, column);
 
             Result result = table.get(get);
             List<Cell> cells = result.listCells();
@@ -330,12 +350,12 @@ public class HBaseUtil {
                 List<Map<String, String>> dataList = Collections.synchronizedList(new ArrayList<>());
                 for (Result r : rs) {
                     Map<String, String> objectMap = new Hashtable<>();
-                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
+                    objectMap.put("rowkey", new String(r.getRow()));
                     for (Cell cell : r.listCells()) {
                         String qualifier = new String(CellUtil.cloneQualifier(cell));
                         String value;
                         if (qualifier.equals("id")) {
-                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                            value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
                         }
                         else {
                             value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
@@ -344,6 +364,82 @@ public class HBaseUtil {
                     }
                     dataList.add(objectMap);
                 }
+                return dataList;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Map<String, String>> BDIAScan(String tableName, String[] keywords,
+                                                      byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            ResultScanner rs = null;
+            try {
+                Scan scan = new Scan();
+                scan.withStartRow(rowkeyStart);
+                scan.withStopRow(rowkeyEnd, true);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(keywords.length * 4);
+                for (String keyword : keywords) {
+                    byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
+                }
+                scan.setAttribute("keywords", byteBuffer.array());
+
+                rs = table.getScanner(scan);
+
+                List<Map<String, String>> dataList = Collections.synchronizedList(new ArrayList<>());
+                for (Result r : rs) {
+                    Map<BytesKey, String> locMap = new HashMap<>();
+                    Map<BytesKey, String> timeMap = new HashMap<>();
+                    Map<BytesKey, String> keywordsMap = new HashMap<>();
+
+                    for (Cell cell : r.listCells()) {
+                        byte[] qualifier = CellUtil.cloneQualifier(cell);
+                        if (Arrays.equals(qualifier, new byte[]{0})) {
+                            BloomFilter bf = new BloomFilter(CellUtil.cloneValue(cell), 7, 1000);
+                            if (!STKUtil.check(bf, keywords, queryType)) {
+                                break;
+                            }
+                        } else {
+                            byte[] idBytes = Arrays.copyOfRange(qualifier, 1, qualifier.length);
+                            String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                            switch (qualifier[0]) {
+                                case 1: {
+                                    locMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                case 2: {
+                                    timeMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                case 3: {
+                                    keywordsMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                default:
+                                    System.err.println("error");
+                            }
+                        }
+                    }
+
+                    for (Map.Entry<BytesKey, String> entry : locMap.entrySet()) {
+                        BytesKey id = entry.getKey();
+                        byte[] idBytes = id.getArray();
+                        Map<String, String> mss = new HashMap<>();
+                        // value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
+                        mss.put("id", String.valueOf(ByteUtil.toLong(idBytes)));
+                        mss.put("loc", locMap.get(id));
+                        mss.put("time", timeMap.get(id));
+                        mss.put("keywords", keywordsMap.get(id));
+                        dataList.add(mss);
+                    }
+                }
+
                 return dataList;
             } finally {
                 if (rs != null) {

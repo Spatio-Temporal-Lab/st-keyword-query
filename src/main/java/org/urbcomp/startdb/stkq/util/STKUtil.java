@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.util;
 
+import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -43,6 +44,27 @@ public class STKUtil {
             return false;
         }
         return checkWords(object.getKeywords(), query.getKeywords(), query.getQueryType());
+    }
+
+    public static boolean check(BloomFilter bf, String[] keywords, QueryType queryType) {
+        if (queryType.equals(QueryType.CONTAIN_ONE)) {
+            for (String s : keywords) {
+                if (bf.search(s)) {
+                    return true;
+                }
+            }
+            return false;
+        } else if (queryType.equals(QueryType.CONTAIN_ALL)) {
+            for (String s : keywords) {
+                if (!bf.search(s)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            //TODO support more query
+            return false;
+        }
     }
 
     public static boolean check(Map<String, String> map, Query query) {
