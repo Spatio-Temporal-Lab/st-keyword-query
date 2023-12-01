@@ -88,10 +88,22 @@ public class AHFilterManager extends AbstractFilterManager {
         return sortedFilters;
     }
 
+    public void compress(long target) {
+        Iterator<Map.Entry<BytesKey, FilterWithIdx>> iterator = filters.entrySet().iterator();
+        long sizeNow = size();
+        System.out.println("size now: " + sizeNow);
+        while (iterator.hasNext()) {
+            Map.Entry<BytesKey, FilterWithIdx> entry = iterator.next();
+            sizeNow -= RamUsageEstimator.sizeOf(entry.getValue().getFilter());
+            iterator.remove();
+            if (sizeNow <= target) {
+                break;
+            }
+        }
+        System.out.println("count: " + filters.size());
+    }
+
     public long size() {
-        System.out.println("filter count: " + filters.size());
-        System.out.println("map size: " + RamUsageEstimator.sizeOf(filters));
-        System.out.println("sorted filter size: " + RamUsageEstimator.sizeOf(sortedFilters));
         long size = 0;
         for (FilterWithIdx filter : sortedFilters) {
             size += RamUsageEstimator.sizeOf(filter.filter);

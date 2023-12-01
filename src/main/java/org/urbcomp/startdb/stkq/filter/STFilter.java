@@ -1,8 +1,10 @@
 package org.urbcomp.startdb.stkq.filter;
 
-import org.junit.Assert;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.filter.manager.AHFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -51,6 +53,35 @@ public class STFilter extends AbstractSTFilter {
                 for (int t = tLow; t <= tHigh; ++t) {
                     byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
                     if (checkInFilter(filterManager.get(getSTIndex(s, t)), stKey, kKeys, queryType)) {
+                        results.add(ByteUtil.concat(
+                                sKeyGenerator.numberToBytes(s),
+                                tKeyGenerator.numberToBytes(t)
+                        ));
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+    public List<byte[]> shrinkAndUpdate(Query query) {
+        Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
+        List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
+        int tLow = tRange.getLow();
+        int tHigh = tRange.getHigh();
+
+        List<byte[]> results = new ArrayList<>();
+        QueryType queryType = query.getQueryType();
+        List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
+
+        for (Range<Long> sRange : sRanges) {
+            long sLow = sRange.getLow();
+            long sHigh = sRange.getHigh();
+            for (long s = sLow; s <= sHigh; ++s) {
+                for (int t = tLow; t <= tHigh; ++t) {
+                    byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
+                    if (checkInFilter(filterManager.getAndUpdate(getSTIndex(s, t)), stKey, kKeys, queryType)) {
                         results.add(ByteUtil.concat(
                                 sKeyGenerator.numberToBytes(s),
                                 tKeyGenerator.numberToBytes(t)
@@ -131,5 +162,20 @@ public class STFilter extends AbstractSTFilter {
     @Override
     public void out() throws IOException {
         filterManager.out();
+    }
+
+    @Override
+    public void train(List<Query> queries) {
+        if (filterManager instanceof BasicFilterManager) {
+            return;
+        } else if (filterManager instanceof HFilterManager) {
+            ((HFilterManager) filterManager).build();
+        } else if (filterManager instanceof AHFilterManager) {
+            ((AHFilterManager) filterManager).build();
+        }
+        for (Query query : queries) {
+            shrinkAndUpdate(query);
+        }
+        filterManager.compress(50141280);
     }
 }

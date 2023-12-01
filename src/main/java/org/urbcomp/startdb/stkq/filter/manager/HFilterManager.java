@@ -16,6 +16,7 @@ public class HFilterManager extends AbstractFilterManager {
     private static final int MAX_UPDATE_TIME = 50000;
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
     private final TreeMap<Long, Set<IFilter>> sortedFilters = new TreeMap<>();
+    private IFilter filtersDeleted = null;
 
     public HFilterManager(int log2Size, int bitsPerKey) {
         super(log2Size, bitsPerKey);
@@ -98,7 +99,14 @@ public class HFilterManager extends AbstractFilterManager {
 
     public IFilter get(BytesKey index) {
         FilterWithHotness filterWithHotness = filters.get(index);
-        return filterWithHotness == null ? null : filterWithHotness.getFilter();
+        if (filterWithHotness == null) {
+            if (filtersDeleted != null && filtersDeleted.check(index.getArray())) {
+                return new InfiniFilter(0, 0);
+            } else {
+                return null;
+            }
+        }
+        return filterWithHotness.getFilter();
     }
 
     public IFilter getWithIO(BytesKey index) {
@@ -137,9 +145,6 @@ public class HFilterManager extends AbstractFilterManager {
     }
 
     public long size() {
-        System.out.println("filter count: " + filters.size());
-        System.out.println("map size: " + RamUsageEstimator.sizeOf(filters));
-        System.out.println("sorted filter size: " + RamUsageEstimator.sizeOf(sortedFilters));
         long size = 0;
         for (Map.Entry<BytesKey, FilterWithHotness> filter : filters.entrySet()) {
             size += RamUsageEstimator.sizeOf(filter.getValue().getFilter());
@@ -152,19 +157,27 @@ public class HFilterManager extends AbstractFilterManager {
         RedisIO.putFiltersWithHotness(tableName, filters);
     }
 
-    public void compress() {
+    public void compress(long target) {
         Iterator<Map.Entry<BytesKey, FilterWithHotness>> iterator = filters.entrySet().iterator();
         long sizeNow = size();
         System.out.println("size now: " + sizeNow);
+        filtersDeleted = new InfiniFilter(3, 13);
         while (iterator.hasNext()) {
             Map.Entry<BytesKey, FilterWithHotness> entry = iterator.next();
             sizeNow -= RamUsageEstimator.sizeOf(entry.getValue().getFilter());
+
+            long oldSize = RamUsageEstimator.sizeOf(filtersDeleted);
+            filtersDeleted.insert(entry.getKey().getArray());
+            long newSize = RamUsageEstimator.sizeOf(filtersDeleted);
+            sizeNow += (newSize - oldSize);
+//            System.out.println("OK");
+
             iterator.remove();
-            if (sizeNow <= 792433880) {
+            if (sizeNow <= target) {
                 break;
-            } else {
-                System.out.println("size after delete: " + sizeNow);
             }
         }
+        System.out.println("count: " + filters.size());
+        System.out.println(filtersDeleted.size());
     }
 }

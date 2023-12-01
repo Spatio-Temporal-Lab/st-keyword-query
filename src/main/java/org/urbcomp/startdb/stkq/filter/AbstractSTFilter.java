@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 public abstract class AbstractSTFilter implements ISTKFilter {
     private final int sBytes;
@@ -71,6 +72,35 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected boolean checkInFilter(IFilter filter, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
         if (filter == null) {
             return false;
+        }
+        if (filter instanceof InfiniFilter) {
+            if (((InfiniFilter) filter).getFilter().getBitPerEntry() == 0) {
+                return true;
+            }
+        }
+        switch (queryType) {
+            case CONTAIN_ONE:
+                for (byte[] keyPre : kKeys) {
+                    if (filter.check(ByteUtil.concat(keyPre, stKey))) {
+                        return true;
+                    }
+                }
+                return false;
+            case CONTAIN_ALL:
+                for (byte[] keyPre : kKeys) {
+                    if (!filter.check(ByteUtil.concat(keyPre, stKey))) {
+                        return false;
+                    }
+                }
+                return true;
+        }
+        return true;
+    }
+
+    // if we delete some filters, when the filter is null, we should return true
+    protected boolean checkInFilter_(IFilter filter, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
+        if (filter == null) {
+            return true;
         }
         switch (queryType) {
             case CONTAIN_ONE:
@@ -216,5 +246,5 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return null;
     }
 
-
+    public void train(List<Query> queries) {}
 }

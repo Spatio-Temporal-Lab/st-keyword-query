@@ -7,6 +7,10 @@ import java.io.ByteArrayOutputStream;
 public class InfiniFilter implements IFilter {
     private final ChainedInfiniFilter filter;
 
+    public ChainedInfiniFilter getFilter() {
+        return filter;
+    }
+
     public InfiniFilter() {
         filter = new ChainedInfiniFilter(3, 12);
         filter.set_expand_autonomously(true);

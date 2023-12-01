@@ -13,15 +13,14 @@ public class AbstractFilterManager implements IFilterManager {
     }
 
     public int getUpdateSize(int size, int k) {
-        return size - k * 50000;
+        return (int) (size * (0.4 + 0.1 * k));
     }
 
     public long size() {
         return 0;
     }
 
-    public void compress() {
-
+    public void compress(long i) {
     }
 
     public void out() {

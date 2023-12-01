@@ -8,7 +8,6 @@ import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
 import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
 
 public class QuotientFilter extends Filter {
-
 	int bitPerEntry;
 	int fingerprintLength; 
 	int power_of_two_size; 
@@ -35,8 +34,11 @@ public class QuotientFilter extends Filter {
 	int original_fingerprint_size;
 
 	int num_expansions;
-	
-	
+
+	public int getBitPerEntry() {
+		return bitPerEntry;
+	}
+
 	public QuotientFilter(int power_of_two, int bits_per_entry) {
 		power_of_two_size = power_of_two;
 		bitPerEntry = bits_per_entry; 

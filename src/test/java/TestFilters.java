@@ -176,20 +176,20 @@ public class TestFilters {
         int tBits = 4;
 
         HFilterManager hFilterManager = new HFilterManager(3, 14);
-        AHFilterManager ahFilterManager = new AHFilterManager(3, 14);
+//        AHFilterManager ahFilterManager = new AHFilterManager(3, 14);
 
         AbstractSTFilter[] stFilters = {
                 new STFilter(sBits, tBits, new BasicFilterManager(3, 13)),
                 new STFilter(sBits, tBits, hFilterManager),
-                new STFilter(sBits, tBits, ahFilterManager),
+//                new STFilter(sBits, tBits, ahFilterManager),
         };
 
         for (AbstractSTFilter stFilter : stFilters) {
             insertIntoSTFilter(stFilter);
         }
 
-        hFilterManager.build();
-        ahFilterManager.build();
+//        hFilterManager.build();
+//        ahFilterManager.build();
 
         for (AbstractSTFilter stFilter : stFilters) {
             long start = System.currentTimeMillis();
@@ -204,11 +204,17 @@ public class TestFilters {
             System.out.println("------------------------------------------------------------------");
         }
 
+        for (int i = 1; i < stFilters.length; ++i) {
+            stFilters[i].train(QUERIES);
+        }
+
         for (AbstractSTFilter stFilter : stFilters) {
             long start = System.currentTimeMillis();
             List<List<byte[]>> results = shrinkBySTFilter(stFilter);
             long end = System.currentTimeMillis();
             System.out.println("query Time: " + (end - start));
+            System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
+                    RamUsageEstimator.humanSizeOf(stFilter));
             System.out.println(results.stream().mapToInt(List::size).sum());
         }
     }

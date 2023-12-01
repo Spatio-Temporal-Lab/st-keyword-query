@@ -101,7 +101,7 @@ public class LRUFilterManager extends AbstractFilterManager {
         return size;
     }
 
-    public void compress() {
+    public void compress(int i) {
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
         long sizeNow = size();
         System.out.println("size now: " + sizeNow);
