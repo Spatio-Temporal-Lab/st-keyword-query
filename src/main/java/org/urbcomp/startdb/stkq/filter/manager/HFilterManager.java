@@ -12,8 +12,8 @@ public class HFilterManager extends AbstractFilterManager {
     private int queryCount = 0;
     private long ramUsage = 0;
     private final long MAX_RAM_USAGE = 50 * 1024 * 1024;
-    private static final int UPDATE_TIME = 10000;
-    private static final int MAX_UPDATE_TIME = 50000;
+    private static final int UPDATE_TIME = 2000;
+    private static final int MAX_UPDATE_TIME = 10000;
     private final Map<BytesKey, FilterWithHotness> filters = new HashMap<>();
     private final TreeMap<Long, Set<IFilter>> sortedFilters = new TreeMap<>();
     private IFilter filtersDeleted = null;

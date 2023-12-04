@@ -205,7 +205,7 @@ public class TestFilters {
         }
 
         for (int i = 1; i < stFilters.length; ++i) {
-            stFilters[i].train(QUERIES);
+            stFilters[i].train(QUERIES_SMALL);
         }
 
         for (AbstractSTFilter stFilter : stFilters) {
