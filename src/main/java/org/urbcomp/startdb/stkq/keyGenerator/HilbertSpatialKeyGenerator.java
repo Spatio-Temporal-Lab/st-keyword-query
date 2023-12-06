@@ -57,4 +57,13 @@ public class HilbertSpatialKeyGenerator implements ISpatialKeyGenerator {
     public int getBits() {
         return DEFAULT_PRECISION + DEFAULT_PRECISION;
     }
+
+    @Override
+    public Location bytesToPoint(byte[] sKey) {
+        long sKeyLong = ByteUtil.toLong(sKey);
+        long[] originS = curve.point(sKeyLong);
+        double lat = normalizedLat.denormalize((int) originS[0]);
+        double lon = normalizedLon.denormalize((int) originS[1]);
+        return new Location(lat, lon);
+    }
 }

@@ -22,12 +22,12 @@ import java.util.*;
 public class DataProcessor {
     private int limit;
     private double rate;
-    private long ID;
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static long ID;
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 //    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSampleBig.csv";
 
-    String DELIMITER = ",";
+    static String DELIMITER = ",";
 
     public DataProcessor() {
         limit = 10000_0000;
@@ -73,6 +73,62 @@ public class DataProcessor {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     }
 
+    public static STObject parseSTObject(String line) {
+        String[] columns = line.split(DELIMITER);
+
+        int n = columns.length;
+        if (n != 4) {
+            return null;
+        }
+
+        double lat;
+        double lon;
+        if (isNumeric(columns[2]) && (isNumeric(columns[3]))) {
+            lat = Double.parseDouble(columns[2]);
+            lon = Double.parseDouble(columns[3]);
+        } else {
+            return null;
+        }
+
+        if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
+            return null;
+
+        List<String> keywords = getKeywords(columns);
+
+        if (keywords.isEmpty()) {
+            return null;
+        }
+
+        Date date = null;
+        try {
+            String time = columns[0];
+            date = sdf.parse(time);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return new STObject(ID++, lat, lon, date, keywords);
+    }
+
+    private static List<String> getKeywords(String[] columns) {
+        List<String> keywords = new ArrayList<>();
+
+        String s = columns[1];
+        int len = s.length();
+        StringBuilder builder = new StringBuilder();
+        for (int j = 0; j < len; ++j) {
+            if (isAlphabet(s.charAt(j))) {
+                builder.append(s.charAt(j));
+            } else if (builder.length() != 0) {
+                keywords.add(builder.toString());
+                builder = new StringBuilder();
+            }
+        }
+        if (builder.length() > 0) {
+            keywords.add(builder.toString());
+        }
+        return keywords;
+    }
+
     public STObject getSTObject(String line) {
         if(new Random().nextDouble() > rate) {
             return null;
@@ -97,24 +153,9 @@ public class DataProcessor {
         if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
             return null;
 
-        ArrayList<String> keywords = new ArrayList<>();
+        List<String> keywords = getKeywords(columns);
 
-        String s = columns[1];
-        int len = s.length();
-        StringBuilder builder = new StringBuilder();
-        for (int j = 0; j < len; ++j) {
-            if (isAlphabet(s.charAt(j))) {
-                builder.append(s.charAt(j));
-            } else if (builder.length() != 0) {
-                keywords.add(builder.toString());
-                builder = new StringBuilder();
-            }
-        }
-        if (builder.length() > 0) {
-            keywords.add(builder.toString());
-        }
-
-        if (keywords.size() == 0) {
+        if (keywords.isEmpty()) {
             return null;
         }
 
@@ -313,7 +354,7 @@ public class DataProcessor {
 //        }
 //        ((LRUSTFilter) stFilter).compress();
 
-        System.out.println(stFilter.size());
+        System.out.println(stFilter.ramUsage());
         stFilter.out();
         System.out.println(minLat);
         System.out.println(minLon);

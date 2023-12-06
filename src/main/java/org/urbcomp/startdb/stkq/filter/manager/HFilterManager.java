@@ -144,7 +144,7 @@ public class HFilterManager extends AbstractFilterManager {
         return hFilter.getFilter();
     }
 
-    public long size() {
+    public long ramUsage() {
         long size = 0;
         for (Map.Entry<BytesKey, FilterWithHotness> filter : filters.entrySet()) {
             size += RamUsageEstimator.sizeOf(filter.getValue().getFilter());
@@ -159,7 +159,7 @@ public class HFilterManager extends AbstractFilterManager {
 
     public void compress(long target) {
         Iterator<Map.Entry<BytesKey, FilterWithHotness>> iterator = filters.entrySet().iterator();
-        long sizeNow = size();
+        long sizeNow = ramUsage();
         System.out.println("size now: " + sizeNow);
         filtersDeleted = new InfiniFilter(3, 13);
         while (iterator.hasNext()) {

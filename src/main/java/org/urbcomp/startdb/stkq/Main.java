@@ -87,7 +87,7 @@ public class Main {
             processor.close();
         }
         for (AbstractSTFilter filter_ : filter) {
-            System.out.println("filter ram size: " + filter_.size());
+            System.out.println("filter ram size: " + filter_.ramUsage());
         }
 
         RedisIO.close();

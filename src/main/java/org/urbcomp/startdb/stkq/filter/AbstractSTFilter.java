@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 public abstract class AbstractSTFilter implements ISTKFilter {
     private final int sBytes;
@@ -49,7 +48,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         tMask = (1 << tBits) - 1;
     }
 
-    byte[] getSKey(long s) {
+    protected byte[] getSKey(long s) {
         return ByteUtil.getKByte(s & sMask, sBytes);
     }
 
@@ -57,7 +56,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return ByteUtil.getKByte(s >> sBits, sIndexBytes);
     }
 
-    byte[] getTKey(int t) {
+    protected byte[] getTKey(int t) {
         return ByteUtil.getKByte(t & tMask, tBytes);
     }
 
@@ -65,7 +64,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return ByteUtil.getKByte(t >> tBits, tIndexBytes);
     }
 
-    BytesKey getSTIndex(long s, int t) {
+    protected BytesKey getSTIndex(long s, int t) {
         return new BytesKey(ByteUtil.concat(getSIndex(s), getTIndex(t)));
     }
 
@@ -238,7 +237,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return shrinkWithIOAndTransform(query, 0);
     }
 
-    public long size() { return RamUsageEstimator.sizeOf(this); }
+    public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
 
     public void out() throws IOException {}
 

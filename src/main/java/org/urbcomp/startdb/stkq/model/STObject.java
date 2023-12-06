@@ -9,11 +9,11 @@ import java.util.*;
 public class STObject implements Serializable, Comparable<STObject> {
     private final Location location;
     private final Date time;
-    private final ArrayList<String> keywords;
+    private final List<String> keywords;
 
     private long ID;
 
-    public STObject(long id, double lat, double lon, Date time, ArrayList<String> keywords) {
+    public STObject(long id, double lat, double lon, Date time, List<String> keywords) {
         this.ID = id;
         this.location = new Location(lat, lon);
         this.time = time;
@@ -55,7 +55,7 @@ public class STObject implements Serializable, Comparable<STObject> {
         return ID;
     }
 
-    public ArrayList<String> getKeywords() {
+    public List<String> getKeywords() {
         return this.keywords;
     }
 

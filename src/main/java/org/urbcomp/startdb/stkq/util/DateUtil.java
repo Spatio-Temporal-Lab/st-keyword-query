@@ -39,6 +39,13 @@ public class DateUtil {
         return calendar.getTime();
     }
 
+    public static Date getDateAfterHours(Date date, int hour) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.HOUR_OF_DAY, hour);
+        return calendar.getTime();
+    }
+
     public static int getHours(Date date1, Date date2) {
         long from = date1.getTime();
         long to = date2.getTime();

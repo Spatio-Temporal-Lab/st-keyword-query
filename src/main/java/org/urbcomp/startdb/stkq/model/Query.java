@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Query {
-    private final Date startTime;
-    private final Date endTime;
-    private final MBR mbr;
-    private final ArrayList<String> keywords;
+    private Date startTime;
+    private Date endTime;
+    private MBR mbr;
+    private ArrayList<String> keywords;
     private QueryType queryType;
+
+    public Query() {}
 
     public Query(double minLat, double maxLat,
                  double minLon, double maxLon,
@@ -67,6 +69,22 @@ public class Query {
 
     public MBR getMBR() {
         return mbr;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setMbr(MBR mbr) {
+        this.mbr = mbr;
+    }
+
+    public void setKeywords(ArrayList<String> keywords) {
+        this.keywords = keywords;
     }
 
     public String toString() {

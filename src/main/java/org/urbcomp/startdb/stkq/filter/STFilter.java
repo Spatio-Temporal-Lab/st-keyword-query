@@ -155,8 +155,8 @@ public class STFilter extends AbstractSTFilter {
     }
 
     @Override
-    public long size() {
-        return filterManager.size();
+    public long ramUsage() {
+        return filterManager.ramUsage();
     }
 
     @Override

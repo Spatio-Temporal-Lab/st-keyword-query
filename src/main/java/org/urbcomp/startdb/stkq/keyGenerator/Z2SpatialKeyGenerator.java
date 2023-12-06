@@ -56,4 +56,9 @@ public class Z2SpatialKeyGenerator implements ISpatialKeyGenerator {
     public int getBits() {
         return DEFAULT_PRECISION + DEFAULT_PRECISION;
     }
+
+    @Override
+    public Location bytesToPoint(byte[] sKey) {
+        return null;
+    }
 }

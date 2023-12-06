@@ -27,7 +27,7 @@ public class QueryGenerator {
         return new ArrayList<>(set);
     }
 
-    private static ArrayList<String> getRandomKeywords(ArrayList<String> keywords) {
+    private static ArrayList<String> getRandomKeywords(List<String> keywords) {
         ArrayList<String> keywords1 = new ArrayList<>(keywords);
         Collections.shuffle(keywords1);
         int n = keywords1.size();

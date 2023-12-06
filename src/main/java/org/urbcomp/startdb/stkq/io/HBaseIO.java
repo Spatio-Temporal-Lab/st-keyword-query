@@ -109,7 +109,7 @@ public class HBaseIO {
                 byte[] tsCode = keyGenerator.toBytes(object);
                 Put put = new Put(tsCode);
                 byte[] idBytes = ByteUtil.longToBytesWithoutPrefixZero(object.getID());
-                ArrayList<String> keywords = object.getKeywords();
+                List<String> keywords = object.getKeywords();
                 put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{0}, idBytes), Bytes.toBytes(object.getLocation().toString()));
                 put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{1}, idBytes), Bytes.toBytes(DateUtil.format(object.getTime())));
                 put.addColumn(Bytes.toBytes("attr"), ByteUtil.concat(new byte[]{2}, idBytes), Bytes.toBytes(String.join(" ", keywords)));

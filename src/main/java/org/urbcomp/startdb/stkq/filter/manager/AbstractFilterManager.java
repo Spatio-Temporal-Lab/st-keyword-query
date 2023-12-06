@@ -16,7 +16,7 @@ public class AbstractFilterManager implements IFilterManager {
         return (int) (size * (0.4 + 0.1 * k));
     }
 
-    public long size() {
+    public long ramUsage() {
         return 0;
     }
 
