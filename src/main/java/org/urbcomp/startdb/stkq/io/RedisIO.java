@@ -32,10 +32,6 @@ public class RedisIO {
     public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) {
         Jedis jedis0 = jedis[0];
         System.out.println(filters.size());
-//        if (jedis0.get(tableName) != null) {
-//            return;
-//        }
-        jedis0.set(tableName, tableName);
         for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
             byte[] key = entry.getKey().getArray();
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -78,6 +74,14 @@ public class RedisIO {
         }
     }
 
+    public static void putFilter(int db, byte[] key, IFilter filter) {
+        Jedis con = jedis[db];
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        filter.writeTo(bos);
+        byte[] value = bos.toByteArray();
+        con.set(key, value);
+    }
+
     public static IFilter getFilter(int db, byte[] key) {
         byte[] values = jedis[db].get(key);
         if (values == null) {
@@ -111,5 +115,9 @@ public class RedisIO {
     public static void main(String[] args) {
         System.out.println(jedis[0].info());
         System.out.println(jedis[1].info());
+    }
+
+    public static void flush(int i) {
+        jedis[i].flushDB();
     }
 }

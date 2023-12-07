@@ -8,6 +8,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
@@ -52,11 +53,11 @@ public abstract class AbstractQueryProcessor {
         return queryHBaseTime;
     }
 
-    public List<Range<byte[]>> getRanges(Query query) {
+    public List<Range<byte[]>> getRanges(Query query) throws IOException {
         return null;
     }
 
-    public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException {
+    public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException, IOException {
 
         List<Map<String, String>> scanResults;
 
@@ -64,7 +65,6 @@ public abstract class AbstractQueryProcessor {
 
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
-
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;
 
@@ -78,12 +78,10 @@ public abstract class AbstractQueryProcessor {
 
         ArrayList<STObject> result = new ArrayList<>();
         for (Map<String, String> map : scanResults) {
-//            if (STKUtil.check(map, query)) {
-                Location loc = new Location(map.get("loc"));
-                Date date = DateUtil.getDate(map.get("time"));
-                ArrayList<String> keywords = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
-                result.add(new STObject(Long.parseLong(map.get("id")), loc.getLat(), loc.getLon(), date, keywords));
-//            }
+            Location loc = new Location(map.get("loc"));
+            Date date = DateUtil.getDate(map.get("time"));
+            ArrayList<String> keywords = new ArrayList<>(Arrays.asList(map.get("keywords").split(" ")));
+            result.add(new STObject(Long.parseLong(map.get("id")), loc.getLat(), loc.getLon(), date, keywords));
         }
 
         return result;

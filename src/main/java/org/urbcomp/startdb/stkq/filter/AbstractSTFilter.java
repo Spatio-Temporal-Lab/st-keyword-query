@@ -120,10 +120,10 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return true;
     }
 
-    public void insert(STObject stObject) {
+    public void insert(STObject stObject) throws IOException {
     }
 
-    public List<byte[]> shrink(Query query) {
+    public List<byte[]> shrink(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
@@ -233,7 +233,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return null;
     }
 
-    public List<Range<byte[]>> shrinkAndMerge(Query query) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException {
         return shrinkWithIOAndTransform(query, 0);
     }
 

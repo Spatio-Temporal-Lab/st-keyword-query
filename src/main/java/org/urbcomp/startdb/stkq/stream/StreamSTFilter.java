@@ -9,20 +9,22 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StreamSTFilter extends AbstractSTFilter {
-    private final StreamLRUFilterManager filterManager;
+    private final StreamLRUFM filterManager;
+    int q = 0;
 
-    public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
+    public StreamSTFilter(int sBits, int tBits, StreamLRUFM filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }
 
-    public void insert(STObject stObject) {
+    public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
@@ -33,7 +35,7 @@ public class StreamSTFilter extends AbstractSTFilter {
         }
     }
 
-    public List<Range<byte[]>> shrinkAndMerge(Query query) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
@@ -83,6 +85,11 @@ public class StreamSTFilter extends AbstractSTFilter {
             }
         }
 
+        if (++q % 10 == 0) {
+            q = 0;
+            doClear();
+        }
+
         return merge(keysLong);
     }
 
@@ -117,7 +124,7 @@ public class StreamSTFilter extends AbstractSTFilter {
         ).collect(Collectors.toList());
     }
 
-    public void doClear() {
+    public void doClear() throws IOException {
         filterManager.doClear();
     }
 }

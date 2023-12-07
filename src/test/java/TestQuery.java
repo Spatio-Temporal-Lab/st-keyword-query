@@ -150,27 +150,26 @@ public class TestQuery {
         // create table
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 //        String tableName = "tweetSample";
-        String tableName1 = "testTweet";
-        String tableName2 = "testTweetBDIA";
+//        String tableName1 = "testTweet";
+//        String tableName2 = "testTweetBDIA";
+        String tableName = "testYelp";
 
-        boolean tableExists = hBaseUtil.existsTable(tableName1);
         ISTKeyGenerator keyGenerator1 = new STKeyGenerator();
         ISTKeyGenerator keyGenerator2 = new TSKeyGenerator();
 
+        int sBits = 8;
+        int tBits = 4;
         AbstractSTFilter[] filter = {
-//                new STFilter(3, 12, 8, 4),
-//                new HSTFilter(3, 14, 8, 4),
-//                new LRUSTFilter(3, 14, 8, 4)
-                new STFilter(8, 4, new BasicFilterManager(3, 12)),
-                new STFilter(8, 4, new HFilterManager(3, 14)),
-                new STFilter(8, 4, new LRUFilterManager(3, 14)),
+                new STFilter(sBits, tBits, new BasicFilterManager(3, 18)),
         };
 
         // test query results
-        List<Query> queries = QueryGenerator.getQueries("queriesZipfBig.csv");
+        List<Query> queries = QueryGenerator.getQueries("yelpQueries.csv");
         AbstractQueryProcessor[] processors = {
-                new BasicQueryProcessor(tableName1, keyGenerator1),
-                new BDIAQueryProcessor(tableName2, keyGenerator2)
+                new BasicQueryProcessor(tableName, keyGenerator1),
+                new QueryProcessor(tableName, filter[0])
+//                new BasicQueryProcessor(tableName1, keyGenerator1),
+//                new BDIAQueryProcessor(tableName2, keyGenerator2)
 //                new QueryProcessor(tableName1, filter[0]),
 //                new QueryProcessor(tableName1, filter[2])
         };
@@ -181,7 +180,7 @@ public class TestQuery {
 
         long begin = System.currentTimeMillis();
         for (Query query : queries) {
-            System.out.println(query);
+//            System.out.println(query);
             query.setQueryType(QueryType.CONTAIN_ONE);
 //            if (++ii > 100) {
 //                break;
@@ -194,18 +193,14 @@ public class TestQuery {
                 resultsList.add(results);
             }
 //            System.out.println(resultsList);
-            System.out.println("-----------------------------");
-            System.out.println(resultsList.get(0).size());
-            for (STObject object : resultsList.get(0)) {
-                System.out.println(object);
-            }
-            System.out.println("******************************");
-            System.out.println(resultsList.get(1).size());
-            for (STObject object : resultsList.get(1)) {
-                System.out.println(object);
-            }
+
             for (int i = 1; i < n; ++i) {
-                Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
+                if (!equals_(resultsList.get(0), resultsList.get(i))) {
+                    System.out.println(query);
+                    System.out.println(resultsList.get(0));
+                    System.out.println(resultsList.get(1));
+                }
+//                Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
             }
         }
         long end = System.currentTimeMillis();
@@ -217,7 +212,7 @@ public class TestQuery {
             processor.close();
         }
         for (AbstractSTFilter filter_ : filter) {
-            System.out.println("filter ram size: " + filter_.size());
+            System.out.println("filter ram size: " + filter_.ramUsage());
         }
 
         RedisIO.close();

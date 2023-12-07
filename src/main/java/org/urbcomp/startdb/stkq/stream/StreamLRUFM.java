@@ -4,67 +4,67 @@ import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
+import org.urbcomp.startdb.stkq.io.HBaseIO;
+import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class StreamLRUFilterManager extends AbstractFilterManager {
-    private long ramUsage = 0;
-    private final long MAX_RAM_USAGE = 50 * 1024 * 1024;
+public class StreamLRUFM extends AbstractFilterManager {
+    protected final long MAX_RAM_USAGE =  5 * 1024 * 1024;
     protected Map<BytesKey, IFilter> filters = new LinkedHashMap<>(100_0000, .75F, true);
 
-    public StreamLRUFilterManager(int log2Size, int bitsPerKey) {
+    public StreamLRUFM(int log2Size, int bitsPerKey) {
         super(log2Size, bitsPerKey);
     }
 
-    public void doClear() {
+    public void doClear() throws IOException {
+        long ramUsage = RamUsageEstimator.sizeOf(filters);
         if (ramUsage < MAX_RAM_USAGE) return;
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BytesKey, IFilter> entry = iterator.next();
+            byte[] key = entry.getKey().getArray();
+
             IFilter filterToRemove = entry.getValue();
-            ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
             iterator.remove();
-            if (ramUsage < MAX_RAM_USAGE) {
-                break;
+            ramUsage = RamUsageEstimator.sizeOf(filters);
+
+//            if (RedisIO.get(0, key) == null) {
+//                RedisIO.putFilter(0, key, filterToRemove);
+//            }
+            if (HBaseIO.getFilter("filters", key) == null) {
+                HBaseIO.putFilter("filters", key, filterToRemove);
             }
-        }
-    }
-    private void doClear(IFilter filter) {
-        ramUsage += RamUsageEstimator.sizeOf(filter);
-        if (ramUsage < MAX_RAM_USAGE) return;
-        Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<BytesKey, IFilter> entry = iterator.next();
-            IFilter filterToRemove = entry.getValue();
-            ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-            iterator.remove();
+
+//            System.out.println("????");
+
             if (ramUsage < MAX_RAM_USAGE) {
                 break;
             }
         }
     }
 
-    public IFilter getAndCreateIfNoExists(BytesKey index) {
+    public IFilter getAndCreateIfNoExists(BytesKey index) throws IOException {
         IFilter filter = get(index);
         if (filter == null) {
             filter = new InfiniFilter(log2Size, bitsPerKey);
             filters.put(index, filter);
-            doClear(filter);
         }
         return filter;
     }
 
-    public IFilter get(BytesKey index) {
+    public IFilter get(BytesKey index) throws IOException {
         IFilter filter = filters.get(index);
         if (filter == null) {
-            filter = RedisIO.getFilter(0, index.getArray());
+//            filter = RedisIO.getFilter(0, index.getArray());
+            filter = HBaseIO.getFilter("filters", index.getArray());
             if (filter != null) {
                 filters.put(index, filter);
-                doClear(filter);
             }
             return filter;
         }

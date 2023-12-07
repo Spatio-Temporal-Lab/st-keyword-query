@@ -12,7 +12,7 @@ import org.urbcomp.startdb.stkq.util.GeoUtil;
 import java.util.*;
 
 public class StreamQueryGenerator {
-    private final static int QUERY_COUNT = 10;
+    private final static int QUERY_COUNT = 1000;
     private final static int[] COUNT;
     Random random = new Random();
     private final Map<Integer, List<byte[]>> stMap = new TreeMap<>(Comparator.reverseOrder());
@@ -48,7 +48,7 @@ public class StreamQueryGenerator {
                 query.setEndTime(date);
                 query.setStartTime(DateUtil.getDateAfterHours(date, new int[]{-1, -2, -3, -4}[random.nextInt(4)]));
 
-                byte[] sKey = sKeys.get(i);
+                byte[] sKey = sKeys.get(Math.min(i, sKeys.size() - 1));
                 Location loc = sKeyGenerator.bytesToPoint(sKey);
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(loc.getLat(), loc.getLon()), 2000);
                 query.setMbr(mbr);

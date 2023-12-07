@@ -18,6 +18,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -130,7 +131,7 @@ public class TestFilters {
     }
 
     @Test
-    public void testStairBfShrink() {
+    public void testStairBfShrink() throws IOException {
         System.out.printf("#%d %d\n", minT, maxT);
         ISTKFilter sbf = new StairBF(8, 10000, 20, minT, maxT);
 
@@ -171,7 +172,7 @@ public class TestFilters {
     }
 
     @Test
-    public void testSTFilter() {
+    public void testSTFilter() throws IOException {
         int sBits = 8;
         int tBits = 4;
 
@@ -198,7 +199,7 @@ public class TestFilters {
             checkNoFalsePositive(results);
             System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
                     RamUsageEstimator.humanSizeOf(stFilter));
-            System.out.println("Filter Memory Usage: " + stFilter.size());
+            System.out.println("Filter Memory Usage: " + stFilter.ramUsage());
             System.out.println("query Time: " + (end - start));
             System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
             System.out.println("------------------------------------------------------------------");
@@ -287,7 +288,7 @@ public class TestFilters {
         }
     }
 
-    private static void insertIntoSTFilter(ISTKFilter stFilter) {
+    private static void insertIntoSTFilter(ISTKFilter stFilter) throws IOException {
         for (STObject object : SAMPLE_DATA) {
             stFilter.insert(object);
         }
@@ -302,7 +303,7 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter) {
+    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter) throws IOException {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES) {
             List<byte[]> filterResult = stFilter.shrink(query);
@@ -320,7 +321,7 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter, List<Query> queries) {
+    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter, List<Query> queries) throws IOException {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : queries) {
             List<byte[]> filterResult = stFilter.shrink(query);

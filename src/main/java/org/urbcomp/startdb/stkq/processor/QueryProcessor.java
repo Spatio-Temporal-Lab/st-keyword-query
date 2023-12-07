@@ -5,6 +5,7 @@ import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 
+import java.io.IOException;
 import java.util.List;
 
 public class QueryProcessor extends AbstractQueryProcessor {
@@ -16,7 +17,7 @@ public class QueryProcessor extends AbstractQueryProcessor {
     }
 
     @Override
-    public List<Range<byte[]>> getRanges(Query query) {
+    public List<Range<byte[]>> getRanges(Query query) throws IOException {
         return filter.shrinkAndMerge(query);
     }
 

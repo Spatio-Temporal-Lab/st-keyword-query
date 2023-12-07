@@ -24,20 +24,22 @@ import java.util.*;
 
 public class BatchWrite {
     
-    private static void writeTweet() throws IOException {
+    private static void batchInsert(String fileName, String tableName) throws IOException {
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-        String tableName = "testTweet1";
+//        String tableName = "testTweet1";
 
         if (hBaseUtil.existsTable(tableName)) {
             hBaseUtil.deleteTable(tableName);
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
+            hBaseUtil.createTable(tableName, new String[]{"attr"});
+//            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
         } else {
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
+            hBaseUtil.createTable(tableName, new String[]{"attr"});
+//            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
         }
 
 //        String inPathName = "/home/hadoop/data/tweetAll.csv";
-        String inPathName = "/usr/data/tweetAll.csv";
+//        String inPathName = "/usr/data/tweetAll.csv";
 
         ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
@@ -50,16 +52,11 @@ public class BatchWrite {
 
             long ID = 0;
             try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(Files.newInputStream(new File(inPathName).toPath())))) {
+                    new InputStreamReader(Files.newInputStream(new File(fileName).toPath())))) {
                 String DELIMITER = ",";
                 String line;
 
-                boolean first = true;
                 while ((line = br.readLine()) != null) {
-                    if (first) {
-                        first = false;
-                        continue;
-                    }
 
                     String[] columns = line.split(DELIMITER);
 
@@ -263,6 +260,7 @@ public class BatchWrite {
 
     public static void main(String[] args) throws IOException, ParseException {
 //        writeTweet();
-        writeTweetBDIA();
+        batchInsert("/usr/data/yelp.csv", "testYelp");
+//        writeTweetBDIA();
     }
 }

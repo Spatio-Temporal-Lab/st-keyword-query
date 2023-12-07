@@ -148,7 +148,6 @@ public class HBaseIO {
         }
     }
 
-
     public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) throws IOException {
 
         System.out.println("begin put filters");
@@ -181,6 +180,13 @@ public class HBaseIO {
         ByteArrayInputStream bis = new ByteArrayInputStream(values);
         ChainedInfiniFilter temp = new ChainedInfiniFilter();
         return new InfiniFilter(temp.read(bis));
+    }
+
+    public static void putFilter(String tableName, byte[] key, IFilter filter) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        filter.writeTo(bos);
+        byte[] value = bos.toByteArray();
+        hBaseUtil.put(tableName, key, "attr", "array", value);
     }
 
     // write some unused data

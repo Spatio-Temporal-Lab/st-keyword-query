@@ -156,6 +156,15 @@ public class HBaseUtil {
         }
     }
 
+    public void put(String tableName,
+                    byte[] rowKey, String columnFamily, String column, byte[] data) throws IOException {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            Put put = new Put(rowKey);
+            put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), data);
+            table.put(put);
+        }
+    }
+
     // 扫描一格内容
     public byte[] getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {

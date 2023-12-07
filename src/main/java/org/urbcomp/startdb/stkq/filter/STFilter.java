@@ -25,7 +25,7 @@ public class STFilter extends AbstractSTFilter {
         this.filterManager = filterManager;
     }
 
-    public void insert(STObject stObject) {
+    public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
@@ -36,7 +36,7 @@ public class STFilter extends AbstractSTFilter {
         }
     }
 
-    public List<byte[]> shrink(Query query) {
+    public List<byte[]> shrink(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();

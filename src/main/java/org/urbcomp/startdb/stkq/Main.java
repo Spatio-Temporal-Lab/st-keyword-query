@@ -38,7 +38,7 @@ public class Main {
         return true;
     }
 
-    public static void testQueryCorrectness() throws ParseException, InterruptedException {
+    public static void testQueryCorrectness() throws ParseException, InterruptedException, IOException {
         // create table
         String tableName = "testTweet";
         ISTKeyGenerator keyGenerator = new STKeyGenerator();

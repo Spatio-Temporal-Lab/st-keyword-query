@@ -54,7 +54,6 @@ public class HBaseQueryProcessor {
             }
 
             for (Map<String, String> map : scanResult) {
-//                System.out.println(map);
                 if (STKUtil.check(map, query)) {
                     result.add(map);
                 }
@@ -110,7 +109,7 @@ public class HBaseQueryProcessor {
         cdl = new CountDownLatch(ranges.size());
         for (Range<byte[]> range : ranges) {
             service.submit(new ScanThread(tableName,
-                    ByteUtil.concat(range.getLow(), ByteUtil.longToBytes(0)),
+                    ByteUtil.concat(range.getLow()),
                     ByteUtil.concat(range.getHigh(), ByteUtil.longToBytes(Long.MAX_VALUE)), query, result));
         }
         cdl.await();

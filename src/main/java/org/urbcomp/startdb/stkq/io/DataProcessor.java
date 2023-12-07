@@ -6,6 +6,7 @@ import com.google.common.hash.Funnels;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -188,12 +189,7 @@ public class DataProcessor {
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
             String line;
 
-            boolean first = true;
             while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
 
                 STObject cur = getSTObject(line);
                 if (cur == null) {
@@ -317,13 +313,7 @@ public class DataProcessor {
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
             String line;
 
-            boolean first = true;
-
             while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
 
                 STObject cur = getSTObject(line);
                 if (cur == null) {
@@ -611,12 +601,7 @@ public class DataProcessor {
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
             String line;
 
-            boolean first = true;
             while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
                 STObject cur = getSTObject(line);
                 if (cur == null) {
                     continue;
@@ -651,18 +636,20 @@ public class DataProcessor {
         //t:[107376,113887]
         int sBits = 8;
         int tBits = 4;
-        int tMin = 107376;
-        int tMax = 113887;
-//        AbstractSTFilter stFilter = new STFilter(3, 14, sBits, tBits);
+//        int tMin = 107376;
+//        int tMax = 113887;
+        BasicFilterManager manager = new BasicFilterManager(3, 18);
+        AbstractSTFilter stFilter = new STFilter(sBits, tBits, manager);
+        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/yelp.csv");
 //        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
 //        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
 //        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
 //        dataProcessor.putFiltersToRedis(stFilter, "/home/hadoop/data/tweetAll.csv");
 //        dataProcessor.generateSTDividedFilter("E:\\data\\tweetAll.csv");
 
-        StairBF bf = new StairBF(8, 42000, 20, tMin, tMax);
+//        StairBF bf = new StairBF(8, 42000, 20, tMin, tMax);
 //        dataProcessor.putFiltersToRedis(bf, "/usr/data/tweetAll.csv");
-        dataProcessor.putFiltersToRedis(bf, "/home/hadoop/data/tweetAll.csv");
+//        dataProcessor.putFiltersToRedis(bf, "/home/hadoop/data/tweetAll.csv");
         //792433880 755.7M
         //798493496 761.5M
     }

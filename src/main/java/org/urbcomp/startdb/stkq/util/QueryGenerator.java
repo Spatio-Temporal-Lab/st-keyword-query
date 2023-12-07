@@ -3,6 +3,7 @@ package org.urbcomp.startdb.stkq.util;
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
+import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -84,12 +85,58 @@ public class QueryGenerator {
                 if (object.getLon() > 89 || object.getLon() < -89) {
                     continue;
                 }
-                if (object.getKeywords().size() == 0) {
+                if (object.getKeywords().isEmpty()) {
                     continue;
                 }
                 double lat = object.getLat();
                 double lon = object.getLon();
                 MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
+                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
+                writer.write(",");
+                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
+                writer.write(",");
+                Date date = object.getTime();
+                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
+                writer.write(",");
+                writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
+                ArrayList<String> keywords;
+                if (writeCount < half) {
+                    keywords = getRandomKeywords();
+                } else {
+                    keywords = getRandomKeywords(object.getKeywords());
+                }
+                for (String keyword : keywords) {
+                    writer.write("," + keyword);
+                }
+                writer.newLine();
+                ++writeCount;
+                System.out.println(writeCount);
+            }
+        }
+    }
+
+    public static void generateQueries(String outputFileName, List<STObject> objects, int count) throws IOException {
+        String path = new File("").getAbsolutePath() + "/src/main/resources/" + outputFileName;
+        System.out.println(path);
+        int half = count / 2;
+        File file = new File(path);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            int n = objects.size();
+            int writeCount = 0;
+            while (writeCount < count) {
+                STObject object = objects.get(random.nextInt(n));
+                if (object.getLat() > 179 || object.getLat() < -179) {
+                    continue;
+                }
+                if (object.getLon() > 89 || object.getLon() < -89) {
+                    continue;
+                }
+                if (object.getKeywords().isEmpty()) {
+                    continue;
+                }
+                double lat = object.getLat();
+                double lon = object.getLon();
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 2000);
                 writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
                 writer.write(",");
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
@@ -354,7 +401,7 @@ public class QueryGenerator {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        try(FileInputStream fin = new FileInputStream("src/main/resources/keywords.txt");
+        try(FileInputStream fin = new FileInputStream("src/main/resources/yelpKeywords.txt");
             ObjectInputStream ois = new ObjectInputStream(fin)
         ) {
             keywords = new ArrayList<>((Set<String>) ois.readObject());
@@ -362,9 +409,14 @@ public class QueryGenerator {
             throw new RuntimeException(e);
         }
 
+        DataProcessor dataProcessor = new DataProcessor();
+        dataProcessor.setRate(0.1);
+        List<STObject> objects = dataProcessor.getSTObjects("/usr/data/yelp.csv");
+
+        generateQueries("yelpQueries.csv", objects,1_0000);
 //        generateZipfQueries("queriesZipf.csv", 1_0000, 1.2);
 //        generateZipfQueries("queriesZipfBig.csv", 5_0000, 1.2);
-        generateZipfQueriesNew("queriesZipfNew.csv", 5_0000, 1.2);
+//        generateZipfQueriesNew("queriesZipfNew.csv", 5_0000, 1.2);
 
 //        List<STObject> objects = DataProcessor.getSampleData();
 //        generateZipfQueries(objects, 5_0000, 1.2);

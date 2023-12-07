@@ -20,9 +20,10 @@ public class IntermediateFileGenerator {
 
 //        writeInfiniFilter();
 //        writeSTCount();
-        writeDistribution();
+//        writeDistribution();
 //        writeKeywords();
 //        writeBf();
+        writeKeywords("/usr/data/yelp.csv", "yelpKeywords.txt");
     }
 
     public static void writeBf() throws ParseException, IOException {
@@ -73,11 +74,11 @@ public class IntermediateFileGenerator {
         }
     }
 
-    public static void writeKeywords() throws ParseException, IOException {
+    public static void writeKeywords(String in, String out) throws IOException {
         DataProcessor dataProcessor = new DataProcessor();
-        Set<String> ss = dataProcessor.generateKeywords(Constant.TWEET_DIR);
+        Set<String> ss = dataProcessor.generateKeywords(in);
 
-        String outputPath = "src/main/resources/keywords.txt";
+        String outputPath = "src/main/resources/" + out;
         FileOutputStream f = new FileOutputStream(outputPath);
         ObjectOutputStream o = new ObjectOutputStream(f);
         o.writeObject(ss);
