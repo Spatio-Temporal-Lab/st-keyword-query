@@ -2,6 +2,7 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
@@ -27,6 +28,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected final int tMask;
     protected final int sIndexBytes;
     protected final int tIndexBytes;
+    public boolean yelp = true;
 
     protected final ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
     protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
@@ -80,15 +82,29 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : kKeys) {
-                    if (filter.check(ByteUtil.concat(keyPre, stKey))) {
-                        return true;
+                    byte[] key = ByteUtil.concat(keyPre, stKey);
+                    if (yelp) {
+                        if (filter.check(key) || YelpFNSet.check(new BytesKey(key))) {
+                            return true;
+                        }
+                    } else {
+                        if (filter.check(key)) {
+                            return true;
+                        }
                     }
                 }
                 return false;
             case CONTAIN_ALL:
                 for (byte[] keyPre : kKeys) {
-                    if (!filter.check(ByteUtil.concat(keyPre, stKey))) {
-                        return false;
+                    byte[] key = ByteUtil.concat(keyPre, stKey);
+                    if (yelp) {
+                        if (!(filter.check(key) && YelpFNSet.check(new BytesKey(key)))) {
+                            return false;
+                        }
+                    } else {
+                        if (!filter.check(key)) {
+                            return false;
+                        }
                     }
                 }
                 return true;

@@ -10,16 +10,17 @@ import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
+import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.io.*;
-import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
-import org.urbcomp.startdb.stkq.keyGenerator.TSKeyGenerator;
+import org.urbcomp.startdb.stkq.keyGenerator.*;
+import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.processor.AbstractQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BDIAQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
+import org.urbcomp.startdb.stkq.util.DateUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
@@ -30,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -156,12 +158,19 @@ public class TestQuery {
 
         ISTKeyGenerator keyGenerator1 = new STKeyGenerator();
         ISTKeyGenerator keyGenerator2 = new TSKeyGenerator();
+        YelpFNSet.init();
 
         int sBits = 8;
         int tBits = 4;
         AbstractSTFilter[] filter = {
                 new STFilter(sBits, tBits, new BasicFilterManager(3, 18)),
         };
+
+
+        ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
+        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+        System.out.println(Arrays.toString(sKeyGenerator.toBytes(new Location(39.888635, -86.121369))));
+        System.out.println(Arrays.toString(tKeyGenerator.toBytes(DateUtil.getDate("2016-06-12 11:40:59"))));
 
         // test query results
         List<Query> queries = QueryGenerator.getQueries("yelpQueries.csv");
@@ -180,6 +189,9 @@ public class TestQuery {
 
         long begin = System.currentTimeMillis();
         for (Query query : queries) {
+//            if (!(++ii == 5592)) {
+//                continue;
+//            }
 //            System.out.println(query);
             query.setQueryType(QueryType.CONTAIN_ONE);
 //            if (++ii > 100) {
@@ -196,6 +208,7 @@ public class TestQuery {
 
             for (int i = 1; i < n; ++i) {
                 if (!equals_(resultsList.get(0), resultsList.get(i))) {
+                    System.out.println(ii);
                     System.out.println(query);
                     System.out.println(resultsList.get(0));
                     System.out.println(resultsList.get(1));

@@ -136,7 +136,7 @@ public class QueryGenerator {
                 }
                 double lat = object.getLat();
                 double lon = object.getLon();
-                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 2000);
+                MBR mbr = GeoUtil.getMBRByCircle(new Location(lat, lon), 4000);
                 writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
                 writer.write(",");
                 writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());

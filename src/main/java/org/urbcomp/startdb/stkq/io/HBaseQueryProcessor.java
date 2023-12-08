@@ -6,10 +6,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -110,7 +107,7 @@ public class HBaseQueryProcessor {
         for (Range<byte[]> range : ranges) {
             service.submit(new ScanThread(tableName,
                     ByteUtil.concat(range.getLow()),
-                    ByteUtil.concat(range.getHigh(), ByteUtil.longToBytes(Long.MAX_VALUE)), query, result));
+                    ByteUtil.concat(range.getHigh(), new byte[]{-1, -1, -1, -1, -1, -1, -1, -1}), query, result));
         }
         cdl.await();
 

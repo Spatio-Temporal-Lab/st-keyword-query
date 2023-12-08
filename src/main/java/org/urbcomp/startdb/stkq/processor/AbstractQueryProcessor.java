@@ -57,6 +57,13 @@ public abstract class AbstractQueryProcessor {
         return null;
     }
 
+    public void printRanges(List<Range<byte[]>> ranges) {
+        for (Range<byte[]> range : ranges) {
+            System.out.println(Arrays.toString(range.getLow()) + " " + Arrays.toString(range.getHigh()));
+        }
+        System.out.println("--------------------------------------------");
+    }
+
     public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException, IOException {
 
         List<Map<String, String>> scanResults;
@@ -65,6 +72,7 @@ public abstract class AbstractQueryProcessor {
 
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
+//        printRanges(ranges);
         long end = System.currentTimeMillis();
         queryBloomTime += end - begin;
 

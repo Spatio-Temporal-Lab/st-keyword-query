@@ -14,6 +14,7 @@ public abstract class Filter implements Serializable {
 	abstract boolean expand();
 	protected abstract boolean _delete(long large_hash);
 	abstract protected boolean _insert(long large_hash, boolean insert_only_if_no_match);
+	abstract protected boolean _insert(byte[] bytes, long large_hash, boolean insert_only_if_no_match);
 	protected boolean _insert(long large_hash, int t, boolean insert_only_if_no_match) {return true;}
 	abstract protected boolean _search(long large_hash);
 	protected boolean _search(long large_hash, int t) { return true; }
@@ -46,6 +47,11 @@ public abstract class Filter implements Serializable {
 	public boolean insert(byte[] input, boolean insert_only_if_no_match) {
 		ByteBuffer input_buffer = ByteBuffer.wrap(input);
 		return _insert(HashFunctions.xxhash(input_buffer), insert_only_if_no_match);
+	}
+
+	public boolean insertDebug(byte[] input, boolean insert_only_if_no_match) {
+		ByteBuffer input_buffer = ByteBuffer.wrap(input);
+		return _insert(input, HashFunctions.xxhash(input_buffer), insert_only_if_no_match);
 	}
 
 	public boolean insert(byte[] input, int t, boolean insert_only_if_no_match, int seed) {

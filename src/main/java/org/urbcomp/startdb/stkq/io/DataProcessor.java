@@ -7,6 +7,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
+import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -346,6 +347,7 @@ public class DataProcessor {
 
         System.out.println(stFilter.ramUsage());
         stFilter.out();
+        YelpFNSet.output();
         System.out.println(minLat);
         System.out.println(minLon);
         System.out.println(maxLat);

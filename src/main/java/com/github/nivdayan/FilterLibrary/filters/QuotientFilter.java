@@ -1,11 +1,13 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
+import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
+import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
+import org.urbcomp.startdb.stkq.model.BytesKey;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.github.nivdayan.FilterLibrary.bitmap_implementations.Bitmap;
-import com.github.nivdayan.FilterLibrary.bitmap_implementations.QuickBitVectorWrapper;
 
 public class QuotientFilter extends Filter {
 	int bitPerEntry;
@@ -496,7 +498,7 @@ public class QuotientFilter extends Filter {
 	
 	boolean insert(long long_fp, long index, boolean insert_only_if_no_match) {
 		if (index > last_empty_slot) {
-//			System.err.println("index > last_empty_slot");
+			System.err.println("index > last_empty_slot");
 			return false;
 		}
 //		System.out.println("fp = " + long_fp);
@@ -519,6 +521,33 @@ public class QuotientFilter extends Filter {
 		} 
 		return insert_fingerprint_and_push_all_else(long_fp, run_start_index);
 	}
+
+	boolean insert(byte[] input, long long_fp, long index, boolean insert_only_if_no_match) {
+		if (index > last_empty_slot) {
+			System.err.println("index > last_empty_slot");
+			YelpFNSet.insert(new BytesKey(input));
+			return false;
+		}
+//		System.out.println("fp = " + long_fp);
+//		System.out.println("id = " + index);
+		boolean does_run_exist = is_occupied(index);
+		if (!does_run_exist) {
+//			System.out.println("run does not exists");
+			boolean val = insert_new_run(index, long_fp);
+			return val;
+		}
+
+		long run_start_index = find_run_start(index);
+		if (does_run_exist && insert_only_if_no_match) {
+			long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
+//			System.out.println("found_index = " + found_index);
+			if (found_index > -1) {
+//				System.out.println("already exists");
+				return false;
+			}
+		}
+		return insert_fingerprint_and_push_all_else(long_fp, run_start_index);
+	}
 	
 	// insert an fingerprint as the first fingerprint of the new run and push all other entries in the cluster to the right.
 	boolean insert_fingerprint_and_push_all_else(long long_fp, long run_start_index) {
@@ -529,6 +558,7 @@ public class QuotientFilter extends Filter {
 				
 		do {
 			if (current_index >= get_logical_num_slots_plus_extensions()) {
+				System.out.println("current_index >= get_logical_num_slots_plus_extensions");
 				return false;
 			}
 			is_this_slot_empty = is_slot_empty(current_index);
@@ -728,6 +758,37 @@ public class QuotientFilter extends Filter {
 			
 		}
 		return success; 
+	}
+
+	protected boolean _insert(byte[] bytes, long large_hash, boolean insert_only_if_no_match) {
+		if (is_full) {
+			return false;
+		}
+		long slot_index = get_slot_index(large_hash);
+		long fingerprint = gen_fingerprint(large_hash);
+
+		/*print_long_in_binary(large_hash, 64);
+		print_long_in_binary(slot_index, 32);
+		print_long_in_binary((int)fingerprint, 64);
+		System.out.println(slot_index + "  " + fingerprint );
+		System.out.println(); */
+
+		boolean success = insert(bytes, fingerprint, slot_index, insert_only_if_no_match);
+		/*if (!success) {
+			System.out.println("insertion failure");
+			System.out.println(input + "\t" + slot_index + "\t" + get_fingerprint_str(fingerprint, fingerprintLength));
+			pretty_print();
+			System.exit(1);
+		}*/
+
+		if (expand_autonomously && num_existing_entries >= max_entries_before_expansion) {
+			boolean expanded = expand();
+			if (expanded) {
+				num_expansions++;
+			}
+
+		}
+		return success;
 	}
 
 	protected boolean _delete(long large_hash) {
