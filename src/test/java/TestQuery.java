@@ -166,16 +166,10 @@ public class TestQuery {
                 new STFilter(sBits, tBits, new BasicFilterManager(3, 18)),
         };
 
-
-        ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
-        System.out.println(Arrays.toString(sKeyGenerator.toBytes(new Location(39.888635, -86.121369))));
-        System.out.println(Arrays.toString(tKeyGenerator.toBytes(DateUtil.getDate("2016-06-12 11:40:59"))));
-
         // test query results
         List<Query> queries = QueryGenerator.getQueries("yelpQueries.csv");
         AbstractQueryProcessor[] processors = {
-                new BasicQueryProcessor(tableName, keyGenerator1),
+//                new BasicQueryProcessor(tableName, keyGenerator1),
                 new QueryProcessor(tableName, filter[0])
 //                new BasicQueryProcessor(tableName1, keyGenerator1),
 //                new BDIAQueryProcessor(tableName2, keyGenerator2)
@@ -222,6 +216,7 @@ public class TestQuery {
 
         for (AbstractQueryProcessor processor : processors) {
             System.out.println(processor.getAllSize());
+            System.out.println(processor.getAllCount());
             processor.close();
         }
         for (AbstractSTFilter filter_ : filter) {

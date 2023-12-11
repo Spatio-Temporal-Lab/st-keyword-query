@@ -22,6 +22,7 @@ public class Query {
         this.startTime = startTime;
         this.endTime = endTime;
         this.mbr = new MBR(minLat, maxLat, minLon, maxLon);
+        queryType = QueryType.CONTAIN_ONE;
     }
 
     public Query(MBR mbr, Date startTime, Date endTime, ArrayList<String> keywords) {
@@ -29,6 +30,7 @@ public class Query {
         this.startTime = startTime;
         this.endTime = endTime;
         this.mbr = mbr;
+        queryType = QueryType.CONTAIN_ONE;
     }
 
     public void setQueryType(QueryType queryType) {

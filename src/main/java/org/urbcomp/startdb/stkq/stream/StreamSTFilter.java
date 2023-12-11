@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 public class StreamSTFilter extends AbstractSTFilter {
     private final StreamLRUFM filterManager;
-    int q = 0;
 
     public StreamSTFilter(int sBits, int tBits, StreamLRUFM filterManager) {
         super(sBits, tBits);
@@ -83,11 +82,6 @@ public class StreamSTFilter extends AbstractSTFilter {
                     }
                 }
             }
-        }
-
-        if (++q % 10 == 0) {
-            q = 0;
-            doClear();
         }
 
         return merge(keysLong);

@@ -81,6 +81,7 @@ public class HBaseUtil {
             for (String columnFamily : colFamily) {
                 builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(columnFamily));
             }
+            builder.setMaxFileSize(256 * 1024 * 1024);
             admin.createTable(builder.build());
         }
         return true;

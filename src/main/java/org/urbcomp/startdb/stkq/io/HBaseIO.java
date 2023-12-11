@@ -149,16 +149,8 @@ public class HBaseIO {
     }
 
     public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) throws IOException {
-
-        System.out.println("begin put filters");
-        if (hBaseUtil.existsTable(tableName)) {
-            return;
-        } else {
-            hBaseUtil.createTable(tableName, new String[]{"attr"});
-        }
-
         try (Table table = hBaseUtil.getConnection().getTable(TableName.valueOf(tableName))) {
-            System.out.println(filters.size());
+            List<Put> puts = new ArrayList<>();
             for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
                 byte[] key = entry.getKey().getArray();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -167,8 +159,9 @@ public class HBaseIO {
 
                 Put put = new Put(key);
                 put.addColumn(Bytes.toBytes("attr"), Bytes.toBytes("array"), value);
-                table.put(put);
+                puts.add(put);
             }
+            table.put(puts);
         }
     }
 
