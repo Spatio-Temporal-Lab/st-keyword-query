@@ -19,8 +19,4 @@ public class BasicQueryProcessor extends AbstractQueryProcessor {
     public List<Range<byte[]>> getRanges(Query query) {
         return keyGenerator.toBytesRanges(query);
     }
-
-    public void close() {
-        HBaseQueryProcessor.close();
-    }
 }

@@ -14,23 +14,12 @@ public class AbstractFilterManager implements IFilterManager {
         this.bitsPerKey = bitsPerKey;
     }
 
-    public int getUpdateSize(int size, int k) {
-        return (int) (size * (0.4 + 0.1 * k));
-    }
-
     public long ramUsage() {
         return 0;
     }
 
-    public void compress(long i) {
-    }
-
     public void out() {
 
-    }
-
-    public IFilter update(BytesKey index) {
-        return null;
     }
 
     @Override
@@ -46,10 +35,5 @@ public class AbstractFilterManager implements IFilterManager {
     @Override
     public IFilter getWithIO(BytesKey index) {
         return null;
-    }
-
-    @Override
-    public IFilter getAndUpdate(BytesKey index) {
-        return update(index);
     }
 }

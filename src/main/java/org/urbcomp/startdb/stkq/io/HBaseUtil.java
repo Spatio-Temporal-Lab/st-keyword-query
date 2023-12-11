@@ -15,7 +15,6 @@ import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.STKUtil;
-import scala.util.control.Exception;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,7 +37,6 @@ public class HBaseUtil {
     // 建立连接
     public void init(String zookeeper) {
         configuration = HBaseConfiguration.create();
-//        configuration.set("hbase.zookeeper.property.clientPort", "2181");
         configuration.set("hbase.zookeeper.quorum", zookeeper);
         try {
             connection = ConnectionFactory.createConnection(configuration);
@@ -197,25 +195,6 @@ public class HBaseUtil {
         }
     }
 
-    // 扫描多格内容
-    public List<String> getCells(String tableName, List<String> rowKeys, String columnFamily, String column) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            List<Get> gets = new ArrayList<>();
-            for (String rowKey : rowKeys) {
-                Get get = new Get(Bytes.toBytes(rowKey));
-                get.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column));
-                gets.add(get);
-            }
-            Result[] results = table.get(gets);
-            List<String> answers = new ArrayList<>();
-            for (Result result : results) {
-                List<Cell> cells = result.listCells();
-                answers.add(new String(CellUtil.cloneValue(cells.get(0)), StandardCharsets.UTF_8));
-            }
-            return answers;
-        }
-    }
-
     // 扫描一行内容
     public Map<String, String> getRow(String tableName, String rowKey) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
@@ -339,7 +318,6 @@ public class HBaseUtil {
         }
         return null;
     }
-
 
     public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
                                                       byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {

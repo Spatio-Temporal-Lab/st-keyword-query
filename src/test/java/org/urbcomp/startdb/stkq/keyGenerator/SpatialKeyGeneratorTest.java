@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
-//import org.urbcomp.startdb.stkq.keyGenerator.old.SpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import junit.framework.TestCase;

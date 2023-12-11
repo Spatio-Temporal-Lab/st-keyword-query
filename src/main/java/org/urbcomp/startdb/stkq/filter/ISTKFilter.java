@@ -11,4 +11,6 @@ public interface ISTKFilter {
     void insert(STObject object) throws IOException;
     List<byte[]> shrink(Query query) throws IOException;
     List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException;
+    long ramUsage();
+    void out();
 }

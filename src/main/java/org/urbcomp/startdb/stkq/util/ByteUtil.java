@@ -1,11 +1,7 @@
 package org.urbcomp.startdb.stkq.util;
 
-import org.apache.commons.collections.ArrayStack;
-
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class ByteUtil {
     public static byte[] getKByte(int num, int k) {

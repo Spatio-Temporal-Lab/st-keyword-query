@@ -1,6 +1,5 @@
 package com.github.nivdayan.FilterLibrary.filters;
 
-import org.apache.hadoop.fs.BlockLocation;
 import org.junit.Assert;
 import org.junit.Test;
 

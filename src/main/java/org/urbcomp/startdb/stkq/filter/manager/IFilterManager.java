@@ -11,6 +11,4 @@ public interface IFilterManager {
     IFilter get(BytesKey index) throws IOException;
 
     IFilter getWithIO(BytesKey index);
-
-    IFilter getAndUpdate(BytesKey index);
 }

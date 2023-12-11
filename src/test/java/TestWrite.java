@@ -25,12 +25,7 @@ public class TestWrite {
         String[] tableNames = new String[]{
                 "testTimeFirst", "testSpatialFirst", "testHilbert", "testShard"
         };
-//        AbstractSTKeyGenerator[] generators = new AbstractSTKeyGenerator[]{
-//                new TimeFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
-//                new SpatialFirstSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator()),
-//                new SpatialFirstSTKeyGenerator(new HilbertSpatialKeyGenerator(), new TimeKeyGenerator()),
-//                new ShardSTKeyGenerator(new SpatialKeyGenerator(), new TimeKeyGenerator())
-//        };
+
         ISTKeyGenerator[] generators = new ISTKeyGenerator[]{
                 new STKeyGenerator(),
                 new TSKeyGenerator(),
@@ -45,9 +40,7 @@ public class TestWrite {
                 for (int i = 0; i < n; ++i) {
                     String tableName = tableNames[i];
                     hBaseUtil.truncateTable(tableName);
-//                    AbstractSTKeyGenerator generator = generators[i];
-//                    HBaseWriter hBaseWriter = new HBaseWriter(generator);
-//                    hBaseWriter.putUnusedData(tableName, generator.getByteCount(), 100000);
+
                     ISTKeyGenerator generator = generators[i];
                     HBaseIO hBaseIO = new HBaseIO();
                     hBaseIO.putUnusedData(tableName, generator.getByteCount(), 100000);

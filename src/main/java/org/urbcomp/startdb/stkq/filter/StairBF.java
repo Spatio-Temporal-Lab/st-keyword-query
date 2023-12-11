@@ -243,7 +243,7 @@ public class StairBF implements ISTKFilter {
         return results;
     }
 
-    public long size() {
+    public long ramUsage() {
         return RamUsageEstimator.sizeOf(this);
     }
 

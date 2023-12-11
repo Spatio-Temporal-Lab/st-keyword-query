@@ -27,19 +27,12 @@ public class BatchWrite {
     private static void batchInsert(String fileName, String tableName) throws IOException {
         HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-//        String tableName = "testTweet1";
-
         if (hBaseUtil.existsTable(tableName)) {
             hBaseUtil.deleteTable(tableName);
             hBaseUtil.createTable(tableName, new String[]{"attr"});
-//            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH, 7, 256 * 1024 * 1024);
         } else {
             hBaseUtil.createTable(tableName, new String[]{"attr"});
-//            hBaseUtil.createTable(tableName, "attr", BloomType.ROWPREFIX_FIXED_LENGTH);
         }
-
-//        String inPathName = "/home/hadoop/data/tweetAll.csv";
-//        String inPathName = "/usr/data/tweetAll.csv";
 
         ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();

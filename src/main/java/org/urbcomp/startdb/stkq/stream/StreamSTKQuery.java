@@ -4,7 +4,6 @@ import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.MBR;
 import org.urbcomp.startdb.stkq.model.Query;

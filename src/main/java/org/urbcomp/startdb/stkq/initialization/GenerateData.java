@@ -11,7 +11,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 
 public class GenerateData {
-    //    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSampleBig.csv";
 
     public static void main(String[] args) throws ParseException, IOException {

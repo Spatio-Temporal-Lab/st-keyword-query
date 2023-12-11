@@ -3,7 +3,6 @@ package org.urbcomp.startdb.stkq.io;
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.filter.manager.FilterWithHotness;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -38,22 +37,6 @@ public class RedisIO {
             entry.getValue().writeTo(bos);
             byte[] value = bos.toByteArray();
             jedis0.set(key, value);
-        }
-    }
-
-    public static void putFiltersWithHotness(String tableName, Map<BytesKey, FilterWithHotness> filters) {
-        Jedis jedis1 = jedis[1];
-        if (jedis1.get(tableName) != null) {
-            return;
-        }
-        jedis1.set(tableName, tableName);
-        System.out.println(filters.size());
-        for (Map.Entry<BytesKey, FilterWithHotness> entry : filters.entrySet()) {
-            byte[] key = entry.getKey().getArray();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            entry.getValue().writeTo(bos);
-            byte[] value = bos.toByteArray();
-            jedis1.set(key, value);
         }
     }
 

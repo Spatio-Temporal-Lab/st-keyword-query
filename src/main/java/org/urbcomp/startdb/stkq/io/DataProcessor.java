@@ -26,7 +26,6 @@ public class DataProcessor {
     private double rate;
     private static long ID;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
     private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSampleBig.csv";
 
     static String DELIMITER = ",";
@@ -60,7 +59,7 @@ public class DataProcessor {
     public static boolean isNumeric(String str) {
         boolean flag = false;
         String tmp;
-        if (str.length() > 0) {
+        if (!str.isEmpty()) {
             if (str.startsWith("-")) {
                 tmp = str.substring(1);
             } else {
@@ -229,77 +228,7 @@ public class DataProcessor {
         return shops;
     }
 
-    public BloomFilter<byte[]> generateBloomFilter(String path, int size, double p) throws ParseException {
-
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        BloomFilter<byte[]> bloomFilter = BloomFilter.create(Funnels.byteArrayFunnel(), size, p);
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
-
-                for (String keyword : cur.getKeywords()) {
-                    bloomFilter.put(ByteUtil.concat(Bytes.toBytes(keyword.hashCode()),
-                            ByteUtil.getKByte(sID, 4),
-                            ByteUtil.getKByte(tID, 3)
-                            ));
-                }
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-
-        return bloomFilter;
-    }
-
-    public void putFiltersToRedis(AbstractSTFilter stFilter, String path) throws ParseException, IOException {
+    public void putFiltersToRedis(ISTKFilter stFilter, String path) throws ParseException, IOException {
         double maxLat = -100.0;
         double minLat = 100.0;
         double maxLon = -200.0;
@@ -337,13 +266,6 @@ public class DataProcessor {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
-//        List<Query> queries = QueryGenerator.getQueries("queriesZipf.csv");
-//        for (Query query : queries) {
-//            query.setQueryType(QueryType.CONTAIN_ONE);
-//            stFilter.shrink(query);
-//        }
-//        ((LRUSTFilter) stFilter).compress();
 
         System.out.println(stFilter.ramUsage());
         stFilter.out();
@@ -354,200 +276,6 @@ public class DataProcessor {
         System.out.println(maxLon);
         System.out.println(initFrom);
         System.out.println(initEnd);
-    }
-
-    public void putFiltersToRedis(StairBF stFilter, String path) throws ParseException {
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                stFilter.insert(cur);
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(stFilter.size());
-        stFilter.out();
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-    }
-
-    public ChainedInfiniFilter generateOneFilter(String path) throws ParseException {
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-
-        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 20);
-        filter.set_expand_autonomously(true);
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                long sID = spatialKeyGenerator.toNumber(cur.getLocation());
-                int tID = timeKeyGenerator.toNumber(cur.getTime());
-
-                for (String keyword : cur.getKeywords()) {
-                    byte[] insertValue = ByteUtil.concat(Bytes.toBytes(keyword.hashCode()), ByteUtil.getKByte(sID, 4), ByteUtil.getKByte(tID, 3));
-                    filter.insert(insertValue, false);
-                }
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-
-        return filter;
-    }
-
-    public Map<BytesKey, Long> generateCount(String path) throws ParseException {
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        Map<BytesKey, Long> map = new HashMap<>();
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
-        TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            boolean first = true;
-
-            while ((line = br.readLine()) != null) {
-                if (first) {
-                    first = false;
-                    continue;
-                }
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                long sID = spatialKeyGenerator.toNumber(cur.getLocation()) >>> (Constant.S_FILTER_ITEM_LEVEL << 1);
-                int tID = timeKeyGenerator.toNumber(cur.getTime()) >>> Constant.T_FILTER_ITEM_LEVEL;
-
-                long sIDForBf = sID >>> ((Constant.FILTER_LEVEL - Constant.S_FILTER_ITEM_LEVEL) << 1);
-                int tIDForBf = tID >>> (Constant.FILTER_LEVEL - Constant.T_FILTER_ITEM_LEVEL);
-
-                int needByteCountForS = Constant.SPATIAL_BYTE_COUNT - Constant.FILTER_LEVEL / 4;
-                int needByteCountForT = Constant.TIME_BYTE_COUNT - Constant.FILTER_LEVEL / 8;
-                BytesKey bfID = new BytesKey(ByteUtil.concat(ByteUtil.concat(ByteUtil.getKByte(sIDForBf, needByteCountForS), ByteUtil.getKByte(tIDForBf, needByteCountForT))));
-
-                map.merge(bfID, 1L, Long::sum);
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-
-        System.out.println(map);
-        return map;
     }
 
     public ArrayList<Map> generateDistribution(String path) {
@@ -635,24 +363,10 @@ public class DataProcessor {
 
     public static void main(String[] args) throws ParseException, IOException {
         DataProcessor dataProcessor = new DataProcessor();
-        //t:[107376,113887]
         int sBits = 8;
         int tBits = 4;
-//        int tMin = 107376;
-//        int tMax = 113887;
         BasicFilterManager manager = new BasicFilterManager(3, 18);
         AbstractSTFilter stFilter = new STFilter(sBits, tBits, manager);
         dataProcessor.putFiltersToRedis(stFilter, "/usr/data/yelp.csv");
-//        AbstractSTFilter stFilter = new HSTFilter(3, 14, sBits, tBits);
-//        AbstractSTFilter stFilter = new LRUSTFilter(3, 14, sBits, tBits);
-//        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/tweetAll.csv");
-//        dataProcessor.putFiltersToRedis(stFilter, "/home/hadoop/data/tweetAll.csv");
-//        dataProcessor.generateSTDividedFilter("E:\\data\\tweetAll.csv");
-
-//        StairBF bf = new StairBF(8, 42000, 20, tMin, tMax);
-//        dataProcessor.putFiltersToRedis(bf, "/usr/data/tweetAll.csv");
-//        dataProcessor.putFiltersToRedis(bf, "/home/hadoop/data/tweetAll.csv");
-        //792433880 755.7M
-        //798493496 761.5M
     }
 }

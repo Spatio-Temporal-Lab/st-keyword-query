@@ -17,45 +17,7 @@ import java.util.Set;
 
 public class IntermediateFileGenerator {
     public static void main(String[] args) throws Exception {
-
-//        writeInfiniFilter();
-//        writeSTCount();
-//        writeDistribution();
-//        writeKeywords();
-//        writeBf();
         writeKeywords("/usr/data/yelp.csv", "yelpKeywords.txt");
-    }
-
-    public static void writeBf() throws ParseException, IOException {
-        DataProcessor dataProcessor = new DataProcessor();
-        BloomFilter<byte[]> bloomFilter = dataProcessor.generateBloomFilter("/usr/data/tweetAll.csv", 50_000_000, 0.001);
-        String outputPath = "/usr/data/bloom/multiBloom/all/tweetBloom.txt";
-        FileOutputStream f = new FileOutputStream(outputPath);
-        ObjectOutputStream o = new ObjectOutputStream(f);
-        o.writeObject(bloomFilter);
-    }
-
-    public static void writeInfiniFilter() throws ParseException, IOException {
-        DataProcessor dataProcessor = new DataProcessor();
-//        ChainedInfiniFilter filter = dataProcessor.generateOneFilter("/usr/data/tweetAll.csv");
-        ChainedInfiniFilter filter = dataProcessor.generateOneFilter(Constant.TWEET_DIR);
-        System.out.println(RamUsageEstimator.humanSizeOf(filter));
-//        String outputPath = "/usr/data/bloom/dynamicBloom/00.txt";
-        String outputPath = Constant.DATA_DIR + "\\blooms\\00.txt";
-        filter.writeTo(Files.newOutputStream(Paths.get(outputPath)));
-    }
-
-    public static void writeSTCount() throws ParseException, IOException {
-        DataProcessor dataProcessor = new DataProcessor();
-//        Map<BytesKey, Long> map = dataProcessor.generateCount("/usr/data/tweetAll.csv");
-        Map<BytesKey, Long> map = dataProcessor.generateCount(Constant.TWEET_DIR);
-        System.out.println(map.size());
-
-//        String outputPath = "/usr/data/count.txt";
-        String outputPath = Constant.DATA_DIR + "\\count.txt";
-        FileOutputStream f = new FileOutputStream(outputPath);
-        ObjectOutputStream o = new ObjectOutputStream(f);
-        o.writeObject(map);
     }
 
     public static void writeDistribution() throws IOException {

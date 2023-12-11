@@ -5,9 +5,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
-import org.urbcomp.startdb.stkq.filter.manager.AHFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
@@ -43,7 +41,6 @@ public class TestFilters {
         IFilter setFilter = new SetFilter();
         insertIntoFilter(setFilter);
         GROUND_TRUTH_RANGES = shrinkByFilter(setFilter);
-//        assertEquals(13365, GROUND_TRUTH_RANGES.stream().mapToInt(List::size).sum());
         for (Query query : QUERIES) {
             query.setQueryType(QueryType.CONTAIN_ONE);
         }
@@ -56,11 +53,6 @@ public class TestFilters {
     public void testInfiniFilterFPR() {
 
         IFilter[] filters = new IFilter[]{
-//                new InfiniFilter(3, 12),
-//                new InfiniFilter(3, 13),
-//                new InfiniFilter(3, 14),
-//                new InfiniFilter(3, 15),
-//                new InfiniFilter(3, 16)
                 new InfiniFilter(3, 20)
         };
 
@@ -176,48 +168,20 @@ public class TestFilters {
         int sBits = 8;
         int tBits = 4;
 
-        HFilterManager hFilterManager = new HFilterManager(3, 14);
-//        AHFilterManager ahFilterManager = new AHFilterManager(3, 14);
+        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
 
-        AbstractSTFilter[] stFilters = {
-                new STFilter(sBits, tBits, new BasicFilterManager(3, 13)),
-                new STFilter(sBits, tBits, hFilterManager),
-//                new STFilter(sBits, tBits, ahFilterManager),
-        };
+        insertIntoSTFilter(stFilter);
 
-        for (AbstractSTFilter stFilter : stFilters) {
-            insertIntoSTFilter(stFilter);
-        }
-
-//        hFilterManager.build();
-//        ahFilterManager.build();
-
-        for (AbstractSTFilter stFilter : stFilters) {
-            long start = System.currentTimeMillis();
-            List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
-            long end = System.currentTimeMillis();
-            checkNoFalsePositive(results);
-            System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
-                    RamUsageEstimator.humanSizeOf(stFilter));
-            System.out.println("Filter Memory Usage: " + stFilter.ramUsage());
-            System.out.println("query Time: " + (end - start));
-            System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
-            System.out.println("------------------------------------------------------------------");
-        }
-
-        for (int i = 1; i < stFilters.length; ++i) {
-            stFilters[i].train(QUERIES_SMALL);
-        }
-
-        for (AbstractSTFilter stFilter : stFilters) {
-            long start = System.currentTimeMillis();
-            List<List<byte[]>> results = shrinkBySTFilter(stFilter);
-            long end = System.currentTimeMillis();
-            System.out.println("query Time: " + (end - start));
-            System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
-                    RamUsageEstimator.humanSizeOf(stFilter));
-            System.out.println(results.stream().mapToInt(List::size).sum());
-        }
+        long start = System.currentTimeMillis();
+        List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
+        long end = System.currentTimeMillis();
+        checkNoFalsePositive(results);
+        System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
+                RamUsageEstimator.humanSizeOf(stFilter));
+        System.out.println("Filter Memory Usage: " + stFilter.ramUsage());
+        System.out.println("query Time: " + (end - start));
+        System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
+        System.out.println("------------------------------------------------------------------");
     }
 
     @Test

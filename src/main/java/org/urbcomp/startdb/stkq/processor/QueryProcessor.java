@@ -20,8 +20,4 @@ public class QueryProcessor extends AbstractQueryProcessor {
     public List<Range<byte[]>> getRanges(Query query) throws IOException {
         return filter.shrinkAndMerge(query);
     }
-
-    public void close() {
-        HBaseQueryProcessor.close();
-    }
 }

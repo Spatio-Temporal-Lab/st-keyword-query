@@ -6,7 +6,6 @@ import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.StairBF;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
 import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
@@ -45,7 +44,6 @@ public class Main {
 
         AbstractSTFilter[] filter = {
                 new STFilter(8, 4, new BasicFilterManager(3, 12)),
-                new STFilter(8, 4, new HFilterManager(3, 14)),
                 new STFilter(8, 4, new LRUFilterManager(3, 14)),
         };
 

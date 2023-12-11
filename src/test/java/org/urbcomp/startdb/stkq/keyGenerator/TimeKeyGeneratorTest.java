@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
+import org.junit.Test;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
@@ -14,9 +15,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class TimeKeyGeneratorTest extends TestCase {
+public class TimeKeyGeneratorTest {
     TimeKeyGenerator timeKeyGenerator = new TimeKeyGenerator();
 
+    @Test
     public void testToKey() throws ParseException {
         Date date = DateUtil.getDate("2000-01-01 00:00:00");
         for (int i = 0; i < 10; ++i) {
@@ -25,6 +27,7 @@ public class TimeKeyGeneratorTest extends TestCase {
         }
     }
 
+    @Test
     public void testToKeyRanges() throws ParseException {
         Date date1 = DateUtil.getDate("2000-01-01 00:00:00");
         Date date2 = DateUtil.getDate("2000-01-01 01:00:00");

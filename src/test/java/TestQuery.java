@@ -1,26 +1,19 @@
-import org.apache.hadoop.hbase.client.ClientScanner;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.filter.manager.HFilterManager;
-import org.urbcomp.startdb.stkq.filter.manager.LRUFilterManager;
 import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
-import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.processor.AbstractQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BDIAQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.BasicQueryProcessor;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
-import org.urbcomp.startdb.stkq.util.DateUtil;
 import org.urbcomp.startdb.stkq.util.QueryGenerator;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
@@ -31,7 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

@@ -112,30 +112,6 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return true;
     }
 
-    // if we delete some filters, when the filter is null, we should return true
-    protected boolean checkInFilter_(IFilter filter, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
-        if (filter == null) {
-            return true;
-        }
-        switch (queryType) {
-            case CONTAIN_ONE:
-                for (byte[] keyPre : kKeys) {
-                    if (filter.check(ByteUtil.concat(keyPre, stKey))) {
-                        return true;
-                    }
-                }
-                return false;
-            case CONTAIN_ALL:
-                for (byte[] keyPre : kKeys) {
-                    if (!filter.check(ByteUtil.concat(keyPre, stKey))) {
-                        return false;
-                    }
-                }
-                return true;
-        }
-        return true;
-    }
-
     public void insert(STObject stObject) throws IOException {
     }
 
@@ -163,7 +139,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return results;
     }
 
-    public List<Range<byte[]>> shrinkWithIOAndTransform(Query query, int db) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
@@ -249,17 +225,11 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return null;
     }
 
-    public List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException {
-        return shrinkWithIOAndTransform(query, 0);
-    }
-
     public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
 
-    public void out() throws IOException {}
+    public void out() {}
 
     public List<byte[]> shrinkWithIO(Query query) {
         return null;
     }
-
-    public void train(List<Query> queries) {}
 }
