@@ -139,7 +139,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return results;
     }
 
-    public List<Range<byte[]>> shrinkAndMerge(Query query) {
+    public List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
