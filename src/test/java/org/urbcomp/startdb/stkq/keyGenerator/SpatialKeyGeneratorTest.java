@@ -1,15 +1,23 @@
 package org.urbcomp.startdb.stkq.keyGenerator;
 
-import org.urbcomp.startdb.stkq.model.Location;
-import org.urbcomp.startdb.stkq.util.ByteUtil;
 import junit.framework.TestCase;
-import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
-import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
-import org.locationtech.geomesa.curve.NormalizedDimension;
+import org.junit.Assert;
+import org.junit.Test;
+import org.urbcomp.startdb.stkq.model.Location;
+import org.urbcomp.startdb.stkq.model.Query;
+import org.urbcomp.startdb.stkq.model.Range;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.util.DateUtil;
 
 import java.math.BigInteger;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
 
 public class SpatialKeyGeneratorTest extends TestCase {
@@ -24,47 +32,34 @@ public class SpatialKeyGeneratorTest extends TestCase {
         assertEquals(ByteUtil.getValue(bytes3), BigInteger.valueOf((1 << 28) - 1));
     }
 
-    public void testHilbertCurve() {
-        int bitCount = 14;
-        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(bitCount);
-        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(bitCount);
-        SmallHilbertCurve curve = HilbertCurve.small().bits(bitCount).dimensions(2);
-        Random random = new Random();
+    @Test
+    public void testToKeyRanges() throws ParseException {
+        ISpatialKeyGenerator[] generators = {
+                new Z2SpatialKeyGenerator(),
+                new HilbertSpatialKeyGenerator()
+        };
 
-        int queryCount = 10;
-        double[] x = new double[queryCount];
-        double[] y = new double[queryCount];
-        for (int i = 0; i < 10; ++i) {
-            x[i] = random.nextDouble() * 180 - 90;
-            y[i] = random.nextDouble() * 360 - 180;
-            System.out.println(x[i] + " " + y[i]);
-            long index = curve.index(normalizedLat.normalize(x[i]), normalizedLon.normalize(y[i]));
-            System.out.println(index);
-            long[] coordinate = curve.point(index);
-            System.out.println(normalizedLat.denormalize((int) coordinate[0]) + " " + normalizedLon.denormalize((int) coordinate[1]));
-        }
-    }
+        Random rand = new Random();
+        for (ISpatialKeyGenerator generator : generators) {
+            for (int i = 0; i < 100; ++i) {
+                double x = rand.nextDouble() * 180 - 90;
+                double y = rand.nextDouble() * 360 - 180;
+                Location loc = new Location(x, y);
 
-    public void testNormalize() {
-        NormalizedDimension.NormalizedLat normalizedLat = new NormalizedDimension.NormalizedLat(14);
-        NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
+                long key = generator.toNumber(loc);
+                Query query = new Query(x - 0.001, x + 0.001, y - 0.001, y + 0.001,
+                        new Date(), new Date(), new ArrayList<>());
+                List<Range<Long>> ranges = generator.toNumberRanges(query);
 
-        System.out.println(normalizedLat.normalize(-90));
-        System.out.println(normalizedLat.normalize(-67.5));
-        System.out.println(normalizedLat.normalize(-45));
-        System.out.println(normalizedLat.normalize(-22.5));
-        System.out.println(normalizedLat.normalize(0));
-        System.out.println(normalizedLat.normalize(90));
-        System.out.println(normalizedLat.normalize(67.5));
-        System.out.println(normalizedLat.normalize(45));
-        System.out.println(normalizedLat.normalize(22.5));
-
-        int now = 0;
-        for (int i = 0 ; i < 9; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                System.out.println(normalizedLat.denormalize(now + j));
+                boolean flag = false;
+                for (Range<Long> range : ranges) {
+                    if (key >= range.getLow() && key <= range.getHigh()) {
+                        flag = true;
+                        break;
+                    }
+                }
+                Assert.assertTrue(flag);
             }
-            now += 2048;
         }
     }
 }

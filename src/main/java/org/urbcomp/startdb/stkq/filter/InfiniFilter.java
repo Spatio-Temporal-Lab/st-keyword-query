@@ -43,11 +43,6 @@ public class InfiniFilter implements IFilter {
     public boolean sacrifice() { return filter.sacrifice(); }
 
     @Override
-    public int appSize() {
-        return filter.getNum_expansions();
-    }
-
-    @Override
     public void writeTo(ByteArrayOutputStream bos) {
         filter.writeTo(bos);
     }

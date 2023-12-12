@@ -1,11 +1,8 @@
 package org.urbcomp.startdb.stkq.io;
 
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.filter.*;
+import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.ISTKFilter;
+import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
@@ -33,11 +30,6 @@ public class DataProcessor {
     public DataProcessor() {
         limit = 10000_0000;
         rate = 1.0;
-    }
-
-    public DataProcessor(int limit, double rate) {
-        this.limit = limit;
-        this.rate = rate;
     }
 
     public int getLimit() {

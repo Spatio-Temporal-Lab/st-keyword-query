@@ -201,8 +201,6 @@ public class TestFilters {
         int sBits = 8;
         int tBits = 4;
         AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
-//        insertIntoSTFilter(stFilter);
-//        stFilter.out();
         List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
         checkNoFalsePositive(results);
     }

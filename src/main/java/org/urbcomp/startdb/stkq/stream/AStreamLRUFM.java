@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class AStreamLRUFM extends StreamLRUFM {
 
-    public AStreamLRUFM(int log2Size, int bitsPerKey) {
-        super(log2Size, bitsPerKey);
+    public AStreamLRUFM(int log2Size, int bitsPerKey, String tableName) {
+        super(log2Size, bitsPerKey, tableName);
     }
 
     public void doClear() throws IOException {

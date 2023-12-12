@@ -185,7 +185,7 @@ public class StairBF implements ISTKFilter {
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
 
-        List<Range<byte[]>> results = new ArrayList<>();
+        List<Range<byte[]>> results;
 
         byte[][] wordsCode = query.getKeywords().stream()
                 .map(kKeyGenerator::toBytes).toArray(byte[][]::new);

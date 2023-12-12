@@ -24,11 +24,7 @@ public class RedisIO {
         }
     }
 
-    public static Jedis getJedis(int db) {
-        return jedis[db];
-    }
-
-    public static void putFilters(String tableName, Map<BytesKey, IFilter> filters) {
+    public static void putFilters(int db, Map<BytesKey, IFilter> filters) {
         Jedis jedis0 = jedis[0];
         System.out.println(filters.size());
         for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
@@ -37,23 +33,6 @@ public class RedisIO {
             entry.getValue().writeTo(bos);
             byte[] value = bos.toByteArray();
             jedis0.set(key, value);
-        }
-    }
-
-    public static void putLRUFilters(String tableName, Map<BytesKey, IFilter> filters) {
-        Jedis jedis2 = jedis[2];
-        System.out.println(filters.size());
-        if (jedis2.get(tableName) != null) {
-            return;
-        }
-        System.out.println("begin to put lru filters");
-        jedis2.set(tableName, tableName);
-        for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
-            byte[] key = entry.getKey().getArray();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            entry.getValue().writeTo(bos);
-            byte[] value = bos.toByteArray();
-            jedis2.set(key, value);
         }
     }
 
@@ -98,9 +77,5 @@ public class RedisIO {
     public static void main(String[] args) {
         System.out.println(jedis[0].info());
         System.out.println(jedis[1].info());
-    }
-
-    public static void flush(int i) {
-        jedis[i].flushDB();
     }
 }

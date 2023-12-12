@@ -5,7 +5,6 @@ import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
-import junit.framework.TestCase;
 
 import java.text.ParseException;
 import java.util.ArrayList;

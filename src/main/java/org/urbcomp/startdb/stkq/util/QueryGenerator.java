@@ -187,7 +187,6 @@ public class QueryGenerator {
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
         SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
-//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
         String path = new File("").getAbsolutePath() + "/src/main/resources/" + fileName;
         System.out.println(path);
         File file = new File(path);
@@ -264,7 +263,6 @@ public class QueryGenerator {
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
         SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
-//        String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queriesZipf.csv";
         String path = new File("").getAbsolutePath() + "/src/main/resources/" + fileName;
         System.out.println(path);
         File file = new File(path);
@@ -320,15 +318,10 @@ public class QueryGenerator {
         Map<BytesKey, Set<String>> key2Words = new HashMap<>();
         Map<BytesKey, Integer> key2Count = new HashMap<>();
 
-
-//        SpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
-//        TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
         ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
         TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
 
         for (STObject object : objects) {
-//            BytesKey key = new BytesKey(ByteUtil.concat(
-//                    sKeyGenerator.toKey(object.getLocation()), tKeyGenerator.toKey(object.getTime())));
             BytesKey key = new BytesKey(ByteUtil.concat(
                     sKeyGenerator.toBytes(object.getLocation()), tKeyGenerator.toBytes(object.getTime())));
             key2Count.merge(key, 1, Integer::sum);
@@ -349,7 +342,6 @@ public class QueryGenerator {
         NormalizedDimension.NormalizedLon normalizedLon = new NormalizedDimension.NormalizedLon(14);
         SmallHilbertCurve curve = HilbertCurve.small().bits(14).dimensions(2);
 
-//        String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSample.csv";
         String path = new File("").getAbsolutePath() + "/src/main/resources/queriesZipfSampleBig.csv";
         System.out.println(path);
         File file = new File(path);
@@ -414,11 +406,5 @@ public class QueryGenerator {
         List<STObject> objects = dataProcessor.getSTObjects("/usr/data/yelp.csv");
 
         generateQueries("yelpQueries.csv", objects,1_0000);
-//        generateZipfQueries("queriesZipf.csv", 1_0000, 1.2);
-//        generateZipfQueries("queriesZipfBig.csv", 5_0000, 1.2);
-//        generateZipfQueriesNew("queriesZipfNew.csv", 5_0000, 1.2);
-
-//        List<STObject> objects = DataProcessor.getSampleData();
-//        generateZipfQueries(objects, 5_0000, 1.2);
     }
 }

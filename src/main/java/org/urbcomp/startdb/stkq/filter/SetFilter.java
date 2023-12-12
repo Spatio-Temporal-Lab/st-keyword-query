@@ -23,11 +23,6 @@ public class SetFilter implements IFilter {
     }
 
     @Override
-    public int appSize() {
-        return size();
-    }
-
-    @Override
     public int size() {
         return set.size();
     }

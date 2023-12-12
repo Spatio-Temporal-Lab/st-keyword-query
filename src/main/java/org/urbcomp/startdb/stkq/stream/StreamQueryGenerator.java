@@ -12,14 +12,28 @@ import org.urbcomp.startdb.stkq.util.GeoUtil;
 import java.util.*;
 
 public class StreamQueryGenerator {
-    private final static int QUERY_COUNT = 1000;
-    private final static int[] COUNT;
+    private final int[] COUNT;
     Random random = new Random();
     private final Map<Integer, List<byte[]>> stMap = new TreeMap<>(Comparator.reverseOrder());
     private final Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
     private final Set<String> keywords = new HashSet<>();
     ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
     TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
+
+    public StreamQueryGenerator(int count) {
+        int n = 8;
+        int[] a = new int[n];
+        COUNT = new int[n];
+        for (int i = 0; i < n; ++i) {
+            a[i] = i + 1;
+        }
+        int sum = Arrays.stream(a).sum();
+        for (int i = 0; i < n; ++i) {
+            COUNT[i] = count * a[i] / sum;
+        }
+        int rev = count - Arrays.stream(COUNT).sum();
+        COUNT[COUNT.length - 1] += rev;
+    }
 
     public List<Query> generatorQuery() {
         int timeCount = COUNT.length;
@@ -37,7 +51,6 @@ public class StreamQueryGenerator {
             List<byte[]> sKeys = entry.getValue();
 
             Date date = DateUtil.getDateAfterHours(tInt);
-//            System.out.println(date);
 
             Collections.shuffle(sKeys);
             int sCount = COUNT[timeCount];
@@ -80,11 +93,6 @@ public class StreamQueryGenerator {
         keywords.addAll(cur.getKeywords());
     }
 
-    public static void main(String[] args) {
-        System.out.println(Arrays.toString(COUNT));
-        System.out.println(Arrays.stream(COUNT).sum());
-    }
-
     private ArrayList<String> getRandomKeywords(List<String> allKeywords) {
         int n = allKeywords.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
@@ -104,20 +112,5 @@ public class StreamQueryGenerator {
             return keywords1;
         }
         return new ArrayList<>(keywords1.subList(0, m));
-    }
-
-    static {
-        int n = 8;
-        int[] a = new int[n];
-        COUNT = new int[n];
-        for (int i = 0; i < n; ++i) {
-            a[i] = i + 1;
-        }
-        int sum = Arrays.stream(a).sum();
-        for (int i = 0; i < n; ++i) {
-            COUNT[i] = QUERY_COUNT * a[i] / sum;
-        }
-        int rev = QUERY_COUNT - Arrays.stream(COUNT).sum();
-        COUNT[COUNT.length - 1] += rev;
     }
 }

@@ -17,14 +17,15 @@ public class StreamLRUFM extends AbstractFilterManager {
     protected final long MAX_RAM_USAGE =  50 * 1024;
     protected Map<BytesKey, IFilter> filters = new LinkedHashMap<>(100_0000, .75F, true);
     protected long ramUsage;
+    protected String tableName;
 
-    public StreamLRUFM(int log2Size, int bitsPerKey) {
+    public StreamLRUFM(int log2Size, int bitsPerKey, String tableName) {
         super(log2Size, bitsPerKey);
+        this.tableName = tableName;
     }
 
     public void doClear() throws IOException {
         ramUsage = ramUsage();
-        System.out.println("ramUsage = " + ramUsage);
         if (ramUsage < MAX_RAM_USAGE) return;
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
 
@@ -43,7 +44,7 @@ public class StreamLRUFM extends AbstractFilterManager {
             }
         }
 
-        HBaseIO.putFilters("filters", filtersToRemove);
+        HBaseIO.putFilters(tableName, filtersToRemove);
     }
 
     public void doClear(IFilter filter) throws IOException {
@@ -56,8 +57,8 @@ public class StreamLRUFM extends AbstractFilterManager {
 
             IFilter filterToRemove = entry.getValue();
             ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-            if (HBaseIO.getFilter("filters", key) == null) {
-                HBaseIO.putFilter("filters", key, filterToRemove);
+            if (HBaseIO.getFilter(tableName, key) == null) {
+                HBaseIO.putFilter(tableName, key, filterToRemove);
             }
 
             iterator.remove();
@@ -80,7 +81,7 @@ public class StreamLRUFM extends AbstractFilterManager {
     public IFilter get(BytesKey index) throws IOException {
         IFilter filter = filters.get(index);
         if (filter == null) {
-            filter = HBaseIO.getFilter("filters", index.getArray());
+            filter = HBaseIO.getFilter(tableName, index.getArray());
             if (filter != null) {
                 filters.put(index, filter);
                 doClear(filter);

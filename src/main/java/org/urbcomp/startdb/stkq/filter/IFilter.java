@@ -47,7 +47,6 @@ public interface IFilter {
     boolean check(byte[] key);
     boolean sacrifice();
 
-    int appSize();
     int size();
 
     default void writeTo(ByteArrayOutputStream bos) {}

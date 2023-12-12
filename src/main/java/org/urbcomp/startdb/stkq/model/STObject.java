@@ -100,7 +100,10 @@ public class STObject implements Serializable, Comparable<STObject> {
         if (loc1.getLat() != location.getLat()) {
             return Double.compare(location.getLat(), loc1.getLat());
         }
-        return Double.compare(location.getLon(), stObject.location.getLon());
+        if (loc1.getLon() != location.getLon()) {
+            return Double.compare(location.getLon(), loc1.getLon());
+        }
+        return String.join(" ", keywords).compareTo(String.join(" ", stObject.getKeywords()));
     }
 
     public void setID(int id) {

@@ -50,7 +50,6 @@ public class BasicFilterManager extends AbstractFilterManager {
     }
 
     public void out() {
-        String tableName = "basicFilters";
-        RedisIO.putFilters(tableName, filters);
+        RedisIO.putFilters(0, filters);
     }
 }

@@ -1,7 +1,6 @@
 package org.urbcomp.startdb.stkq.processor;
 
 import org.urbcomp.startdb.stkq.filter.ISTKFilter;
-import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 

@@ -22,11 +22,6 @@ public class TSKeyGenerator implements ISTKeyGenerator {
         this.timeKeyGenerator = new TimeKeyGenerator();
     }
 
-    public TSKeyGenerator(ISpatialKeyGenerator spatialKeyGenerator, TimeKeyGenerator timeKeyGenerator) {
-        this.spatialKeyGenerator = spatialKeyGenerator;
-        this.timeKeyGenerator = timeKeyGenerator;
-    }
-
     @Override
     public Long toNumber(STObject object) {
         int t = timeKeyGenerator.toNumber(object.getTime());

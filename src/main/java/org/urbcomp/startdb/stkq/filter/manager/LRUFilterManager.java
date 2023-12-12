@@ -68,6 +68,6 @@ public class LRUFilterManager extends AbstractFilterManager {
     public void out() {
         String tableName = "lruFilters";
         System.out.println("lru filters put: ");
-        RedisIO.putLRUFilters(tableName, filters);
+        RedisIO.putFilters(0, filters);
     }
 }

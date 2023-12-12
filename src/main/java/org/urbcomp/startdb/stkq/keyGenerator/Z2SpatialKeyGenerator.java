@@ -43,8 +43,7 @@ public class Z2SpatialKeyGenerator implements ISpatialKeyGenerator {
 
     @Override
     public List<Range<Long>> toNumberRanges(Query query) {
-        @SuppressWarnings("unchecked")
-        List<ZIndexRange> indexRangeList = (List<ZIndexRange>) scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
+        List<ZIndexRange> indexRangeList = scala.collection.JavaConverters.seqAsJavaList(z2.toRanges(
                 Tuple2.apply(query.getMinLon(), query.getMaxLon()),
                 Tuple2.apply(query.getMinLat(), query.getMaxLat())
         ));

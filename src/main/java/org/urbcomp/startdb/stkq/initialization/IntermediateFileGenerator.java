@@ -1,22 +1,17 @@
 package org.urbcomp.startdb.stkq.initialization;
 
-import org.urbcomp.startdb.stkq.constant.Constant;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
-import org.urbcomp.startdb.stkq.model.BytesKey;
-import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
-import com.google.common.hash.BloomFilter;
-import org.apache.lucene.util.RamUsageEstimator;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.ParseException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
 public class IntermediateFileGenerator {
     public static void main(String[] args) throws Exception {
+        writeDistribution();
         writeKeywords("/usr/data/yelp.csv", "yelpKeywords.txt");
     }
 

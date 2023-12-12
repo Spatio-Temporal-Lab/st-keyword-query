@@ -47,7 +47,6 @@ public class TestQuery {
         if (a2.size() != n) {
             return false;
         }
-        boolean f = true;
         for (int i = 0; i < n; ++i) {
             if (!equals_(a1.get(i), a2.get(i))) {
                 return false;
@@ -72,8 +71,9 @@ public class TestQuery {
         System.out.println(end - start);
 
 
-        BasicQueryProcessor[] processors = new BasicQueryProcessor[]{
-                new BasicQueryProcessor(tableName, new STKeyGenerator())
+        AbstractQueryProcessor[] processors = {
+                new BasicQueryProcessor(tableName, new STKeyGenerator()),
+                new BDIAQueryProcessor(tableName, new TSKeyGenerator())
         };
 
         List<List<List<STObject>>> results = new ArrayList<>(processors.length);
@@ -142,14 +142,10 @@ public class TestQuery {
     @Test
     public void testQueryCorrectness() throws IOException, ParseException, InterruptedException {
         // create table
-        HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
-//        String tableName = "tweetSample";
-//        String tableName1 = "testTweet";
-//        String tableName2 = "testTweetBDIA";
         String tableName = "testYelp";
 
-        ISTKeyGenerator keyGenerator1 = new STKeyGenerator();
-        ISTKeyGenerator keyGenerator2 = new TSKeyGenerator();
+        ISTKeyGenerator stKeyGenerator = new STKeyGenerator();
+        ISTKeyGenerator tsKeyGenerator = new TSKeyGenerator();
         YelpFNSet.init();
 
         int sBits = 8;
@@ -161,12 +157,9 @@ public class TestQuery {
         // test query results
         List<Query> queries = QueryGenerator.getQueries("yelpQueries.csv");
         AbstractQueryProcessor[] processors = {
-//                new BasicQueryProcessor(tableName, keyGenerator1),
-                new QueryProcessor(tableName, filter[0])
-//                new BasicQueryProcessor(tableName1, keyGenerator1),
-//                new BDIAQueryProcessor(tableName2, keyGenerator2)
-//                new QueryProcessor(tableName1, filter[0]),
-//                new QueryProcessor(tableName1, filter[2])
+                new BasicQueryProcessor(tableName, stKeyGenerator),
+                new QueryProcessor(tableName, filter[0]),
+                new BDIAQueryProcessor(tableName, tsKeyGenerator)
         };
         System.out.println("--------------------query begin--------------------");
 
@@ -175,14 +168,7 @@ public class TestQuery {
 
         long begin = System.currentTimeMillis();
         for (Query query : queries) {
-//            if (!(++ii == 5592)) {
-//                continue;
-//            }
-//            System.out.println(query);
             query.setQueryType(QueryType.CONTAIN_ONE);
-//            if (++ii > 100) {
-//                break;
-//            }
 
             List<List<STObject>> resultsList = new ArrayList<>();
             for (AbstractQueryProcessor processor : processors) {
@@ -190,7 +176,6 @@ public class TestQuery {
                 Collections.sort(results);
                 resultsList.add(results);
             }
-//            System.out.println(resultsList);
 
             for (int i = 1; i < n; ++i) {
                 if (!equals_(resultsList.get(0), resultsList.get(i))) {
@@ -199,7 +184,6 @@ public class TestQuery {
                     System.out.println(resultsList.get(0));
                     System.out.println(resultsList.get(1));
                 }
-//                Assert.assertTrue(equals_(resultsList.get(0), resultsList.get(i)));
             }
         }
         long end = System.currentTimeMillis();

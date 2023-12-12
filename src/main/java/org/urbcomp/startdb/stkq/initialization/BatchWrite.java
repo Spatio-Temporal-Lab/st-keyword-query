@@ -1,26 +1,30 @@
 package org.urbcomp.startdb.stkq.initialization;
 
 import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
-import com.sun.org.apache.bcel.internal.generic.PUTSTATIC;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
-import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.regionserver.BloomType;
-import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class BatchWrite {
     
@@ -206,26 +210,10 @@ public class BatchWrite {
 
                     ++ID;
                     table.put(put);
-//                    puts.add(put);
-//
-//                    if (puts.size() >= batchSize) {
-//                        table.put(puts);
-//                        puts.clear();
-//                    }
                 }
-//                if (!puts.isEmpty()) {
-//                    table.put(puts);
-//                    puts.clear();
-//                }
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-
-//            for (Map.Entry<BytesKey, BloomFilter> entry : bfs.entrySet()) {
-//                Put put = new Put(entry.getKey().getArray());
-//                put.addColumn(Bytes.toBytes("attr"), new byte[]{0}, entry.getValue().getArray());
-//                table.put(put);
-//            }
 
             System.out.println("Dataset size: " + ID);
         }
@@ -252,8 +240,7 @@ public class BatchWrite {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-//        writeTweet();
         batchInsert("/usr/data/yelp.csv", "testYelp");
-//        writeTweetBDIA();
+        writeTweetBDIA();
     }
 }
