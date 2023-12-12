@@ -28,7 +28,7 @@ public class TestSTKQ {
      * @param dataDir The address of the data file
      * @param outDir The address to which the generated query is written
      */
-    void generateQuery(String dataDir, String outDir, int timeBin) {
+    void generateQuery(String dataDir, String outDir, int timeBin, int dataCount) {
         Date win = null;
         StreamQueryGenerator queryGenerator = new StreamQueryGenerator(QUERY_COUNT_EACH_TIME_BIN);
 
@@ -52,7 +52,7 @@ public class TestSTKQ {
                     }
                 }
                 queryGenerator.insert(cur);
-                if (++count >= 100000) {
+                if (++count >= dataCount) {
                     break;
                 }
             }
@@ -64,8 +64,9 @@ public class TestSTKQ {
     @Test
     public void testSampleData() throws IOException {
         // just need to run once
+//        String queryFileName = "streamTweet";
 //        String queryDir  = new File("").getAbsolutePath() + "/src/main/resources/" + queryFileName;
-//        generateQuery(dataDir, queryDir, timeBin);
+//        generateQuery("E:\\data\\tweetSorted.csv", queryDir, 4, 100000);
         testTweetSample(4, 2, 3, 13, 4, 100000);
     }
 
