@@ -152,7 +152,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         QueryType queryType = query.getQueryType();
         List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
 
-        ArrayList<Long> keysLong = new ArrayList<>();
+        List<Long> keysLong = new ArrayList<>();
 
         for (Range<Long> sRange : sRanges) {
             long sLow = sRange.getLow();

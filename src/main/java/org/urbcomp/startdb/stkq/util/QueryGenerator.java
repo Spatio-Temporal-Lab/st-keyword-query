@@ -15,10 +15,10 @@ import java.util.*;
 
 public class QueryGenerator {
 
-    private static ArrayList<String> keywords;
+    private static List<String> keywords;
     private static final Random random = new Random();
 
-    private static ArrayList<String> getRandomKeywords() {
+    private static List<String> getRandomKeywords() {
         int n = keywords.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
         Set<String> set = new HashSet<>();
@@ -28,8 +28,8 @@ public class QueryGenerator {
         return new ArrayList<>(set);
     }
 
-    private static ArrayList<String> getRandomKeywords(List<String> keywords) {
-        ArrayList<String> keywords1 = new ArrayList<>(keywords);
+    private static List<String> getRandomKeywords(List<String> keywords) {
+        List<String> keywords1 = new ArrayList<>(keywords);
         Collections.shuffle(keywords1);
         int n = keywords1.size();
         int m = random.nextInt(Math.min(n, 3)) + 1;
@@ -40,12 +40,12 @@ public class QueryGenerator {
         return new ArrayList<>(keywords1.subList(0, m));
     }
 
-    public static ArrayList<Query> getQueries() {
+    public static List<Query> getQueries() {
         return getQueries("queries.csv");
     }
 
-    public static ArrayList<Query> getQueries(String fileName) {
-        ArrayList<Query> queries = new ArrayList<>();
+    public static List<Query> getQueries(String fileName) {
+        List<Query> queries = new ArrayList<>();
         try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + fileName);
              BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(in)))) {
             // CSV文件的分隔符
@@ -60,7 +60,7 @@ public class QueryGenerator {
                 double lon2 = Double.parseDouble(array[3]);
                 Date s = DateUtil.getDate(array[4]);
                 Date t = DateUtil.getDate(array[5]);
-                ArrayList<String> keywords = new ArrayList<>(Arrays.asList(array).subList(6, array.length));
+                List<String> keywords = new ArrayList<>(Arrays.asList(array).subList(6, array.length));
                 queries.add(new Query(lat1, lat2, lon1, lon2, s, t, keywords));
             }
         } catch (IOException | ParseException e) {
@@ -69,7 +69,7 @@ public class QueryGenerator {
         return queries;
     }
 
-    public static void generateQueries(ArrayList<STObject> objects, int count) throws IOException {
+    public static void generateQueries(List<STObject> objects, int count) throws IOException {
         String path = new File("").getAbsolutePath() + "/st-keyword-query/src/main/resources/queries.csv";
         System.out.println(path);
         int half = count / 2;
@@ -99,7 +99,7 @@ public class QueryGenerator {
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
-                ArrayList<String> keywords;
+                List<String> keywords;
                 if (writeCount < half) {
                     keywords = getRandomKeywords();
                 } else {
@@ -145,7 +145,7 @@ public class QueryGenerator {
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
-                ArrayList<String> keywords;
+                List<String> keywords;
                 if (writeCount < half) {
                     keywords = getRandomKeywords();
                 } else {
@@ -217,7 +217,7 @@ public class QueryGenerator {
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
-                ArrayList<String> keywords;
+                List<String> keywords;
 
                 if (random.nextDouble() < 0.5) {
                     keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));
@@ -293,7 +293,7 @@ public class QueryGenerator {
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
-                ArrayList<String> keywords;
+                List<String> keywords;
 
                 if (random.nextDouble() < 0.5) {
                     keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));
@@ -372,7 +372,7 @@ public class QueryGenerator {
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, -120)));
                 writer.write(",");
                 writer.write(DateUtil.format(DateUtil.getDateAfterMinutes(date, 120)));
-                ArrayList<String> keywords;
+                List<String> keywords;
 
                 if (random.nextDouble() < 0.5) {
                     keywords = getRandomKeywords(new ArrayList<>(key2Words.get(bytesKey)));

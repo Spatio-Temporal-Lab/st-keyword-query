@@ -60,7 +60,7 @@ public class TestQuery {
 
         String tableName = "testTweet";
         String outPathName = Constant.DATA_DIR + "queryLog.txt";
-        ArrayList<Query> queries = QueryGenerator.getQueries();
+        List<Query> queries = QueryGenerator.getQueries();
 
 
         long start;

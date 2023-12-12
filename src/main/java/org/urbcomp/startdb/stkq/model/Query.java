@@ -5,19 +5,20 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Query {
     private Date startTime;
     private Date endTime;
     private MBR mbr;
-    private ArrayList<String> keywords;
+    private List<String> keywords;
     private QueryType queryType;
 
     public Query() {}
 
     public Query(double minLat, double maxLat,
                  double minLon, double maxLon,
-                 Date startTime, Date endTime, ArrayList<String> keywords) {
+                 Date startTime, Date endTime, List<String> keywords) {
         this.keywords = new ArrayList<>(keywords);
         this.startTime = startTime;
         this.endTime = endTime;
@@ -65,7 +66,7 @@ public class Query {
         return mbr.getMaxLon();
     }
 
-    public ArrayList<String> getKeywords() {
+    public List<String> getKeywords() {
         return keywords;
     }
 

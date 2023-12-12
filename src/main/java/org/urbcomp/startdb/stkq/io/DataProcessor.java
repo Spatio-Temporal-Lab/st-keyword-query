@@ -162,7 +162,7 @@ public class DataProcessor {
         return new STObject(ID++, lat, lon, date, keywords);
     }
 
-    public ArrayList<STObject> getSTObjects(String path) throws ParseException {
+    public List<STObject> getSTObjects(String path) throws ParseException {
 
         double maxLat = -100.0;
         double minLat = 100.0;
@@ -175,7 +175,7 @@ public class DataProcessor {
         String dateString = "1900-02-23 00:00";
         Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
         Date initFrom = new Date();
-        ArrayList<STObject> shops = new ArrayList<>(limit);
+        List<STObject> shops = new ArrayList<>(limit);
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
@@ -270,7 +270,7 @@ public class DataProcessor {
         System.out.println(initEnd);
     }
 
-    public ArrayList<Map> generateDistribution(String path) {
+    public List<Map> generateDistribution(String path) {
         Map<BytesKey, Integer> st2Count = new HashMap<>();
         Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
 

@@ -73,7 +73,7 @@ public class BatchWrite {
                     if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
                         continue;
 
-                    ArrayList<String> keywords = getStrings(columns);
+                    List<String> keywords = getStrings(columns);
 
                     if (keywords.isEmpty()) {
                         continue;
@@ -170,7 +170,7 @@ public class BatchWrite {
                     if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
                         continue;
 
-                    ArrayList<String> keywords = getStrings(columns);
+                    List<String> keywords = getStrings(columns);
 
                     if (keywords.isEmpty()) {
                         continue;
@@ -219,8 +219,8 @@ public class BatchWrite {
         }
     }
 
-    private static ArrayList<String> getStrings(String[] columns) {
-        ArrayList<String> keywords = new ArrayList<>();
+    private static List<String> getStrings(String[] columns) {
+        List<String> keywords = new ArrayList<>();
 
         String keywordStr = columns[1];
         int len = keywordStr.length();

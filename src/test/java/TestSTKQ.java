@@ -183,7 +183,7 @@ public class TestSTKQ {
                 writer.write(",");
                 writer.write(DateUtil.format(query.getEndTime()));
 
-                ArrayList<String> keywords = query.getKeywords();
+                List<String> keywords = query.getKeywords();
                 for (String keyword : keywords) {
                     writer.write("," + keyword);
                 }
@@ -192,8 +192,8 @@ public class TestSTKQ {
         }
     }
 
-    private static ArrayList<Query> getQueries(String fileName) {
-        ArrayList<Query> queries = new ArrayList<>();
+    private static List<Query> getQueries(String fileName) {
+        List<Query> queries = new ArrayList<>();
         try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + fileName);
              BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(in)))) {
             String DELIMITER = ",";

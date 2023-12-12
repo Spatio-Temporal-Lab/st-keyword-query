@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ public class IntermediateFileGenerator {
 
     public static void writeDistribution() throws IOException {
         DataProcessor dataProcessor = new DataProcessor();
-        ArrayList<Map> maps = dataProcessor.generateDistribution("/usr/data/tweetAll.csv");
+        List<Map> maps = dataProcessor.generateDistribution("/usr/data/tweetAll.csv");
         System.out.println("st count: " + maps.get(0).size());
         System.out.println("st count: " + maps.get(1).size());
 
