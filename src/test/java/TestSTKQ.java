@@ -53,10 +53,10 @@ public class TestSTKQ {
                 }
                 Date now = cur.getTime();
                 if (win == null) {
-                    win = getDate(now);
+                    win = getHourDate(now);
                 } else if (DateUtil.getHours(win, now) >= timeBin) {
                     List<Query> queries = queryGenerator.generatorQuery();
-                    writeQueries(queries, queryDir);
+                    writeQueries(queries);
                     while (DateUtil.getHours(win, now) >= timeBin) {
                         win = DateUtil.getDateAfterHours(win, timeBin);
                     }
@@ -71,14 +71,13 @@ public class TestSTKQ {
 
     @Test
     public void testSampleData() throws IOException, ParseException, InterruptedException {
-        initFilterTable(filterTableName);
+        initFilterTable();
         StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
         QueryProcessor processor = new QueryProcessor(tableName, filter);
         List<Query> queriesAll = getQueries();
         doVerify(filter, queriesAll, processor);
         processor.close();
     }
-
 
     private void doVerify(StreamSTFilter filter, List<Query> queriesAll,
                           QueryProcessor processor) throws IOException, ParseException, InterruptedException {
@@ -99,7 +98,7 @@ public class TestSTKQ {
                 Date now = cur.getTime();
 
                 if (win == null) {
-                    win = getDate(now);
+                    win = getHourDate(now);
                 } else if (DateUtil.getHours(win, now) >= timeBin) {
                     filter.doClear();
 
@@ -144,15 +143,20 @@ public class TestSTKQ {
         System.out.println("time: " + (allTime / 100_0000) + "ms");
     }
 
-    private void initFilterTable(String tableName) throws IOException {
-        if (!hBaseUtil.existsTable(tableName)) {
-            hBaseUtil.createTable(tableName, "attr", BloomType.ROW);
+    private void initFilterTable() throws IOException {
+        if (!hBaseUtil.existsTable(filterTableName)) {
+            hBaseUtil.createTable(filterTableName, "attr", BloomType.ROW);
         } else {
-            hBaseUtil.truncateTable(tableName);
+            hBaseUtil.truncateTable(filterTableName);
         }
     }
 
-    private Date getDate(Date date) {
+    /**
+     * 根据输入的时间日期，获得只保留小时、日期的时间。
+     * @param date 可能保留时间的日期
+     * @return 只保留小时、日期的时间
+     */
+    private Date getHourDate(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.set(Calendar.MINUTE, 0);
@@ -160,8 +164,8 @@ public class TestSTKQ {
         return calendar.getTime();
     }
 
-    private void writeQueries(List<Query> queries, String file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+    private void writeQueries(List<Query> queries) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, true))) {
             for (Query query : queries) {
                 MBR mbr = query.getMBR();
                 writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
