@@ -2,12 +2,14 @@ import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.model.MBR;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
+import org.urbcomp.startdb.stkq.stream.QueryDistributionEnum;
 import org.urbcomp.startdb.stkq.stream.StreamLRUFM;
 import org.urbcomp.startdb.stkq.stream.StreamQueryGenerator;
 import org.urbcomp.startdb.stkq.stream.StreamSTFilter;
@@ -28,7 +30,7 @@ public class TestSTKQ {
     private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/" + queryFileName;
     private final static int sampleCount = 100_000;     //测试数据的量
     private final static String tableName = "testTweet";    // HBase存储数据的表名
-    private final static String filterTableName = "tweetFilters";   // HBase存储布隆过滤器的表名
+    private final static String filterTableName = "tweetFilters_Ruiyuan";   // HBase存储布隆过滤器的表名
     private final static int sBits = 4;     //HBase键中空间键的后sBits位抹除，用于构建布隆过滤器的键，2的整数倍
     private final static int tBits = 2;     //HBase键中时间键的后tBits位抹除，用于构建布隆过滤器的键
     private final static int logInitFilterSlotSize = 3; // 布隆过滤器初始化槽的个数，log
@@ -39,11 +41,12 @@ public class TestSTKQ {
     @Test
     @Ignore
     public void generateQuery() throws IOException {
-        Date win = null;
-        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin);
+        Date window = null;
+        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin, QueryDistributionEnum.LINEAR, QueryType.CONTAIN_ONE);
 
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, false))
+        ) {
             String line;
             int count = 0;
             while ((line = br.readLine()) != null) {
@@ -52,13 +55,13 @@ public class TestSTKQ {
                     continue;
                 }
                 Date now = cur.getTime();
-                if (win == null) {
-                    win = getHourDate(now);
-                } else if (DateUtil.getHours(win, now) >= timeBin) {
-                    List<Query> queries = queryGenerator.generatorQuery();
-                    writeQueries(queries);
-                    while (DateUtil.getHours(win, now) >= timeBin) {
-                        win = DateUtil.getDateAfterHours(win, timeBin);
+                if (window == null) {
+                    window = getHourDate(now);
+                } else if (DateUtil.getHours(window, now) >= timeBin) {
+                    List<Query> queries = queryGenerator.generateQuery();
+                    writeQueries(queries, writer);
+                    while (DateUtil.getHours(window, now) >= timeBin) {
+                        window = DateUtil.getDateAfterHours(window, timeBin);
                     }
                 }
                 queryGenerator.insert(cur);
@@ -72,11 +75,16 @@ public class TestSTKQ {
     @Test
     public void testSampleData() throws IOException, ParseException, InterruptedException {
         initFilterTable();
-        StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
-        QueryProcessor processor = new QueryProcessor(tableName, filter);
         List<Query> queriesAll = getQueries();
-        doVerify(filter, queriesAll, processor);
-        processor.close();
+        StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
+        try (QueryProcessor processor = new QueryProcessor(tableName, filter);
+            BufferedReader dataBr = new BufferedReader(new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
+            int binNum = 0;
+            // 获得对应query的数据
+            // 获得查询数据
+            // 校验
+            doVerify(filter, queriesAll, processor);
+        }
     }
 
     private void doVerify(StreamSTFilter filter, List<Query> queriesAll,
@@ -87,7 +95,7 @@ public class TestSTKQ {
         List<STObject> objects = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
+            new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
             String line;
             int count = 0;
             while ((line = br.readLine()) != null) {
@@ -113,21 +121,20 @@ public class TestSTKQ {
                         List<STObject> results = processor.getResult(query);
                         Collections.sort(results);
 
-                        List<STObject> results1 = bruteForce(objects, query);
-                        Collections.sort(results1);
+                        List<STObject> groundTruth = bruteForce(objects, query);
+                        Collections.sort(groundTruth);
 
-                        if (!equals(results, results1)) {
-                            System.out.println(query);
-                            System.out.println(results);
-                            System.out.println(results1);
+                        if (!equals(results, groundTruth)) {
+                            System.out.println("query: " + query);
+                            System.out.println("queryResult:" + results);
+                            System.out.println("groundTruth:" + groundTruth);
                             Assert.fail();
                         }
-
                     }
                     allTime += System.nanoTime() - begin;
 
-                    while (DateUtil.getHours(win, now) >= TestSTKQ.timeBin) {
-                        win = DateUtil.getDateAfterHours(win, TestSTKQ.timeBin);
+                    while (DateUtil.getHours(win, now) >= timeBin) {
+                        win = DateUtil.getDateAfterHours(win, timeBin);
                     }
                 }
 
@@ -153,6 +160,7 @@ public class TestSTKQ {
 
     /**
      * 根据输入的时间日期，获得只保留小时、日期的时间。
+     *
      * @param date 可能保留时间的日期
      * @return 只保留小时、日期的时间
      */
@@ -164,25 +172,23 @@ public class TestSTKQ {
         return calendar.getTime();
     }
 
-    private void writeQueries(List<Query> queries) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, true))) {
-            for (Query query : queries) {
-                MBR mbr = query.getMBR();
-                writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
-                writer.write(",");
-                writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
-                writer.write(",");
+    private void writeQueries(List<Query> queries, BufferedWriter writer) throws IOException {
+        for (Query query : queries) {
+            MBR mbr = query.getMBR();
+            writer.write(mbr.getMinLat() + "," + mbr.getMaxLat());
+            writer.write(",");
+            writer.write(mbr.getMinLon() + "," + mbr.getMaxLon());
+            writer.write(",");
 
-                writer.write(DateUtil.format(query.getStartTime()));
-                writer.write(",");
-                writer.write(DateUtil.format(query.getEndTime()));
+            writer.write(DateUtil.format(query.getStartTime()));
+            writer.write(",");
+            writer.write(DateUtil.format(query.getEndTime()));
 
-                List<String> keywords = query.getKeywords();
-                for (String keyword : keywords) {
-                    writer.write("," + keyword);
-                }
-                writer.newLine();
+            List<String> keywords = query.getKeywords();
+            for (String keyword : keywords) {
+                writer.write("," + keyword);
             }
+            writer.newLine();
         }
     }
 
@@ -200,7 +206,7 @@ public class TestSTKQ {
                 double lon2 = Double.parseDouble(array[3]);
                 Date s = DateUtil.getDate(array[4]);
                 Date t = DateUtil.getDate(array[5]);
-                ArrayList<String> keywords = new ArrayList<>(Arrays.asList(array).subList(6, array.length));
+                List<String> keywords = new ArrayList<>(Arrays.asList(array).subList(6, array.length));
                 queries.add(new Query(lat1, lat2, lon1, lon2, s, t, keywords));
             }
         }
