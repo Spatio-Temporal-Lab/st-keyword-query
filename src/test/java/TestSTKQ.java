@@ -14,11 +14,9 @@ import org.urbcomp.startdb.stkq.stream.StreamLRUFM;
 import org.urbcomp.startdb.stkq.stream.StreamQueryGenerator;
 import org.urbcomp.startdb.stkq.stream.StreamSTFilter;
 import org.urbcomp.startdb.stkq.util.DateUtil;
-import org.urbcomp.startdb.stkq.util.QueryGenerator;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.*;
 
@@ -26,8 +24,7 @@ public class TestSTKQ {
     private final static int queryCountEachBin = 1000;
     private final static int timeBin = 4;   // 每timeBin小时生成一次查询，每次生成queryCountEachBin个查询
     private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
-    private final static String queryFileName = "streamTweet.csv";  //存储查询的文件
-    private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/" + queryFileName;
+    private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/streamTweet.csv";
     private final static int sampleCount = 100_000;     //测试数据的量
     private final static String tableName = "testTweet";    // HBase存储数据的表名
     private final static String filterTableName = "tweetFilters_Ruiyuan";   // HBase存储布隆过滤器的表名
@@ -42,10 +39,11 @@ public class TestSTKQ {
     @Ignore
     public void generateQuery() throws IOException {
         Date window = null;
-        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin, QueryDistributionEnum.LINEAR, QueryType.CONTAIN_ONE);
+        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin,
+            QueryDistributionEnum.LINEAR, QueryType.CONTAIN_ONE);
 
         try (BufferedReader br = new BufferedReader(new FileReader(dataDir));
-            BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, false))
+             BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, false))
         ) {
             String line;
             int count = 0;
@@ -76,78 +74,72 @@ public class TestSTKQ {
     public void testSampleData() throws IOException, ParseException, InterruptedException {
         initFilterTable();
         List<Query> queriesAll = getQueries();
-        StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
+        StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
+            new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
+        List<STObject> totalObjects = new ArrayList<>();
+
         try (QueryProcessor processor = new QueryProcessor(tableName, filter);
-            BufferedReader dataBr = new BufferedReader(new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
-            int binNum = 0;
-            // 获得对应query的数据
-            // 获得查询数据
-            // 校验
-            doVerify(filter, queriesAll, processor);
+             BufferedReader dataBr = new BufferedReader(new FileReader(dataDir))) {
+            long allTime = 0;
+            int queryCount = 0;
+            for (Query query : queriesAll) {
+                // 是否flush布隆过滤器，相当于每个timeBin插入，便尝试调整布隆过滤器
+                queryCount++;
+                if (queryCount % queryCountEachBin == 0) {
+                    filter.doClear();
+                }
+
+                // 获得对应query的groundTruth，不可与查询数据顺序交换
+                List<STObject> groundTruth = getGroundTruthByQuery(query, totalObjects, filter, dataBr);
+
+                // 获得查询数据
+                long begin = System.nanoTime();
+                List<STObject> queryResults = processor.getResult(query);
+                allTime += System.nanoTime() - begin;
+
+                // 校验
+                if (!equals(queryResults, groundTruth)) {
+                    System.out.println("query: " + query);
+                    System.out.println("queryResult:" + queryResults);
+                    System.out.println("groundTruth:" + groundTruth);
+                    Assert.fail();
+                }
+            }
+            System.out.println("QueryCount: " + queryCount);
+            System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
         }
     }
 
-    private void doVerify(StreamSTFilter filter, List<Query> queriesAll,
-                          QueryProcessor processor) throws IOException, ParseException, InterruptedException {
-        long allTime = 0;
-        int i = 0;
-        Date win = null;
-        List<STObject> objects = new ArrayList<>();
-
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
+    private List<STObject> getGroundTruthByQuery(Query query, List<STObject> totalObjects,
+                                                 StreamSTFilter filter, BufferedReader dataBr) throws IOException {
+        Date maxDate = null;
+        if (totalObjects.size() > 0) {
+            maxDate = totalObjects.get(totalObjects.size() - 1).getTime();
+        }
+        while (maxDate == null || !query.getEndTime().before(maxDate)) {
             String line;
-            int count = 0;
-            while ((line = br.readLine()) != null) {
+            while ((line = dataBr.readLine()) != null) {
                 STObject cur = DataProcessor.parseSTObject(line);
                 if (cur == null) {
                     continue;
                 }
-                Date now = cur.getTime();
-
-                if (win == null) {
-                    win = getHourDate(now);
-                } else if (DateUtil.getHours(win, now) >= timeBin) {
-                    filter.doClear();
-
-                    if (i * queryCountEachBin >= queriesAll.size()) {
-                        break;
-                    }
-                    List<Query> queries = queriesAll.subList(i * queryCountEachBin, (i + 1) * queryCountEachBin);
-                    ++i;
-
-                    long begin = System.nanoTime();
-                    for (Query query : queries) {
-                        List<STObject> results = processor.getResult(query);
-                        Collections.sort(results);
-
-                        List<STObject> groundTruth = bruteForce(objects, query);
-                        Collections.sort(groundTruth);
-
-                        if (!equals(results, groundTruth)) {
-                            System.out.println("query: " + query);
-                            System.out.println("queryResult:" + results);
-                            System.out.println("groundTruth:" + groundTruth);
-                            Assert.fail();
-                        }
-                    }
-                    allTime += System.nanoTime() - begin;
-
-                    while (DateUtil.getHours(win, now) >= timeBin) {
-                        win = DateUtil.getDateAfterHours(win, timeBin);
-                    }
-                }
-
-                // put into filter
+                maxDate = cur.getTime();
                 filter.insert(cur);
-                objects.add(cur);
-
-                if (++count >= TestSTKQ.sampleCount) {
-                    break;
-                }
+                totalObjects.add(cur);
+                break;
             }
         }
-        System.out.println("time: " + (allTime / 100_0000) + "ms");
+        List<STObject> groundTruth = new ArrayList<>();
+        for (int i = totalObjects.size() - 1; i >= 0; i--) {
+            STObject object = totalObjects.get(i);
+            if (STKUtil.check(object, query)) {
+                groundTruth.add(object);
+            }
+            if (object.getTime().before(query.getStartTime())) {
+                break;
+            }
+        }
+        return groundTruth;
     }
 
     private void initFilterTable() throws IOException {
@@ -194,8 +186,7 @@ public class TestSTKQ {
 
     private static List<Query> getQueries() throws IOException, ParseException {
         List<Query> queries = new ArrayList<>();
-        try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + queryFileName);
-             BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(in)))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(queryDir))) {
             String DELIMITER = ",";
             String line;
             while ((line = br.readLine()) != null) {
@@ -213,21 +204,13 @@ public class TestSTKQ {
         return queries;
     }
 
-    private List<STObject> bruteForce(List<STObject> objects, Query query) {
-        List<STObject> results = new ArrayList<>();
-        for (STObject object : objects) {
-            if (STKUtil.check(object, query)) {
-                results.add(object);
-            }
-        }
-        return results;
-    }
-
     private static boolean equals(List<STObject> a1, List<STObject> a2) {
         int n = a1.size();
         if (a2.size() != n) {
             return false;
         }
+        Collections.sort(a1);
+        Collections.sort(a2);
         for (int i = 0; i < n; ++i) {
             if (!a1.get(i).equals(a2.get(i))) {
                 return false;
