@@ -1,5 +1,6 @@
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
@@ -20,20 +21,29 @@ import java.text.ParseException;
 import java.util.*;
 
 public class TestSTKQ {
-    private final int QUERY_COUNT_EACH_TIME_BIN = 1000;
+    private final static int queryCountEachBin = 1000;
+    private final static int timeBin = 4;   // 每timeBin小时生成一次查询，每次生成queryCountEachBin个查询
+    private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
+    private final static String queryFileName = "streamTweet.csv";  //存储查询的文件
+    private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/" + queryFileName;
+    private final static int sampleCount = 100_000;     //测试数据的量
+    private final static String tableName = "testTweet";    // HBase存储数据的表名
+    private final static String filterTableName = "tweetFilters";   // HBase存储布隆过滤器的表名
+    private final static int sBits = 4;     //HBase键中空间键的后sBits位抹除，用于构建布隆过滤器的键，2的整数倍
+    private final static int tBits = 2;     //HBase键中时间键的后tBits位抹除，用于构建布隆过滤器的键
+    private final static int logInitFilterSlotSize = 3; // 布隆过滤器初始化槽的个数，log
+    private final static int fingerSize = 13;           // 布隆过滤器初始化指纹长度
 
     private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
-    /**
-     * @param dataDir The address of the data file
-     * @param outDir The address to which the generated query is written
-     */
-    void generateQuery(String dataDir, String outDir, int timeBin, int dataCount) {
+    @Test
+    @Ignore
+    public void generateQuery() throws IOException {
         Date win = null;
-        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(QUERY_COUNT_EACH_TIME_BIN);
+        StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin);
 
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
+            new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())))) {
             String line;
             int count = 0;
             while ((line = br.readLine()) != null) {
@@ -46,48 +56,32 @@ public class TestSTKQ {
                     win = getDate(now);
                 } else if (DateUtil.getHours(win, now) >= timeBin) {
                     List<Query> queries = queryGenerator.generatorQuery();
-                    writeQueries(queries, outDir);
+                    writeQueries(queries, queryDir);
                     while (DateUtil.getHours(win, now) >= timeBin) {
                         win = DateUtil.getDateAfterHours(win, timeBin);
                     }
                 }
                 queryGenerator.insert(cur);
-                if (++count >= dataCount) {
+                if (++count >= sampleCount) {
                     break;
                 }
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
     @Test
-    public void testSampleData() throws IOException {
-        // just need to run once
-//        String queryFileName = "streamTweet";
-//        String queryDir  = new File("").getAbsolutePath() + "/src/main/resources/" + queryFileName;
-//        generateQuery("E:\\data\\tweetSorted.csv", queryDir, 4, 100000);
-        testTweetSample(4, 2, 3, 13, 4, 100000);
-    }
-
-    public void testTweetSample(int sBits, int tBits, int log2Size, int bitsPerKey, int timeBin, int sampleCount) throws IOException {
-        String dataDir = "E:\\data\\tweetSorted.csv";
-        String queryFileName = "streamTweet.csv";
-        String tableName = "testTweet";
-        String filterTableName = "tweetFilters";
-
+    public void testSampleData() throws IOException, ParseException, InterruptedException {
         initFilterTable(filterTableName);
-
-        StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(log2Size, bitsPerKey, filterTableName));
+        StreamSTFilter filter = new StreamSTFilter(sBits, tBits, new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
         QueryProcessor processor = new QueryProcessor(tableName, filter);
-
-        List<Query> queriesAll = getQueries(queryFileName);
-
-        doVerify(dataDir, timeBin, filter, queriesAll, processor, sampleCount);
+        List<Query> queriesAll = getQueries();
+        doVerify(filter, queriesAll, processor);
+        processor.close();
     }
 
-    private void doVerify(String dataDir, int timeBin, StreamSTFilter filter, List<Query> queriesAll,
-                          QueryProcessor processor, int sampleCount) {
+
+    private void doVerify(StreamSTFilter filter, List<Query> queriesAll,
+                          QueryProcessor processor) throws IOException, ParseException, InterruptedException {
         long allTime = 0;
         int i = 0;
         Date win = null;
@@ -109,10 +103,10 @@ public class TestSTKQ {
                 } else if (DateUtil.getHours(win, now) >= timeBin) {
                     filter.doClear();
 
-                    if (i * QUERY_COUNT_EACH_TIME_BIN >= queriesAll.size()) {
+                    if (i * queryCountEachBin >= queriesAll.size()) {
                         break;
                     }
-                    List<Query> queries = queriesAll.subList(i * QUERY_COUNT_EACH_TIME_BIN, (i + 1) * QUERY_COUNT_EACH_TIME_BIN);
+                    List<Query> queries = queriesAll.subList(i * queryCountEachBin, (i + 1) * queryCountEachBin);
                     ++i;
 
                     long begin = System.nanoTime();
@@ -133,8 +127,8 @@ public class TestSTKQ {
                     }
                     allTime += System.nanoTime() - begin;
 
-                    while (DateUtil.getHours(win, now) >= timeBin) {
-                        win = DateUtil.getDateAfterHours(win, timeBin);
+                    while (DateUtil.getHours(win, now) >= TestSTKQ.timeBin) {
+                        win = DateUtil.getDateAfterHours(win, TestSTKQ.timeBin);
                     }
                 }
 
@@ -142,17 +136,12 @@ public class TestSTKQ {
                 filter.insert(cur);
                 objects.add(cur);
 
-                if (++count >= sampleCount) {
+                if (++count >= TestSTKQ.sampleCount) {
                     break;
                 }
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (ParseException | InterruptedException e) {
-            throw new RuntimeException(e);
         }
         System.out.println("time: " + (allTime / 100_0000) + "ms");
-        processor.close();
     }
 
     private void initFilterTable(String tableName) throws IOException {
@@ -193,9 +182,9 @@ public class TestSTKQ {
         }
     }
 
-    private static List<Query> getQueries(String fileName) {
+    private static List<Query> getQueries() throws IOException, ParseException {
         List<Query> queries = new ArrayList<>();
-        try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + fileName);
+        try (InputStream in = QueryGenerator.class.getResourceAsStream("/" + queryFileName);
              BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(in)))) {
             String DELIMITER = ",";
             String line;
@@ -210,8 +199,6 @@ public class TestSTKQ {
                 ArrayList<String> keywords = new ArrayList<>(Arrays.asList(array).subList(6, array.length));
                 queries.add(new Query(lat1, lat2, lon1, lon2, s, t, keywords));
             }
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
         }
         return queries;
     }
