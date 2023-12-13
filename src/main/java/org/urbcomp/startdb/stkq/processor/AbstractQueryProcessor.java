@@ -8,11 +8,12 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
-public abstract class AbstractQueryProcessor {
+public abstract class AbstractQueryProcessor implements Closeable {
     protected final String tableName;
     long queryHBaseTime = 0;
     long queryBloomTime = 0;

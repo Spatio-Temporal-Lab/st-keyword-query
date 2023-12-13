@@ -86,7 +86,7 @@ public class Query {
         this.mbr = mbr;
     }
 
-    public void setKeywords(ArrayList<String> keywords) {
+    public void setKeywords(List<String> keywords) {
         this.keywords = keywords;
     }
 
