@@ -44,7 +44,7 @@ public class TestSTKQ {
         Date window = null;
         StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin, QueryDistributionEnum.LINEAR, QueryType.CONTAIN_ONE);
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(new File(dataDir).toPath())));
+        try (BufferedReader br = new BufferedReader(new FileReader(dataDir));
             BufferedWriter writer = new BufferedWriter(new FileWriter(queryDir, false))
         ) {
             String line;
