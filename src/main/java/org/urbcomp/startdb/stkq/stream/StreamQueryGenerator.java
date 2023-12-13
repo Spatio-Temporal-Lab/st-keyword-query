@@ -16,7 +16,7 @@ public class StreamQueryGenerator {
     private final QueryType queryType;
     private final int totalQueryCount;          // 生成的总的查询个数
     private final static int preHours = 24;        // 可能查最近的小时数
-    private final static int[] timeRangeHour = new int[]{3}; //new int[]{1, 2, 3, 4, 5};  // 可能生成的查询时间范围小时数
+    private final static int[] timeRangeHour = new int[]{2}; //new int[]{1, 2, 3, 4, 5};  // 可能生成的查询时间范围小时数
     private final static int[] spatialRangeMeter = new int[]{1000}; // new int[]{100, 300, 500, 1000, 2000, 4000};         // 可能生成的查询空间范围米数
     private final static int[] keywordNumber = new int[]{3};    // 查询中关键字的个数
     private final Random random = new Random();
