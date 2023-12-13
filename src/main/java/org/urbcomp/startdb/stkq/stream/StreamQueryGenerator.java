@@ -133,7 +133,7 @@ public class StreamQueryGenerator {
 
     private List<String> getRandomKeywordsLimit(List<String> keywords, int kwNumber) {
         List<String> kw = new ArrayList<>(keywords);
-        Collections.shuffle(kw);
+        Collections.shuffle(kw, random);
         if (kwNumber >= kw.size()) {
             return kw;
         }
