@@ -10,7 +10,7 @@ import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.processor.QueryProcessor;
 import org.urbcomp.startdb.stkq.stream.QueryDistributionEnum;
-import org.urbcomp.startdb.stkq.stream.StreamLRUFM;
+import org.urbcomp.startdb.stkq.stream.StreamLRUFilterManager;
 import org.urbcomp.startdb.stkq.stream.StreamQueryGenerator;
 import org.urbcomp.startdb.stkq.stream.StreamSTFilter;
 import org.urbcomp.startdb.stkq.util.DateUtil;
@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.util.*;
 
 public class TestSTKQ {
+    // 查询生成相关配置
     private final static int queryCountEachBin = 1000;
     private final static int timeBin = 4;   // 每timeBin小时生成一次查询，每次生成queryCountEachBin个查询
     private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
@@ -28,10 +29,14 @@ public class TestSTKQ {
     private final static int sampleCount = 100_000;     //测试数据的量
     private final static String tableName = "testTweet";    // HBase存储数据的表名
     private final static String filterTableName = "tweetFilters_Ruiyuan";   // HBase存储布隆过滤器的表名
+
+    // 布隆过滤器相关配置
     private final static int sBits = 4;     //HBase键中空间键的后sBits位抹除，用于构建布隆过滤器的键，2的整数倍
     private final static int tBits = 2;     //HBase键中时间键的后tBits位抹除，用于构建布隆过滤器的键
     private final static int logInitFilterSlotSize = 3; // 布隆过滤器初始化槽的个数，log
     private final static int fingerSize = 13;           // 布隆过滤器初始化指纹长度
+
+    // 替换相关配置
     private final static long maxRamUsage = 50 * 1024;  // 布隆过滤器最大占用内存
 
     private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
@@ -76,7 +81,7 @@ public class TestSTKQ {
         initFilterTable();
         List<Query> queriesAll = getQueries();
         StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
-            new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
+            new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
         List<STObject> totalObjects = new ArrayList<>();
 
         try (QueryProcessor processor = new QueryProcessor(tableName, filter);

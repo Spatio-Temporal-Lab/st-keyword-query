@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class StreamSTFilter extends AbstractSTFilter {
-    private final StreamLRUFM filterManager;
+    private final StreamLRUFilterManager filterManager;
 
-    public StreamSTFilter(int sBits, int tBits, StreamLRUFM filterManager) {
+    public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }

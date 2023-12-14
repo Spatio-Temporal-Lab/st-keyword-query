@@ -13,23 +13,27 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class StreamLRUFM extends AbstractFilterManager {
-    protected final long MAX_RAM_USAGE;
+public class StreamLRUFilterManager extends AbstractFilterManager {
+    protected final long maxRamUsage;
     protected Map<BytesKey, IFilter> filters = new LinkedHashMap<>(100_0000, .75F, true);
     protected long ramUsage;
     protected String tableName;
 
-    public StreamLRUFM(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
+    public StreamLRUFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
         super(log2Size, bitsPerKey);
         this.tableName = tableName;
-        this.MAX_RAM_USAGE = maxRamUsage;
+        this.maxRamUsage = maxRamUsage;
     }
 
+    /**
+     * 批量构建布隆过滤器后，校验是否需要清除
+     * @throws IOException 存储多余的布隆过滤器抛出异常
+     */
     public void doClear() throws IOException {
         ramUsage = ramUsage();
-        if (ramUsage < MAX_RAM_USAGE) return;
-        Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
+        if (ramUsage < maxRamUsage) return;
 
+        Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
         Map<BytesKey, IFilter> filtersToRemove = new HashMap<>();
         while (iterator.hasNext()) {
             Map.Entry<BytesKey, IFilter> entry = iterator.next();
@@ -40,7 +44,7 @@ public class StreamLRUFM extends AbstractFilterManager {
 
             iterator.remove();
 
-            if (ramUsage < MAX_RAM_USAGE) {
+            if (ramUsage < maxRamUsage) {
                 break;
             }
         }
@@ -48,9 +52,15 @@ public class StreamLRUFM extends AbstractFilterManager {
         HBaseIO.putFilters(tableName, filtersToRemove);
     }
 
-    public void doClear(IFilter filter) throws IOException {
+    /**
+     * 从外存中加载布隆过滤器后，校验是否超过了内存限制，如果超过了，清除内存中多余的布隆过滤器
+     * @param filter 新添加的布隆过滤器
+     * @throws IOException 存储多余的布隆过滤器抛出异常
+     */
+    protected void doClear(IFilter filter) throws IOException {
         ramUsage += RamUsageEstimator.sizeOf(filter);
-        if (ramUsage < MAX_RAM_USAGE) return;
+        if (ramUsage < maxRamUsage) return;
+
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BytesKey, IFilter> entry = iterator.next();
@@ -58,13 +68,11 @@ public class StreamLRUFM extends AbstractFilterManager {
 
             IFilter filterToRemove = entry.getValue();
             ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-            if (HBaseIO.getFilter(tableName, key) == null) {
-                HBaseIO.putFilter(tableName, key, filterToRemove);
-            }
+            HBaseIO.putFilterIfNotExist(tableName, key, filterToRemove);
 
             iterator.remove();
 
-            if (ramUsage < MAX_RAM_USAGE) {
+            if (ramUsage < maxRamUsage) {
                 break;
             }
         }
@@ -87,17 +95,12 @@ public class StreamLRUFM extends AbstractFilterManager {
                 filters.put(index, filter);
                 doClear(filter);
             }
-            return filter;
         }
         return filter;
     }
 
     @Override
     public long ramUsage() {
-        long size = 0;
-        for (Map.Entry<BytesKey, IFilter> filterEntry : filters.entrySet()) {
-            size += RamUsageEstimator.sizeOf(filterEntry.getValue());
-        }
-        return size;
+        return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
 }

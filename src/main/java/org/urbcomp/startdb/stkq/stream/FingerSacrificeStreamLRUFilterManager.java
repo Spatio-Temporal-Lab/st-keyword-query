@@ -10,16 +10,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class AStreamLRUFM extends StreamLRUFM {
+public class FingerSacrificeStreamLRUFilterManager extends StreamLRUFilterManager {
 
-    public AStreamLRUFM(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
+    public FingerSacrificeStreamLRUFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
         super(log2Size, bitsPerKey, tableName, maxRamUsage);
     }
 
     public void doClear() throws IOException {
         ramUsage = ramUsage();
         System.out.println("ramUsage = " + ramUsage);
-        if (ramUsage < MAX_RAM_USAGE) return;
+        if (ramUsage < maxRamUsage) return;
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
 
         Map<BytesKey, IFilter> filtersToRemove = new HashMap<>();
@@ -33,7 +33,7 @@ public class AStreamLRUFM extends StreamLRUFM {
 
             iterator.remove();
 
-            if (ramUsage < MAX_RAM_USAGE) {
+            if (ramUsage < maxRamUsage) {
                 break;
             }
         }
@@ -41,9 +41,9 @@ public class AStreamLRUFM extends StreamLRUFM {
         HBaseIO.putFilters("filters", filtersToRemove);
     }
 
-    public void doClear(IFilter filter) throws IOException {
+    protected void doClear(IFilter filter) throws IOException {
         ramUsage += RamUsageEstimator.sizeOf(filter);
-        if (ramUsage < MAX_RAM_USAGE) return;
+        if (ramUsage < maxRamUsage) return;
         Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BytesKey, IFilter> entry = iterator.next();
@@ -55,7 +55,7 @@ public class AStreamLRUFM extends StreamLRUFM {
             HBaseIO.putFilter("filters", key, filterToRemove);
             iterator.remove();
 
-            if (ramUsage < MAX_RAM_USAGE) {
+            if (ramUsage < maxRamUsage) {
                 break;
             }
         }

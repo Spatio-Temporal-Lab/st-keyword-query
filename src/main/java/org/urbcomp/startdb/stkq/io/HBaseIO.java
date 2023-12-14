@@ -182,6 +182,13 @@ public class HBaseIO {
         hBaseUtil.put(tableName, key, "attr", "array", value);
     }
 
+    public static void putFilterIfNotExist(String tableName, byte[] key, IFilter filter) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        filter.writeTo(bos);
+        byte[] value = bos.toByteArray();
+        hBaseUtil.putIfNotExist(tableName, key, "attr", "array", value);
+    }
+
     // write some unused data
     public void putUnusedData(String tableName, int rubbishLength, int size) throws IOException {
         List<Put> puts = new ArrayList<>();

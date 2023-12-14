@@ -164,6 +164,17 @@ public class HBaseUtil {
         }
     }
 
+    public void putIfNotExist(String tableName,
+                    byte[] rowKey, String columnFamily, String column, byte[] data) throws IOException {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            Put put = new Put(rowKey);
+            byte[] family = Bytes.toBytes(columnFamily);
+            byte[] qualifier = Bytes.toBytes(column);
+            put.addColumn(family, qualifier, data);
+            table.checkAndPut(rowKey, family, qualifier, null, put);
+        }
+    }
+
     // 扫描一格内容
     public byte[] getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
