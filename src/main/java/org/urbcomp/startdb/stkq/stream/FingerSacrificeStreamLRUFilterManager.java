@@ -16,6 +16,7 @@ public class FingerSacrificeStreamLRUFilterManager extends StreamLRUFilterManage
         super(log2Size, bitsPerKey, tableName, maxRamUsage);
     }
 
+    @Override
     public void doClear() throws IOException {
         ramUsage = ramUsage();
         System.out.println("ramUsage = " + ramUsage);
@@ -41,6 +42,7 @@ public class FingerSacrificeStreamLRUFilterManager extends StreamLRUFilterManage
         HBaseIO.putFilters("filters", filtersToRemove);
     }
 
+    @Override
     protected void doClear(IFilter filter) throws IOException {
         ramUsage += RamUsageEstimator.sizeOf(filter);
         if (ramUsage < maxRamUsage) return;
