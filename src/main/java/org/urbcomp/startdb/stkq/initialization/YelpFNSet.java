@@ -27,7 +27,7 @@ public class YelpFNSet {
 
         File file = new File(path);
 
-        try(ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file.toPath()));) {
+        try(ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file.toPath()))) {
             keys = (Set<BytesKey>) ois.readObject();
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

@@ -11,11 +11,6 @@ public class InfiniFilter implements IFilter {
         return filter;
     }
 
-    public InfiniFilter() {
-        filter = new ChainedInfiniFilter(3, 12);
-        filter.set_expand_autonomously(true);
-    }
-
     public InfiniFilter(int log2Size, int bitsPerKey) {
         filter = new ChainedInfiniFilter(log2Size, bitsPerKey);
         filter.set_expand_autonomously(true);

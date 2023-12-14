@@ -42,7 +42,6 @@ public class TestSTKQ {
     private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
     @Test
-    @Ignore
     public void generateQuery() throws IOException {
         Date window = null;
         StreamQueryGenerator queryGenerator = new StreamQueryGenerator(queryCountEachBin,
