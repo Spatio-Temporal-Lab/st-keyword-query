@@ -10,13 +10,13 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StreamSTFilter extends AbstractSTFilter {
     private final StreamLRUFilterManager filterManager;
+
+    protected Set<BytesKey> fnSet = new HashSet<>();
 
     public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
         super(sBits, tBits);
@@ -30,7 +30,10 @@ public class StreamSTFilter extends AbstractSTFilter {
         BytesKey stIndex = getSTIndex(s, t);
         IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
         for (String keyword : stObject.getKeywords()) {
-            filter.insert(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t)));
+            byte[] key = ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t));
+            if (!filter.insert(key)) {
+                fnSet.add(new BytesKey(key));
+            }
         }
     }
 
@@ -75,7 +78,7 @@ public class StreamSTFilter extends AbstractSTFilter {
                     for (long s = sMin; s <= sMax; ++s) {
                         for (int t = tMin; t <= tMax; ++t) {
                             byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
-                            if (checkInFilter(filter, stKey, kKeys, queryType)) {
+                            if (checkInFilter(filter, fnSet, stKey, kKeys, queryType)) {
                                 keysLong.add(s << tKeyGenerator.getBits() | t);
                             }
                         }

@@ -5,7 +5,6 @@ import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.io.*;
 import org.urbcomp.startdb.stkq.keyGenerator.*;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -146,7 +145,6 @@ public class TestQuery {
 
         ISTKeyGenerator stKeyGenerator = new STKeyGenerator();
         ISTKeyGenerator tsKeyGenerator = new TSKeyGenerator();
-        YelpFNSet.init();
 
         int sBits = 8;
         int tBits = 4;

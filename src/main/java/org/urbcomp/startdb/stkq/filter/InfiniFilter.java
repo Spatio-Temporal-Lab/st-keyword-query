@@ -31,8 +31,8 @@ public class InfiniFilter implements IFilter {
     }
 
     @Override
-    public void insert(byte[] code) {
-        filter.insert(code, true);
+    public boolean insert(byte[] code) {
+        return filter.insert(code, true);
     }
 
     public boolean sacrifice() { return filter.sacrifice(); }

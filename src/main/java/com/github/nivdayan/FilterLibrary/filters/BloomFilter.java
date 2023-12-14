@@ -132,11 +132,6 @@ public class BloomFilter extends Filter {
 	}
 
 	@Override
-	protected boolean _insert(byte[] bytes, long large_hash, boolean insert_only_if_no_match) {
-		return false;
-	}
-
-	@Override
 	protected boolean _insert(long large_hash, int t, boolean insert_only_if_no_match) {
 		long target_bit = Math.abs((large_hash + t) % num_bits);
 		filter.set(target_bit, true);

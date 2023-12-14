@@ -28,7 +28,8 @@ public class SetFilter implements IFilter {
     }
 
     @Override
-    public void insert(byte[] code) {
+    public boolean insert(byte[] code) {
         set.add(new BytesKey(code));
+        return true;
     }
 }
