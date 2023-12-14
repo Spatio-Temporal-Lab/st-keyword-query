@@ -4,7 +4,6 @@ import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.ISTKFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
@@ -261,7 +260,6 @@ public class DataProcessor {
 
         System.out.println(stFilter.ramUsage());
         stFilter.out();
-        YelpFNSet.output();
         System.out.println(minLat);
         System.out.println(minLon);
         System.out.println(maxLat);

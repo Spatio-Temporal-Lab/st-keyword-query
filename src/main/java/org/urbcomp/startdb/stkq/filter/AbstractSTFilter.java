@@ -2,7 +2,6 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.initialization.YelpFNSet;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
@@ -14,9 +13,7 @@ import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractSTFilter implements ISTKFilter {
@@ -28,7 +25,6 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected final int tMask;
     protected final int sIndexBytes;
     protected final int tIndexBytes;
-    public boolean yelp = true;
 
     protected final ISpatialKeyGenerator sKeyGenerator = new HilbertSpatialKeyGenerator();
     protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
@@ -74,37 +70,45 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         if (filter == null) {
             return false;
         }
-        if (filter instanceof InfiniFilter) {
-            if (((InfiniFilter) filter).getFilter().getBitPerEntry() == 0) {
-                return true;
-            }
-        }
         switch (queryType) {
             case CONTAIN_ONE:
                 for (byte[] keyPre : kKeys) {
                     byte[] key = ByteUtil.concat(keyPre, stKey);
-                    if (yelp) {
-                        if (filter.check(key) || YelpFNSet.check(new BytesKey(key))) {
-                            return true;
-                        }
-                    } else {
-                        if (filter.check(key)) {
-                            return true;
-                        }
+                    if (filter.check(key)) {
+                        return true;
                     }
                 }
                 return false;
             case CONTAIN_ALL:
                 for (byte[] keyPre : kKeys) {
                     byte[] key = ByteUtil.concat(keyPre, stKey);
-                    if (yelp) {
-                        if (!(filter.check(key) && YelpFNSet.check(new BytesKey(key)))) {
-                            return false;
-                        }
-                    } else {
-                        if (!filter.check(key)) {
-                            return false;
-                        }
+                    if (!filter.check(key)) {
+                        return false;
+                    }
+                }
+                return true;
+        }
+        return true;
+    }
+
+    protected boolean checkInFilter(IFilter filter, Set<BytesKey> fnSet, byte[] stKey, List<byte[]> kKeys, QueryType queryType) {
+        if (filter == null) {
+            return false;
+        }
+        switch (queryType) {
+            case CONTAIN_ONE:
+                for (byte[] keyPre : kKeys) {
+                    byte[] key = ByteUtil.concat(keyPre, stKey);
+                    if (filter.check(key) || fnSet.contains(new BytesKey(key))) {
+                        return true;
+                    }
+                }
+                return false;
+            case CONTAIN_ALL:
+                for (byte[] keyPre : kKeys) {
+                    byte[] key = ByteUtil.concat(keyPre, stKey);
+                    if (!filter.check(key) && !fnSet.contains(new BytesKey(key))) {
+                        return false;
                     }
                 }
                 return true;

@@ -8,10 +8,7 @@ import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class StreamLRUFilterManager extends AbstractFilterManager {
     protected final long maxRamUsage;

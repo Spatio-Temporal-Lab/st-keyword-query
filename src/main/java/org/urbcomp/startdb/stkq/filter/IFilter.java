@@ -43,7 +43,7 @@ public interface IFilter {
         }
         return result;
     }
-    void insert(byte[] code);
+    boolean insert(byte[] code);
     boolean check(byte[] key);
     boolean sacrifice();
 

@@ -157,11 +157,6 @@ public class CuckooFilter extends Filter {
 
 	}
 
-	@Override
-	protected boolean _insert(byte[] bytes, long large_hash, boolean insert_only_if_no_match) {
-		return false;
-	}
-
 	// return 0 if successful, and return fingerprint of element there was no space for otherwise
 	boolean replacement_algorithm(int original_bucket, long fingerprint, int swaps) {
 		long second_large_hash = HashFunctions.xxhash(fingerprint);
