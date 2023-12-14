@@ -2,11 +2,22 @@ package org.urbcomp.startdb.stkq.filter;
 
 import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 
-public class InfiniFilter implements IFilter {
-    private final ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 15);
+import java.io.ByteArrayOutputStream;
 
-    public InfiniFilter() {
+public class InfiniFilter implements IFilter {
+    private final ChainedInfiniFilter filter;
+
+    public ChainedInfiniFilter getFilter() {
+        return filter;
+    }
+
+    public InfiniFilter(int log2Size, int bitsPerKey) {
+        filter = new ChainedInfiniFilter(log2Size, bitsPerKey);
         filter.set_expand_autonomously(true);
+    }
+
+    public InfiniFilter(ChainedInfiniFilter filter) {
+        this.filter = filter;
     }
 
     @Override
@@ -15,7 +26,24 @@ public class InfiniFilter implements IFilter {
     }
 
     @Override
+    public int size() {
+        return (int) filter.get_num_existing_entries();
+    }
+
+    @Override
     public void insert(byte[] code) {
-        filter.insert(code, false);
+        filter.insert(code, true);
+    }
+
+    public boolean sacrifice() { return filter.sacrifice(); }
+
+    @Override
+    public void writeTo(ByteArrayOutputStream bos) {
+        filter.writeTo(bos);
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(filter.get_fingerprint_length());
     }
 }

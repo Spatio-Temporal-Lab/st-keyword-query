@@ -9,22 +9,17 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TSKeyGenerator implements ISTKeyGeneratorNew {
+public class TSKeyGenerator implements ISTKeyGenerator {
 
-    private final ISpatialKeyGeneratorNew spatialKeyGenerator;
-    private final TimeKeyGeneratorNew timeKeyGenerator;
+    private final ISpatialKeyGenerator spatialKeyGenerator;
+    private final TimeKeyGenerator timeKeyGenerator;
     private final static int S_BYTE_COUNT = Constant.SPATIAL_BYTE_COUNT;
     private final static int T_BYTE_COUNT = Constant.TIME_BYTE_COUNT;
     private final static int S_BIT_COUNT = S_BYTE_COUNT * 8;
 
     public TSKeyGenerator() {
-        this.spatialKeyGenerator = new HilbertSpatialKeyGeneratorNew();
-        this.timeKeyGenerator = new TimeKeyGeneratorNew();
-    }
-
-    public TSKeyGenerator(ISpatialKeyGeneratorNew spatialKeyGenerator, TimeKeyGeneratorNew timeKeyGenerator) {
-        this.spatialKeyGenerator = spatialKeyGenerator;
-        this.timeKeyGenerator = timeKeyGenerator;
+        this.spatialKeyGenerator = new HilbertSpatialKeyGenerator();
+        this.timeKeyGenerator = new TimeKeyGenerator();
     }
 
     @Override
@@ -60,5 +55,29 @@ public class TSKeyGenerator implements ISTKeyGeneratorNew {
         }
 
         return tsRanges;
+    }
+
+    @Override
+    public List<Range<byte[]>> toBytesRanges(Query query) {
+        List<Range<Long>> sRanges = spatialKeyGenerator.toNumberRanges(query);
+        List<Range<Integer>> tRanges = timeKeyGenerator.toNumberRanges(query);
+        int tRangeLow = tRanges.get(0).getLow();
+        int tRangeHigh = tRanges.get(0).getHigh();
+
+        List<Range<byte[]>> tsRanges = new ArrayList<>();
+        for (int t = tRangeLow; t <= tRangeHigh; ++t) {
+            for (Range<Long> sRange : sRanges) {
+                tsRanges.add(new Range<>(
+                        ByteUtil.concat(timeKeyGenerator.numberToBytes(t), spatialKeyGenerator.numberToBytes(sRange.getLow())),
+                        ByteUtil.concat(timeKeyGenerator.numberToBytes(t), spatialKeyGenerator.numberToBytes(sRange.getHigh()))));
+            }
+        }
+
+        return tsRanges;
+    }
+
+    @Override
+    public int getByteCount() {
+        return S_BYTE_COUNT + T_BYTE_COUNT;
     }
 }

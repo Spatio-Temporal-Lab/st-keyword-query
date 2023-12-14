@@ -1,13 +1,14 @@
 package org.urbcomp.startdb.stkq.util;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class ByteUtil {
     public static byte[] getKByte(int num, int k) {
         k = Math.min(k, 4);
         byte[] targets = new byte[k];
         for (int i = k - 1; i >= 0; --i) {
-            targets[k - 1 - i] = (byte) (num >>> (i << 3) & 0xFF);
+            targets[k - 1 - i] = (byte) (num >> (i << 3) & 0xFF);
         }
         return targets;
     }
@@ -16,13 +17,25 @@ public class ByteUtil {
         k = Math.min(k, 8);
         byte[] targets = new byte[k];
         for (int i = k - 1; i >= 0; --i) {
-            targets[k - 1 - i] = (byte) (num >>> (i << 3) & 0xFF);
+            targets[k - 1 - i] = (byte) (num >> (i << 3) & 0xFF);
         }
         return targets;
     }
 
-    public static byte[] longToByte(long num) {
+    public static byte[] longToBytes(long num) {
         return getKByte(num, 8);
+    }
+
+    public static byte[] longToBytesWithoutPrefixZero(long num) {
+        byte[] origin = getKByte(num, 8);
+        int i = 0;
+        while (i < 8 && origin[i] == 0) {
+            ++i;
+        }
+        if (i == 8) {
+            return new byte[]{0};
+        }
+        return Arrays.copyOfRange(origin, i, 8);
     }
 
     public static byte[] concat(byte[]... values) {
@@ -59,5 +72,9 @@ public class ByteUtil {
 
     public static BigInteger getValue(byte[] bytes) {
         return new BigInteger(1, bytes);
+    }
+
+    public static int getBytesCountByBitsCount(int bitsCount) {
+        return (bitsCount - 1 >> 3) + 1;
     }
 }

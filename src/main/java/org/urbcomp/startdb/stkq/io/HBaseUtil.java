@@ -1,12 +1,20 @@
 package org.urbcomp.startdb.stkq.io;
 
-import org.urbcomp.startdb.stkq.constant.QueryType;
+import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.urbcomp.startdb.stkq.constant.QueryType;
+import org.urbcomp.startdb.stkq.model.BytesKey;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.util.STKUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,11 +26,17 @@ public class HBaseUtil {
     public static Connection connection;
 
     public static Admin admin;
+    private static final HBaseUtil defaultUtil;
+
+    static {
+        defaultUtil = new HBaseUtil();
+//        defaultUtil.init("192.168.137.207:2181");
+        defaultUtil.init("10.242.6.16:2181,10.242.6.17:2181,10.242.6.18:2181,10.242.6.19:2181,10.242.6.20:2181");
+    }
 
     // 建立连接
     public void init(String zookeeper) {
         configuration = HBaseConfiguration.create();
-        configuration.set("hbase.zookeeper.property.clientPort", "2181");
         configuration.set("hbase.zookeeper.quorum", zookeeper);
         try {
             connection = ConnectionFactory.createConnection(configuration);
@@ -33,9 +47,7 @@ public class HBaseUtil {
     }
 
     public static HBaseUtil getDefaultHBaseUtil() {
-        HBaseUtil hBaseUtil = new HBaseUtil();
-        hBaseUtil.init("192.168.110.32");
-        return hBaseUtil;
+        return defaultUtil;
     }
 
     public Connection getConnection() {
@@ -67,6 +79,7 @@ public class HBaseUtil {
             for (String columnFamily : colFamily) {
                 builder.setColumnFamily(ColumnFamilyDescriptorBuilder.of(columnFamily));
             }
+            builder.setMaxFileSize(256 * 1024 * 1024);
             admin.createTable(builder.build());
         }
         return true;
@@ -101,7 +114,7 @@ public class HBaseUtil {
                     ColumnFamilyDescriptorBuilder.newBuilder(colFamily.getBytes());
             columnFamilyDescriptorBuilder.setBloomFilterType(bloomType);
             if (bloomType.equals(BloomType.ROWPREFIX_FIXED_LENGTH)) {
-                columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(7));
+                columnFamilyDescriptorBuilder.setConfiguration("RowPrefixBloomFilter.prefix_length", String.valueOf(6));
             }
             builder.setColumnFamily(columnFamilyDescriptorBuilder.build());
             admin.createTable(builder.build());
@@ -142,8 +155,28 @@ public class HBaseUtil {
         }
     }
 
+    public void put(String tableName,
+                    byte[] rowKey, String columnFamily, String column, byte[] data) throws IOException {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            Put put = new Put(rowKey);
+            put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column), data);
+            table.put(put);
+        }
+    }
+
+    public void putIfNotExist(String tableName,
+                    byte[] rowKey, String columnFamily, String column, byte[] data) throws IOException {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            Put put = new Put(rowKey);
+            byte[] family = Bytes.toBytes(columnFamily);
+            byte[] qualifier = Bytes.toBytes(column);
+            put.addColumn(family, qualifier, data);
+            table.checkAndPut(rowKey, family, qualifier, null, put);
+        }
+    }
+
     // 扫描一格内容
-    public String getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
+    public byte[] getCell(String tableName, byte[] rowKey, String columnFamily, String column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             Get get = new Get(rowKey);
             get.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column));
@@ -154,26 +187,22 @@ public class HBaseUtil {
             if (CollectionUtils.isEmpty(cells)) {
                 return null;
             }
-            return new String(CellUtil.cloneValue(cells.get(0)), StandardCharsets.UTF_8);
+            return CellUtil.cloneValue(cells.get(0));
         }
     }
 
-    // 扫描多格内容
-    public List<String> getCells(String tableName, List<String> rowKeys, String columnFamily, String column) throws IOException {
+    public byte[] getCell(String tableName, byte[] rowKey, byte[] columnFamily, byte[] column) throws IOException {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            List<Get> gets = new ArrayList<>();
-            for (String rowKey : rowKeys) {
-                Get get = new Get(Bytes.toBytes(rowKey));
-                get.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(column));
-                gets.add(get);
+            Get get = new Get(rowKey);
+            get.addColumn(columnFamily, column);
+
+            Result result = table.get(get);
+            List<Cell> cells = result.listCells();
+
+            if (CollectionUtils.isEmpty(cells)) {
+                return null;
             }
-            Result[] results = table.get(gets);
-            List<String> answers = new ArrayList<>();
-            for (Result result : results) {
-                List<Cell> cells = result.listCells();
-                answers.add(new String(CellUtil.cloneValue(cells.get(0)), StandardCharsets.UTF_8));
-            }
-            return answers;
+            return CellUtil.cloneValue(cells.get(0));
         }
     }
 
@@ -229,6 +258,46 @@ public class HBaseUtil {
         }
     }
 
+    public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd, MultiRowRangeFilter filter) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            ResultScanner rs = null;
+            try {
+                Scan scan = new Scan();
+                scan.setFilter(filter);
+
+                scan = scan.withStartRow(rowkeyStart, true);
+                scan = scan.withStopRow(rowkeyEnd, true);
+                scan.setCaching(1000);
+                rs = table.getScanner(scan);
+
+                List<Map<String, String>> dataList = new ArrayList<>();
+                for (Result r : rs) {
+                    Map<String, String> objectMap = new HashMap<>();
+                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
+                    for (Cell cell : r.listCells()) {
+                        String qualifier = new String(CellUtil.cloneQualifier(cell));
+                        String value;
+                        if (qualifier.equals("id")) {
+                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                        }
+                        else {
+                            value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                        }
+                        objectMap.put(qualifier, value);
+                    }
+                    dataList.add(objectMap);
+                }
+                return dataList;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // 扫描所有内容
     public List<Map<String, String>> scanAll(String tableName) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
@@ -261,8 +330,7 @@ public class HBaseUtil {
         return null;
     }
 
-
-    public List<Map<String, String>> scanWithKeywords(String tableName, boolean useBfInHBase, String[] keywords,
+    public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
                                                       byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -275,21 +343,18 @@ public class HBaseUtil {
                     byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
                 }
                 scan.setAttribute("keywords", byteBuffer.array());
-                if (useBfInHBase) {
-                    scan.setAttribute("useBf", new byte[]{1});
-                }
 
                 rs = table.getScanner(scan);
 
                 List<Map<String, String>> dataList = Collections.synchronizedList(new ArrayList<>());
                 for (Result r : rs) {
                     Map<String, String> objectMap = new Hashtable<>();
-                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
+                    objectMap.put("rowkey", new String(r.getRow()));
                     for (Cell cell : r.listCells()) {
                         String qualifier = new String(CellUtil.cloneQualifier(cell));
                         String value;
                         if (qualifier.equals("id")) {
-                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                            value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
                         }
                         else {
                             value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
@@ -298,6 +363,82 @@ public class HBaseUtil {
                     }
                     dataList.add(objectMap);
                 }
+                return dataList;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Map<String, String>> BDIAScan(String tableName, String[] keywords,
+                                                      byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            ResultScanner rs = null;
+            try {
+                Scan scan = new Scan();
+                scan.withStartRow(rowkeyStart);
+                scan.withStopRow(rowkeyEnd, true);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(keywords.length * 4);
+                for (String keyword : keywords) {
+                    byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
+                }
+                scan.setAttribute("keywords", byteBuffer.array());
+
+                rs = table.getScanner(scan);
+
+                List<Map<String, String>> dataList = Collections.synchronizedList(new ArrayList<>());
+                for (Result r : rs) {
+                    Map<BytesKey, String> locMap = new HashMap<>();
+                    Map<BytesKey, String> timeMap = new HashMap<>();
+                    Map<BytesKey, String> keywordsMap = new HashMap<>();
+
+                    for (Cell cell : r.listCells()) {
+                        byte[] qualifier = CellUtil.cloneQualifier(cell);
+                        if (Arrays.equals(qualifier, new byte[]{0})) {
+                            BloomFilter bf = new BloomFilter(CellUtil.cloneValue(cell), 7, 1000);
+                            if (!STKUtil.check(bf, keywords, queryType)) {
+                                break;
+                            }
+                        } else {
+                            byte[] idBytes = Arrays.copyOfRange(qualifier, 1, qualifier.length);
+                            String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                            switch (qualifier[0]) {
+                                case 1: {
+                                    locMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                case 2: {
+                                    timeMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                case 3: {
+                                    keywordsMap.put(new BytesKey(idBytes), value);
+                                    break;
+                                }
+                                default:
+                                    System.err.println("error");
+                            }
+                        }
+                    }
+
+                    for (Map.Entry<BytesKey, String> entry : locMap.entrySet()) {
+                        BytesKey id = entry.getKey();
+                        byte[] idBytes = id.getArray();
+                        Map<String, String> mss = new HashMap<>();
+                        // value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
+                        mss.put("id", String.valueOf(ByteUtil.toLong(idBytes)));
+                        mss.put("loc", locMap.get(id));
+                        mss.put("time", timeMap.get(id));
+                        mss.put("keywords", keywordsMap.get(id));
+                        dataList.add(mss);
+                    }
+                }
+
                 return dataList;
             } finally {
                 if (rs != null) {

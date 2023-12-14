@@ -9,11 +9,11 @@ import java.util.*;
 public class STObject implements Serializable, Comparable<STObject> {
     private final Location location;
     private final Date time;
-    private final ArrayList<String> keywords;
+    private final List<String> keywords;
 
     private long ID;
 
-    public STObject(long id, double lat, double lon, Date time, ArrayList<String> keywords) {
+    public STObject(long id, double lat, double lon, Date time, List<String> keywords) {
         this.ID = id;
         this.location = new Location(lat, lon);
         this.time = time;
@@ -55,7 +55,7 @@ public class STObject implements Serializable, Comparable<STObject> {
         return ID;
     }
 
-    public ArrayList<String> getKeywords() {
+    public List<String> getKeywords() {
         return this.keywords;
     }
 
@@ -73,6 +73,9 @@ public class STObject implements Serializable, Comparable<STObject> {
 
     public boolean equals(STObject other) {
         if (!(location.equals(other.location) && time.equals(other.time))) {
+            System.out.println("location not equal or time not equal");
+            System.out.println(this);
+            System.out.println(other);
             return false;
         }
         Set<String> s1 = new HashSet<>(keywords);
@@ -90,7 +93,21 @@ public class STObject implements Serializable, Comparable<STObject> {
 
     @Override
     public int compareTo(STObject stObject) {
-        return Long.compare(ID, stObject.getID());
+        if (!time.equals(stObject.time)) {
+            return time.compareTo(stObject.time);
+        }
+        Location loc1 = stObject.getLocation();
+        if (loc1.getLat() != location.getLat()) {
+            return Double.compare(location.getLat(), loc1.getLat());
+        }
+        if (loc1.getLon() != location.getLon()) {
+            return Double.compare(location.getLon(), loc1.getLon());
+        }
+        return String.join(" ", keywords).compareTo(String.join(" ", stObject.getKeywords()));
+    }
+
+    public void setID(int id) {
+        ID = id;
     }
 }
 

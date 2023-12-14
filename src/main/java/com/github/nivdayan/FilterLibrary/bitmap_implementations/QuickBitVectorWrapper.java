@@ -1,10 +1,32 @@
 package com.github.nivdayan.FilterLibrary.bitmap_implementations;
 
+import org.urbcomp.startdb.stkq.util.ByteUtil;
+
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class QuickBitVectorWrapper extends Bitmap implements Serializable {
 
 	public long[] bs;
+
+	@Override
+	public byte[] getArray() {
+		int n = bs.length;
+		byte[] result = new byte[n * 8];
+		for (int i = 0; i < n; ++i) {
+			byte[] temp = ByteUtil.longToBytes(bs[i]);
+            System.arraycopy(temp, 0, result, i * 8, 8);
+		}
+		return result;
+	}
+
+	public QuickBitVectorWrapper(byte[] bytes) {
+		int n = bytes.length;
+		bs = new long[n / 8];
+		for (int i = 0; i < n; i += 8) {
+			bs[i >> 3] = ByteUtil.toLong(Arrays.copyOfRange(bytes, i, i + 8));
+		}
+	}
 
 	public QuickBitVectorWrapper(int bits_per_entry, long num_entries) {
 		bs = QuickBitVector.makeBitVector(num_entries, bits_per_entry);

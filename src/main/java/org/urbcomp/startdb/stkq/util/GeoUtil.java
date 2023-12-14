@@ -22,24 +22,4 @@ public class GeoUtil {
         double maxLng = Math.min(180, longitude + dLng);
         return new MBR(minLat, maxLat, minLng, maxLng);
     }
-
-    private static double rad(double d) {
-        return d * Math.PI / 180.0;
-    }
-
-    public static double getDistance(Location pt1, Location pt2) {
-        double radLat1 = rad(pt1.getLat());
-        double radLat2 = rad(pt2.getLat());
-        double a = radLat1 - radLat2;
-        double b = rad(pt1.getLon()) - rad(pt2.getLon());
-        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
-        s = s * R;
-        s = Math.round(s * 10000) / 10000.0;
-        return s;
-    }
-
-    public static double getArea(Location pt1, Location pt2) {
-        return Math.abs((R / 1000) * (R / 1000) * (rad(pt2.getLon()) - rad(pt1.getLon())) *
-                (Math.sin(rad(pt2.getLat())) - Math.sin(rad(pt1.getLat()))));
-    }
 }

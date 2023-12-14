@@ -5,21 +5,25 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Query {
-    private final Date startTime;
-    private final Date endTime;
-    private final MBR mbr;
-    private final ArrayList<String> keywords;
+    private Date startTime;
+    private Date endTime;
+    private MBR mbr;
+    private List<String> keywords;
     private QueryType queryType;
+
+    public Query() {}
 
     public Query(double minLat, double maxLat,
                  double minLon, double maxLon,
-                 Date startTime, Date endTime, ArrayList<String> keywords) {
+                 Date startTime, Date endTime, List<String> keywords) {
         this.keywords = new ArrayList<>(keywords);
         this.startTime = startTime;
         this.endTime = endTime;
         this.mbr = new MBR(minLat, maxLat, minLon, maxLon);
+        queryType = QueryType.CONTAIN_ONE;
     }
 
     public Query(MBR mbr, Date startTime, Date endTime, ArrayList<String> keywords) {
@@ -27,6 +31,7 @@ public class Query {
         this.startTime = startTime;
         this.endTime = endTime;
         this.mbr = mbr;
+        queryType = QueryType.CONTAIN_ONE;
     }
 
     public void setQueryType(QueryType queryType) {
@@ -61,12 +66,28 @@ public class Query {
         return mbr.getMaxLon();
     }
 
-    public ArrayList<String> getKeywords() {
+    public List<String> getKeywords() {
         return keywords;
     }
 
     public MBR getMBR() {
         return mbr;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setMbr(MBR mbr) {
+        this.mbr = mbr;
+    }
+
+    public void setKeywords(List<String> keywords) {
+        this.keywords = keywords;
     }
 
     public String toString() {
