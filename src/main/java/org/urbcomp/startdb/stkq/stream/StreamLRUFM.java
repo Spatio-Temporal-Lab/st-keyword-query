@@ -14,14 +14,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class StreamLRUFM extends AbstractFilterManager {
-    protected final long MAX_RAM_USAGE =  50 * 1024;
+    protected final long MAX_RAM_USAGE;
     protected Map<BytesKey, IFilter> filters = new LinkedHashMap<>(100_0000, .75F, true);
     protected long ramUsage;
     protected String tableName;
 
-    public StreamLRUFM(int log2Size, int bitsPerKey, String tableName) {
+    public StreamLRUFM(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
         super(log2Size, bitsPerKey);
         this.tableName = tableName;
+        this.MAX_RAM_USAGE = maxRamUsage;
     }
 
     public void doClear() throws IOException {

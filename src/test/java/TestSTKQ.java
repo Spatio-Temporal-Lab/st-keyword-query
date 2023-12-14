@@ -32,6 +32,7 @@ public class TestSTKQ {
     private final static int tBits = 2;     //HBase键中时间键的后tBits位抹除，用于构建布隆过滤器的键
     private final static int logInitFilterSlotSize = 3; // 布隆过滤器初始化槽的个数，log
     private final static int fingerSize = 13;           // 布隆过滤器初始化指纹长度
+    private final static long maxRamUsage = 50 * 1024;  // 布隆过滤器最大占用内存
 
     private final HBaseUtil hBaseUtil = HBaseUtil.getDefaultHBaseUtil();
 
@@ -75,7 +76,7 @@ public class TestSTKQ {
         initFilterTable();
         List<Query> queriesAll = getQueries();
         StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
-            new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName));
+            new StreamLRUFM(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
         List<STObject> totalObjects = new ArrayList<>();
 
         try (QueryProcessor processor = new QueryProcessor(tableName, filter);
