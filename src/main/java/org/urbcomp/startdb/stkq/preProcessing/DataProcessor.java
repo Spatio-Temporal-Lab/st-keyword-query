@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.preProcessing;
 
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.ISTKFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
