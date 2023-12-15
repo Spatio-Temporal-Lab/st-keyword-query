@@ -76,8 +76,4 @@ public class TSKeyGenerator implements ISTKeyGenerator {
         return tsRanges;
     }
 
-    @Override
-    public int getByteCount() {
-        return S_BYTE_COUNT + T_BYTE_COUNT;
-    }
 }
