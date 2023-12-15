@@ -31,9 +31,8 @@ public class BDIAQueryProcessor extends AbstractQueryProcessor {
 
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
-
         long end = System.currentTimeMillis();
-        queryBloomTime += end - begin;
+        rangeGenerateTime += end - begin;
 
         allSize += ranges.size();
         allCount += getRangesSize(ranges);
@@ -41,7 +40,7 @@ public class BDIAQueryProcessor extends AbstractQueryProcessor {
         begin = System.currentTimeMillis();
         scanResults = HBaseQueryProcessor.scanBDIA(tableName, ranges, query);
         end = System.currentTimeMillis();
-        queryHBaseTime += end - begin;
+        queryDbTime += end - begin;
 
         ArrayList<STObject> result = new ArrayList<>();
         for (Map<String, String> map : scanResults) {

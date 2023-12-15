@@ -1,14 +1,12 @@
-package org.urbcomp.startdb.stkq.initialization;
+package org.urbcomp.startdb.stkq.preProcessing;
 
 import org.urbcomp.startdb.stkq.constant.Constant;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.model.STObject;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class GenerateData {

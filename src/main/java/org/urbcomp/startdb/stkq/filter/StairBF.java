@@ -92,16 +92,6 @@ public class StairBF implements ISTKFilter {
         return t >= l && t <= r;
     }
 
-    public List<Integer> shrink(byte[] code, int qL, int qR) {
-        List<Integer> result = new ArrayList<>();
-        for (int i = qL; i <= qR; ++i) {
-            if (query(code, i)) {
-                result.add(i);
-            }
-        }
-        return result;
-    }
-
     public boolean query(byte[] code, int qL, int qR) {
         return query(code, level - 1, minT, maxT, qL, qR);
     }
