@@ -10,6 +10,7 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 import java.text.ParseException;
 import java.util.*;
 
+// Chen X, Zhang C, Shi Z, et al. Spatio-temporal keywords queries in HBase[J]. Big Data & Information Analytics, 2015, 1(1): 81-91.
 public class BDIAQueryProcessor extends AbstractQueryProcessor {
     private final ISTKeyGenerator keyGenerator;
 
