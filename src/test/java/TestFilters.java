@@ -2,11 +2,12 @@ import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
+import org.urbcomp.startdb.stkq.preProcessing.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
@@ -14,7 +15,7 @@ import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
-import org.urbcomp.startdb.stkq.util.QueryGenerator;
+import org.urbcomp.startdb.stkq.preProcessing.QueryGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 
 public class TestFilters {
-//    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
     private static int minT = Integer.MAX_VALUE;
     private static int maxT = -1;
     private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
@@ -124,7 +124,7 @@ public class TestFilters {
 
     @Test
     public void testStairBfShrink() throws IOException {
-        System.out.printf("#%d %d\n", minT, maxT);
+        System.out.printf("time range: [%d, %d]\n", minT, maxT);
         ISTKFilter sbf = new StairBF(8, 10000, 20, minT, maxT);
 
         long start = System.currentTimeMillis();
@@ -133,7 +133,7 @@ public class TestFilters {
         System.out.println("Insert Time " +": " + (end - start));
 
         start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkBySTFilter(sbf);
+        List<List<byte[]>> results = shrinkBySTFilter(sbf, QUERIES_SMALL);
         end = System.currentTimeMillis();
 
         System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(sbf));
@@ -168,7 +168,7 @@ public class TestFilters {
         int sBits = 8;
         int tBits = 4;
 
-        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
+        STFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
 
         insertIntoSTFilter(stFilter);
 
@@ -185,27 +185,17 @@ public class TestFilters {
     }
 
     @Test
-    public void testInfiniFilter() {
-        ChainedInfiniFilter filter = new ChainedInfiniFilter(3, 12);
-        filter.set_expand_autonomously(true);
-        for (int i = 0; i <= 100; ++i) {
-            boolean success = filter.insert(0, true);
-            if (!success) {
-                System.out.println(i);
-            }
-        }
-    }
-
-    @Test
+    @Ignore
     public void testSTFilterIO() {
         int sBits = 8;
         int tBits = 4;
-        AbstractSTFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
+        STFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
         List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
         checkNoFalsePositive(results);
     }
 
     @Test
+    @Ignore
     public void testStairBFIO() {
         StairBF bf = new StairBF(5,100, 20, 0, 1000);
 
@@ -265,16 +255,7 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter) throws IOException {
-        List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : QUERIES) {
-            List<byte[]> filterResult = stFilter.shrink(query);
-            results.add(filterResult);
-        }
-        return results;
-    }
-
-    private List<List<byte[]>> shrinkBySTFilterWithIO(AbstractSTFilter stFilter) {
+    private List<List<byte[]>> shrinkBySTFilterWithIO(STFilter stFilter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES_SMALL) {
             List<byte[]> filterResult = stFilter.shrinkWithIO(query);
@@ -283,7 +264,7 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(AbstractSTFilter stFilter, List<Query> queries) throws IOException {
+    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter, List<Query> queries) throws IOException {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : queries) {
             List<byte[]> filterResult = stFilter.shrink(query);

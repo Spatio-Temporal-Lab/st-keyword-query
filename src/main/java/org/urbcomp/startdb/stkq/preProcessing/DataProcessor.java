@@ -1,6 +1,5 @@
-package org.urbcomp.startdb.stkq.io;
+package org.urbcomp.startdb.stkq.preProcessing;
 
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.ISTKFilter;
 import org.urbcomp.startdb.stkq.filter.STFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
@@ -356,7 +355,7 @@ public class DataProcessor {
         int sBits = 8;
         int tBits = 4;
         BasicFilterManager manager = new BasicFilterManager(3, 18);
-        AbstractSTFilter stFilter = new STFilter(sBits, tBits, manager);
+        ISTKFilter stFilter = new STFilter(sBits, tBits, manager);
         dataProcessor.putFiltersToRedis(stFilter, "/usr/data/yelp.csv");
     }
 }

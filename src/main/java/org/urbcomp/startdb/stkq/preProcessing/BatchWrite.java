@@ -1,4 +1,4 @@
-package org.urbcomp.startdb.stkq.initialization;
+package org.urbcomp.startdb.stkq.preProcessing;
 
 import com.github.nivdayan.FilterLibrary.filters.BloomFilter;
 import org.apache.hadoop.hbase.TableName;
@@ -6,7 +6,6 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;

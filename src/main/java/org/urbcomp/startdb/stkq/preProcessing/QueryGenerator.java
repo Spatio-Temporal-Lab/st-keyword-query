@@ -1,13 +1,13 @@
-package org.urbcomp.startdb.stkq.util;
+package org.urbcomp.startdb.stkq.preProcessing;
 
 import com.github.davidmoten.hilbert.hilbert.HilbertCurve;
 import com.github.davidmoten.hilbert.hilbert.SmallHilbertCurve;
 import org.locationtech.geomesa.curve.NormalizedDimension;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.*;
+import org.urbcomp.startdb.stkq.util.*;
 
 import java.io.*;
 import java.text.ParseException;

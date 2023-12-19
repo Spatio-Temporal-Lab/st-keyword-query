@@ -1,5 +1,6 @@
-package org.urbcomp.startdb.stkq.io;
+package org.urbcomp.startdb.stkq.processor;
 
+import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 import org.urbcomp.startdb.stkq.util.ByteUtil;

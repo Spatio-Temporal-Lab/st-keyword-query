@@ -1,9 +1,8 @@
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.io.DataProcessor;
+import org.urbcomp.startdb.stkq.preProcessing.DataProcessor;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
 import org.urbcomp.startdb.stkq.model.MBR;
 import org.urbcomp.startdb.stkq.model.Query;

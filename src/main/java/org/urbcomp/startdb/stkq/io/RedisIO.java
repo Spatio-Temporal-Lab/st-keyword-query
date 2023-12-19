@@ -25,8 +25,7 @@ public class RedisIO {
     }
 
     public static void putFilters(int db, Map<BytesKey, IFilter> filters) {
-        Jedis jedis0 = jedis[0];
-        System.out.println(filters.size());
+        Jedis jedis0 = jedis[db];
         for (Map.Entry<BytesKey, IFilter> entry : filters.entrySet()) {
             byte[] key = entry.getKey().getArray();
             ByteArrayOutputStream bos = new ByteArrayOutputStream();

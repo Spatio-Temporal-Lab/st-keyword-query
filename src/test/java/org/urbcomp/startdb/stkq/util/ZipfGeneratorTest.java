@@ -2,6 +2,7 @@ package org.urbcomp.startdb.stkq.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.urbcomp.startdb.stkq.preProcessing.ZipfGenerator;
 
 import java.util.ArrayList;
 

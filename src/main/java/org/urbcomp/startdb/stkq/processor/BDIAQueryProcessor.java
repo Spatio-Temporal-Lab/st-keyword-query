@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.processor;
 
-import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.ISTKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -11,6 +10,7 @@ import org.urbcomp.startdb.stkq.util.DateUtil;
 import java.text.ParseException;
 import java.util.*;
 
+// Chen X, Zhang C, Shi Z, et al. Spatio-temporal keywords queries in HBase[J]. Big Data & Information Analytics, 2015, 1(1): 81-91.
 public class BDIAQueryProcessor extends AbstractQueryProcessor {
     private final ISTKeyGenerator keyGenerator;
 
@@ -31,9 +31,8 @@ public class BDIAQueryProcessor extends AbstractQueryProcessor {
 
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
-
         long end = System.currentTimeMillis();
-        queryBloomTime += end - begin;
+        rangeGenerateTime += end - begin;
 
         allSize += ranges.size();
         allCount += getRangesSize(ranges);
@@ -41,7 +40,7 @@ public class BDIAQueryProcessor extends AbstractQueryProcessor {
         begin = System.currentTimeMillis();
         scanResults = HBaseQueryProcessor.scanBDIA(tableName, ranges, query);
         end = System.currentTimeMillis();
-        queryHBaseTime += end - begin;
+        queryDbTime += end - begin;
 
         ArrayList<STObject> result = new ArrayList<>();
         for (Map<String, String> map : scanResults) {

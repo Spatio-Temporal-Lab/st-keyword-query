@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.processor;
 
-import org.urbcomp.startdb.stkq.io.HBaseQueryProcessor;
 import org.urbcomp.startdb.stkq.model.Location;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -15,13 +14,13 @@ import java.util.*;
 
 public abstract class AbstractQueryProcessor implements Closeable {
     protected final String tableName;
-    long queryHBaseTime = 0;
-    long queryBloomTime = 0;
+    long queryDbTime = 0;
+    long rangeGenerateTime = 0;
     long allSize = 0;
     long allCount = 0;
 
-    public long getQueryBloomTime() {
-        return queryBloomTime;
+    public long getRangeGenerateTime() {
+        return rangeGenerateTime;
     }
 
     public long getAllSize() {
@@ -30,6 +29,10 @@ public abstract class AbstractQueryProcessor implements Closeable {
 
     public long getAllCount() {
         return allCount;
+    }
+
+    public long getQueryDbTime() {
+        return queryDbTime;
     }
 
     private long getRangeSize(Range<byte[]> range) {
@@ -50,10 +53,6 @@ public abstract class AbstractQueryProcessor implements Closeable {
         this.tableName = tableName;
     }
 
-    public long getQueryHBaseTime() {
-        return queryHBaseTime;
-    }
-
     public List<Range<byte[]>> getRanges(Query query) throws IOException {
         return null;
     }
@@ -66,16 +65,14 @@ public abstract class AbstractQueryProcessor implements Closeable {
     }
 
     public ArrayList<STObject> getResult(Query query) throws InterruptedException, ParseException, IOException {
-
         List<Map<String, String>> scanResults;
 
         List<Range<byte[]>> ranges;
-
         long begin = System.currentTimeMillis();
         ranges = getRanges(query);
 //        printRanges(ranges);
         long end = System.currentTimeMillis();
-        queryBloomTime += end - begin;
+        rangeGenerateTime += end - begin;
 
         allSize += ranges.size();
         allCount += getRangesSize(ranges);
@@ -83,7 +80,7 @@ public abstract class AbstractQueryProcessor implements Closeable {
         begin = System.currentTimeMillis();
         scanResults = HBaseQueryProcessor.scan(tableName, ranges, query);
         end = System.currentTimeMillis();
-        queryHBaseTime += end - begin;
+        queryDbTime += end - begin;
 
         ArrayList<STObject> result = new ArrayList<>();
         for (Map<String, String> map : scanResults) {
