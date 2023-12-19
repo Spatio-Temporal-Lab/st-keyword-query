@@ -23,12 +23,11 @@ public class TestSTKQ {
     // 查询生成相关配置
     private final static int queryCountEachBin = 1000;
     private final static int timeBin = 4;   // 每timeBin小时生成一次查询，每次生成queryCountEachBin个查询
-//    private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
-    private final static String dataDir = "E:\\data\\tweetSorted.csv";   // 存储数据的文件，有序
+    private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
     private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/streamTweet.csv";
     private final static int sampleCount = 100_000;     //测试数据的量
     private final static String tableName = "testTweet";    // HBase存储数据的表名
-    private final static String filterTableName = "tweetFilters";   // HBase存储布隆过滤器的表名
+    private final static String filterTableName = "tweetFilters_Ruiyuan";   // HBase存储布隆过滤器的表名
 
     // 布隆过滤器相关配置
     private final static int sBits = 4;     //HBase键中空间键的后sBits位抹除，用于构建布隆过滤器的键，2的整数倍
