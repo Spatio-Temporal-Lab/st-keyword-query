@@ -75,8 +75,11 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
         }
     }
 
-    public IFilter getAndCreateIfNoExists(BytesKey index) throws IOException {
-        IFilter filter = get(index);
+    /*
+    * Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
+    * */
+    public IFilter getAndCreateIfNoExists(BytesKey index) {
+        IFilter filter = filters.get(index);
         if (filter == null) {
             filter = new InfiniFilter(log2Size, bitsPerKey);
             filters.put(index, filter);
