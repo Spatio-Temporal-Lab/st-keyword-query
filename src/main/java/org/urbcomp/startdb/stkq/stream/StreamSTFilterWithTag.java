@@ -3,6 +3,7 @@ package org.urbcomp.startdb.stkq.stream;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -13,12 +14,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class StreamSTFilter extends AbstractSTFilter {
-    private final StreamLRUFilterManager filterManager;
+public class StreamSTFilterWithTag extends AbstractSTFilter {
+    private final StreamLRUFilterManagerWithTag filterManager;
 
     protected Set<BytesKey> fnSet = new HashSet<>();
 
-    public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
+    public StreamSTFilterWithTag(int sBits, int tBits, StreamLRUFilterManagerWithTag filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }
@@ -33,6 +34,8 @@ public class StreamSTFilter extends AbstractSTFilter {
             byte[] key = ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t));
             if (!filter.insert(key)) {
                 fnSet.add(new BytesKey(key));
+            } else if (filter instanceof InfiniFilterWithTag) {
+                ((InfiniFilterWithTag) filter).setWriteTag(true);
             }
         }
     }

@@ -13,7 +13,7 @@ public class BasicFilterManager extends AbstractFilterManager {
     protected Map<BytesKey, IFilter> filters = new HashMap<>();
 
     public BasicFilterManager(int log2Size, int bitsPerKey) {
-        super(log2Size, bitsPerKey);
+        super(log2Size, bitsPerKey, null, 0);
     }
 
     public IFilter getAndCreateIfNoExists(BytesKey index) {

@@ -8,14 +8,19 @@ import java.io.IOException;
 public class AbstractFilterManager implements IFilterManager {
     protected final int log2Size;
     protected final int bitsPerKey;
+    protected final long maxRamUsage;
+    protected long ramUsage;
+    protected String tableName;
 
-    public AbstractFilterManager(int log2Size, int bitsPerKey) {
+    public AbstractFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
         this.log2Size = log2Size;
         this.bitsPerKey = bitsPerKey;
+        this.tableName = tableName;
+        this.maxRamUsage = maxRamUsage;
     }
 
     public long ramUsage() {
-        return 0;
+        return ramUsage;
     }
 
     public void out() {

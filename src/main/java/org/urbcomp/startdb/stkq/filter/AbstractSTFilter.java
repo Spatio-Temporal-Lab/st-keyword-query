@@ -116,6 +116,37 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return true;
     }
 
+    protected List<Range<byte[]>> merge(List<Long> keysLong) {
+        keysLong.sort(Comparator.naturalOrder());
+        int mask = (1 << tKeyGenerator.getBits()) - 1;
+        List<Range<Long>> temp = new ArrayList<>();
+        for (long keyLong : keysLong) {
+            if (temp.isEmpty()) {
+                temp.add(new Range<>(keyLong, keyLong));
+            } else {
+                Range<Long> last = temp.get(temp.size() - 1);
+                if (last.getHigh() + 1 >= keyLong) {
+                    last.setHigh(keyLong);
+                } else {
+                    temp.add(new Range<>(keyLong, keyLong));
+                }
+            }
+        }
+
+        return temp.stream().map(
+                rl -> {
+                    byte[] sKey = sKeyGenerator.numberToBytes(rl.getLow() >> tKeyGenerator.getBits());
+                    int tLow_ = (int) (rl.getLow() & mask);
+                    int thigh_ = (int) (rl.getHigh() & mask);
+
+                    return new Range<>(
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(tLow_)),
+                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(thigh_))
+                    );
+                }
+        ).collect(Collectors.toList());
+    }
+
     public void insert(STObject stObject) throws IOException {
     }
 

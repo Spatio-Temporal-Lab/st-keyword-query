@@ -1,19 +1,24 @@
 package org.urbcomp.startdb.stkq.stream;
 
+import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
-import org.urbcomp.startdb.stkq.filter.InfiniFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
 import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class StreamLRUFilterManager extends AbstractFilterManager {
-    protected final Map<BytesKey, IFilter> filters = new LinkedHashMap<>(100_0000, .75F, true);
+public class StreamLRUFilterManagerWithTag extends AbstractFilterManager {
 
-    public StreamLRUFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
+    private final Map<BytesKey, InfiniFilterWithTag> filters = new LinkedHashMap<>(100_0000, .75F, true);
+
+    public StreamLRUFilterManagerWithTag(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
         super(log2Size, bitsPerKey, tableName, maxRamUsage);
     }
 
@@ -25,14 +30,17 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
         ramUsage = ramUsage();
         if (ramUsage < maxRamUsage) return;
 
-        Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
+        Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
         Map<BytesKey, IFilter> filtersToRemove = new HashMap<>();
         while (iterator.hasNext()) {
-            Map.Entry<BytesKey, IFilter> entry = iterator.next();
+            Map.Entry<BytesKey, InfiniFilterWithTag> entry = iterator.next();
 
-            IFilter filterToRemove = entry.getValue();
+            InfiniFilterWithTag filterToRemove = entry.getValue();
             ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-            filtersToRemove.put(entry.getKey(), filterToRemove);
+
+            if (filterToRemove.shouldWrite()) {
+                filtersToRemove.put(entry.getKey(), filterToRemove);
+            }
 
             iterator.remove();
 
@@ -53,14 +61,17 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
         ramUsage += RamUsageEstimator.sizeOf(filter);
         if (ramUsage < maxRamUsage) return;
 
-        Iterator<Map.Entry<BytesKey, IFilter>> iterator = filters.entrySet().iterator();
+        Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<BytesKey, IFilter> entry = iterator.next();
+            Map.Entry<BytesKey, InfiniFilterWithTag> entry = iterator.next();
             byte[] key = entry.getKey().getArray();
 
-            IFilter filterToRemove = entry.getValue();
+            InfiniFilterWithTag filterToRemove = entry.getValue();
             ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-            HBaseIO.putFilterIfNotExist(tableName, key, filterToRemove);
+
+            if (filterToRemove.shouldWrite()) {
+                HBaseIO.putFilter(tableName, key, filterToRemove);
+            }
 
             iterator.remove();
 
@@ -71,22 +82,23 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
     }
 
     /*
-    * Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
-    * */
+     * Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
+     * */
     public IFilter getAndCreateIfNoExists(BytesKey index) {
-        IFilter filter = filters.get(index);
+        InfiniFilterWithTag filter = filters.get(index);
         if (filter == null) {
-            filter = new InfiniFilter(log2Size, bitsPerKey);
+            filter = new InfiniFilterWithTag(log2Size, bitsPerKey, true);
             filters.put(index, filter);
         }
         return filter;
     }
 
     public IFilter get(BytesKey index) throws IOException {
-        IFilter filter = filters.get(index);
+        InfiniFilterWithTag filter = filters.get(index);
         if (filter == null) {
-            filter = HBaseIO.getFilter(tableName, index.getArray());
-            if (filter != null) {
+            ChainedInfiniFilter temp = HBaseIO.getFilterInChainType(tableName, index.getArray());
+            if (temp != null) {
+                filter = new InfiniFilterWithTag(temp, false);
                 filters.put(index, filter);
                 doClear(filter);
             }
