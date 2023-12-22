@@ -81,11 +81,13 @@ public class StreamLRUFilterManagerWithTag extends AbstractFilterManager {
         }
     }
 
-    /*
-     * Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
-     * */
-    public IFilter getAndCreateIfNoExists(BytesKey index) {
-        InfiniFilterWithTag filter = filters.get(index);
+    public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException {
+        InfiniFilterWithTag filter;
+        if (!readFromDb) {
+            filter = filters.get(index);
+        } else {
+            filter = (InfiniFilterWithTag) get(index);
+        }
         if (filter == null) {
             filter = new InfiniFilterWithTag(log2Size, bitsPerKey, true);
             filters.put(index, filter);

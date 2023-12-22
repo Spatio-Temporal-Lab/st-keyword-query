@@ -19,6 +19,8 @@ public class StreamSTFilterWithTag extends AbstractSTFilter {
 
     protected Set<BytesKey> fnSet = new HashSet<>();
 
+    private int latestTimeBin = 0;
+
     public StreamSTFilterWithTag(int sBits, int tBits, StreamLRUFilterManagerWithTag filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
@@ -27,9 +29,18 @@ public class StreamSTFilterWithTag extends AbstractSTFilter {
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
-
         BytesKey stIndex = getSTIndex(s, t);
-        IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
+        int tIndex = t >> tBits;
+
+        IFilter filter;
+        if (tIndex >= latestTimeBin) {
+            //Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
+            latestTimeBin = tIndex;
+            filter = filterManager.getAndCreateIfNoExists(stIndex, false);
+        } else  {
+            filter = filterManager.getAndCreateIfNoExists(stIndex, true);
+        }
+
         for (String keyword : stObject.getKeywords()) {
             byte[] key = ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t));
             if (!filter.insert(key)) {

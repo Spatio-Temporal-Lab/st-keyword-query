@@ -28,7 +28,7 @@ public class AbstractFilterManager implements IFilterManager {
     }
 
     @Override
-    public IFilter getAndCreateIfNoExists(BytesKey index) throws IOException {
+    public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException {
         return null;
     }
 
