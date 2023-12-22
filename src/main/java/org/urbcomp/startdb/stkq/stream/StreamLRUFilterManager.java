@@ -70,10 +70,7 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
         }
     }
 
-    /*
-    * Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
-    * */
-    public IFilter getAndCreateIfNoExists(BytesKey index) {
+    public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) {
         IFilter filter = filters.get(index);
         if (filter == null) {
             filter = new InfiniFilter(log2Size, bitsPerKey);
