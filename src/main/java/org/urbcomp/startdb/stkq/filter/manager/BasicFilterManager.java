@@ -13,7 +13,7 @@ public class BasicFilterManager extends AbstractFilterManager {
     protected Map<BytesKey, IFilter> filters = new HashMap<>();
 
     public BasicFilterManager(int log2Size, int bitsPerKey) {
-        super(log2Size, bitsPerKey);
+        super(log2Size, bitsPerKey, null, 0);
     }
 
     public IFilter getAndCreateIfNoExists(BytesKey index) {
@@ -41,15 +41,17 @@ public class BasicFilterManager extends AbstractFilterManager {
         return filter;
     }
 
-    public long size() {
-        long size = 0;
-        for (Map.Entry<BytesKey, IFilter> filterEntry : filters.entrySet()) {
-            size += RamUsageEstimator.sizeOf(filterEntry.getValue());
-        }
-        return size;
+    @Override
+    public long ramUsage() {
+        return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
 
     public void out() {
         RedisIO.putFilters(0, filters);
+    }
+
+    @Override
+    public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) {
+        return getAndCreateIfNoExists(index);
     }
 }

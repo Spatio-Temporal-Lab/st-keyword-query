@@ -3,6 +3,7 @@ package org.urbcomp.startdb.stkq.stream;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -18,6 +19,8 @@ public class StreamSTFilter extends AbstractSTFilter {
 
     protected Set<BytesKey> fnSet = new HashSet<>();
 
+    private int latestTimeBin = 0;
+
     public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
@@ -26,13 +29,24 @@ public class StreamSTFilter extends AbstractSTFilter {
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
-
         BytesKey stIndex = getSTIndex(s, t);
-        IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
+        int tIndex = t >> tBits;
+
+        IFilter filter;
+        if (tIndex >= latestTimeBin) {
+            //Here we assume that the filter in the latest timeBin must be in memory, so we will not get the filter from HBase
+            latestTimeBin = tIndex;
+            filter = filterManager.getAndCreateIfNoExists(stIndex, false);
+        } else  {
+            filter = filterManager.getAndCreateIfNoExists(stIndex, true);
+        }
+
         for (String keyword : stObject.getKeywords()) {
             byte[] key = ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t));
             if (!filter.insert(key)) {
                 fnSet.add(new BytesKey(key));
+            } else if (filter instanceof InfiniFilterWithTag) {
+                ((InfiniFilterWithTag) filter).setWriteTag(true);
             }
         }
     }
@@ -88,37 +102,6 @@ public class StreamSTFilter extends AbstractSTFilter {
         }
 
         return merge(keysLong);
-    }
-
-    private List<Range<byte[]>> merge(List<Long> keysLong) {
-        keysLong.sort(Comparator.naturalOrder());
-        int mask = (1 << tKeyGenerator.getBits()) - 1;
-        List<Range<Long>> temp = new ArrayList<>();
-        for (long keyLong : keysLong) {
-            if (temp.isEmpty()) {
-                temp.add(new Range<>(keyLong, keyLong));
-            } else {
-                Range<Long> last = temp.get(temp.size() - 1);
-                if (last.getHigh() + 1 >= keyLong) {
-                    last.setHigh(keyLong);
-                } else {
-                    temp.add(new Range<>(keyLong, keyLong));
-                }
-            }
-        }
-
-        return temp.stream().map(
-                rl -> {
-                    byte[] sKey = sKeyGenerator.numberToBytes(rl.getLow() >> tKeyGenerator.getBits());
-                    int tLow_ = (int) (rl.getLow() & mask);
-                    int thigh_ = (int) (rl.getHigh() & mask);
-
-                    return new Range<>(
-                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(tLow_)),
-                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(thigh_))
-                    );
-                }
-        ).collect(Collectors.toList());
     }
 
     public void doClear() throws IOException {

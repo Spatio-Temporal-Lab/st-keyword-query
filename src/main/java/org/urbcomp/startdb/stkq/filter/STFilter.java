@@ -27,7 +27,7 @@ public class STFilter extends AbstractSTFilter implements ISTKFilter {
         int t = tKeyGenerator.toNumber(stObject.getTime());
 
         BytesKey stIndex = getSTIndex(s, t);
-        IFilter filter = filterManager.getAndCreateIfNoExists(stIndex);
+        IFilter filter = filterManager.getAndCreateIfNoExists(stIndex, true);
         for (String keyword : stObject.getKeywords()) {
             filter.insert(ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t)));
         }

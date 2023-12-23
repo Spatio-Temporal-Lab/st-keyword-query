@@ -175,6 +175,16 @@ public class HBaseIO {
         return new InfiniFilter(temp.read(bis));
     }
 
+    public static ChainedInfiniFilter getFilterInChainType(String tableName, byte[] key) throws IOException {
+        byte[] values = hBaseUtil.getCell(tableName, key, "attr", "array");
+        if (values == null) {
+            return null;
+        }
+        ByteArrayInputStream bis = new ByteArrayInputStream(values);
+        ChainedInfiniFilter temp = new ChainedInfiniFilter();
+        return temp.read(bis);
+    }
+
     public static void putFilter(String tableName, byte[] key, IFilter filter) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         filter.writeTo(bos);

@@ -6,7 +6,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import java.io.IOException;
 
 public interface IFilterManager {
-    IFilter getAndCreateIfNoExists(BytesKey index) throws IOException;
+    IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException;
 
     IFilter get(BytesKey index) throws IOException;
 
