@@ -3,6 +3,7 @@ package org.urbcomp.startdb.stkq.stream;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
+import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -28,9 +29,8 @@ public class StreamSTFilter extends AbstractSTFilter {
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
-        int tIndex = t >> tBits;
-
         BytesKey stIndex = getSTIndex(s, t);
+        int tIndex = t >> tBits;
 
         IFilter filter;
         if (tIndex >= latestTimeBin) {
@@ -40,10 +40,13 @@ public class StreamSTFilter extends AbstractSTFilter {
         } else  {
             filter = filterManager.getAndCreateIfNoExists(stIndex, true);
         }
+
         for (String keyword : stObject.getKeywords()) {
             byte[] key = ByteUtil.concat(kKeyGenerator.toBytes(keyword), getSKey(s), getTKey(t));
             if (!filter.insert(key)) {
                 fnSet.add(new BytesKey(key));
+            } else if (filter instanceof InfiniFilterWithTag) {
+                ((InfiniFilterWithTag) filter).setWriteTag(true);
             }
         }
     }

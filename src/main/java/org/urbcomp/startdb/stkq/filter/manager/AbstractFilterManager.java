@@ -5,7 +5,7 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.io.IOException;
 
-public class AbstractFilterManager implements IFilterManager {
+public abstract class AbstractFilterManager implements IFilterManager {
     protected final int log2Size;
     protected final int bitsPerKey;
     protected final long maxRamUsage;
@@ -19,18 +19,14 @@ public class AbstractFilterManager implements IFilterManager {
         this.maxRamUsage = maxRamUsage;
     }
 
-    public long ramUsage() {
-        return ramUsage;
-    }
+    public abstract long ramUsage();
 
     public void out() {
 
     }
 
     @Override
-    public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException {
-        return null;
-    }
+    public abstract IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException;
 
     @Override
     public IFilter get(BytesKey index) throws IOException {

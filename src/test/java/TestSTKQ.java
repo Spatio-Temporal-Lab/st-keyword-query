@@ -76,13 +76,10 @@ public class TestSTKQ {
         initFilterTable();
         Date window = null;
         List<Query> queriesAll = getQueries();
-//        StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
-//            new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
-        StreamSTFilterWithTag filter = new StreamSTFilterWithTag(sBits, tBits,
-                new StreamLRUFilterManagerWithTag(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
+        StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
+                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
         List<STObject> totalObjects = new ArrayList<>();
-
-
+        
         int timeBinId = 0;
         long allTime = 0;
         try (QueryProcessor processor = new QueryProcessor(tableName, filter);
