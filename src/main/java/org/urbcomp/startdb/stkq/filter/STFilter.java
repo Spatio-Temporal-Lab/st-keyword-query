@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class STFilter extends AbstractSTFilter implements ISTKFilter {
+public class STFilter extends AbstractSTFilter {
     private final IFilterManager filterManager;
 
     public STFilter(int sBits, int tBits, IFilterManager filterManager) {
