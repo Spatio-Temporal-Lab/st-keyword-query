@@ -104,7 +104,7 @@ public class StreamSTFilter extends AbstractSTFilter {
         return merge(keysLong);
     }
 
-    public void doClear() throws IOException {
-        filterManager.doClear();
+    public void doClearAfterBatchInsertion() throws IOException {
+        filterManager.doClearAfterBatchInsertion();
     }
 }

@@ -26,30 +26,9 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
      * 批量构建布隆过滤器后，校验是否需要清除
      * @throws IOException 存储多余的布隆过滤器抛出异常
      */
-    public void doClear() throws IOException {
+    public void doClearAfterBatchInsertion() throws IOException {
         ramUsage = ramUsage();
-        if (ramUsage < maxRamUsage) return;
-
-        Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
-        Map<BytesKey, IFilter> filtersToRemove = new HashMap<>();
-        while (iterator.hasNext()) {
-            Map.Entry<BytesKey, InfiniFilterWithTag> entry = iterator.next();
-
-            InfiniFilterWithTag filterToRemove = entry.getValue();
-            ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-
-            if (filterToRemove.shouldWrite()) {
-                filtersToRemove.put(entry.getKey(), filterToRemove);
-            }
-
-            iterator.remove();
-
-            if (ramUsage < maxRamUsage) {
-                break;
-            }
-        }
-
-        HBaseIO.putFilters(tableName, filtersToRemove);
+        clearAction();
     }
 
     /**
@@ -57,28 +36,9 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
      * @param filter 新添加的布隆过滤器
      * @throws IOException 存储多余的布隆过滤器抛出异常
      */
-    protected void doClear(IFilter filter) throws IOException {
+    private void doClearAfterLoadAFilter(IFilter filter) throws IOException {
         ramUsage += RamUsageEstimator.sizeOf(filter);
-        if (ramUsage < maxRamUsage) return;
-
-        Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<BytesKey, InfiniFilterWithTag> entry = iterator.next();
-            byte[] key = entry.getKey().getArray();
-
-            InfiniFilterWithTag filterToRemove = entry.getValue();
-            ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
-
-            if (filterToRemove.shouldWrite()) {
-                HBaseIO.putFilter(tableName, key, filterToRemove);
-            }
-
-            iterator.remove();
-
-            if (ramUsage < maxRamUsage) {
-                break;
-            }
-        }
+        clearAction();
     }
 
     public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException {
@@ -102,7 +62,7 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
             if (temp != null) {
                 filter = new InfiniFilterWithTag(temp, false);
                 filters.put(index, filter);
-                doClear(filter);
+                doClearAfterLoadAFilter(filter);
             }
         }
         return filter;
@@ -111,5 +71,29 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
     @Override
     public long ramUsage() {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
+    }
+
+    private void clearAction() throws IOException {
+        if (ramUsage < maxRamUsage) return;
+
+        Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
+        Map<BytesKey, IFilter> filtersToRemove = new HashMap<>();
+        while (iterator.hasNext()) {
+            Map.Entry<BytesKey, InfiniFilterWithTag> entry = iterator.next();
+
+            InfiniFilterWithTag filterToRemove = entry.getValue();
+            ramUsage -= RamUsageEstimator.sizeOf(filterToRemove);
+
+            if (filterToRemove.shouldWrite()) {
+                filtersToRemove.put(entry.getKey(), filterToRemove);
+            }
+
+            iterator.remove();
+
+            if (ramUsage < maxRamUsage) {
+                break;
+            }
+        }
+        HBaseIO.putFilters(tableName, filtersToRemove);
     }
 }
