@@ -168,7 +168,7 @@ public class TestFilters {
         int sBits = 8;
         int tBits = 4;
 
-        STFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
+        STKFilter stFilter = new STKFilter(sBits, tBits, new BasicFilterManager(3, 13));
 
         insertIntoSTFilter(stFilter);
 
@@ -189,7 +189,7 @@ public class TestFilters {
     public void testSTFilterIO() {
         int sBits = 8;
         int tBits = 4;
-        STFilter stFilter = new STFilter(sBits, tBits, new BasicFilterManager(3, 13));
+        STKFilter stFilter = new STKFilter(sBits, tBits, new BasicFilterManager(3, 13));
         List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
         checkNoFalsePositive(results);
     }
@@ -255,7 +255,7 @@ public class TestFilters {
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilterWithIO(STFilter stFilter) {
+    private List<List<byte[]>> shrinkBySTFilterWithIO(STKFilter stFilter) {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES_SMALL) {
             List<byte[]> filterResult = stFilter.shrinkWithIO(query);

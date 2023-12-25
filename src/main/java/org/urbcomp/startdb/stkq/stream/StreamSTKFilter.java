@@ -2,7 +2,7 @@ package org.urbcomp.startdb.stkq.stream;
 
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.AbstractSTKFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.model.BytesKey;
@@ -15,14 +15,14 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class StreamSTFilter extends AbstractSTFilter {
+public class StreamSTKFilter extends AbstractSTKFilter {
     private final StreamLRUFilterManager filterManager;
 
     protected Set<BytesKey> fnSet = new HashSet<>();
 
     private int latestTimeBin = 0;
 
-    public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
+    public StreamSTKFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }

@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class STFilter extends AbstractSTFilter {
+public class STKFilter extends AbstractSTKFilter {
     private final IFilterManager filterManager;
 
-    public STFilter(int sBits, int tBits, IFilterManager filterManager) {
+    public STKFilter(int sBits, int tBits, IFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }

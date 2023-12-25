@@ -1,7 +1,7 @@
 package org.urbcomp.startdb.stkq.preProcessing;
 
 import org.urbcomp.startdb.stkq.filter.ISTKFilter;
-import org.urbcomp.startdb.stkq.filter.STFilter;
+import org.urbcomp.startdb.stkq.filter.STKFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
@@ -55,7 +55,7 @@ public class DataProcessor {
             } else {
                 tmp = str;
             }
-            flag = tmp.matches("^[0.0-9.0]+$");
+            flag = tmp.matches("^[\\d.]+$");
         }
         return flag;
     }
@@ -218,7 +218,7 @@ public class DataProcessor {
         return shops;
     }
 
-    public void putFiltersToRedis(ISTKFilter stFilter, String path) throws ParseException, IOException {
+    public void putFiltersToRedis(ISTKFilter stFilter, String path) throws ParseException {
         double maxLat = -100.0;
         double minLat = 100.0;
         double maxLon = -200.0;
@@ -307,7 +307,7 @@ public class DataProcessor {
             ex.printStackTrace();
         }
 
-        ArrayList<Map> result = new ArrayList<>();
+        List<Map> result = new ArrayList<>();
         result.add(st2Count);
         result.add(st2Keywords);
         return result;
@@ -355,7 +355,7 @@ public class DataProcessor {
         int sBits = 8;
         int tBits = 4;
         BasicFilterManager manager = new BasicFilterManager(3, 18);
-        ISTKFilter stFilter = new STFilter(sBits, tBits, manager);
+        ISTKFilter stFilter = new STKFilter(sBits, tBits, manager);
         dataProcessor.putFiltersToRedis(stFilter, "/usr/data/yelp.csv");
     }
 }

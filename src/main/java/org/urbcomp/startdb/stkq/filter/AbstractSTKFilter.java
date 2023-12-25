@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractSTFilter implements ISTKFilter {
+public abstract class AbstractSTKFilter implements ISTKFilter {
     private final int sBytes;
     private final int tBytes;
     protected final int sBits;
@@ -31,7 +31,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
     protected final KeywordKeyGenerator kKeyGenerator = new KeywordKeyGenerator();
 
-    public AbstractSTFilter(int sBits, int tBits) {
+    public AbstractSTKFilter(int sBits, int tBits) {
         this.sBits = sBits;
         this.tBits = tBits;
 
