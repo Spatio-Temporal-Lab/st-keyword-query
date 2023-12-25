@@ -4,7 +4,7 @@ import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
-import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.IFilterManager;
 import org.urbcomp.startdb.stkq.io.HBaseIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
@@ -14,12 +14,20 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class StreamLRUFilterManager extends AbstractFilterManager {
+public class StreamLRUFilterManager implements IFilterManager {
+    private final int log2Size;
+    private final int bitsPerKey;
+    private final long maxRamUsage;
+    private long ramUsage;
+    private final String tableName;
 
     private final Map<BytesKey, InfiniFilterWithTag> filters = new LinkedHashMap<>(100_0000, .75F, true);
 
     public StreamLRUFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
-        super(log2Size, bitsPerKey, tableName, maxRamUsage);
+        this.log2Size = log2Size;
+        this.bitsPerKey = bitsPerKey;
+        this.tableName = tableName;
+        this.maxRamUsage = maxRamUsage;
     }
 
     /**
@@ -28,16 +36,6 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
      */
     public void doClearAfterBatchInsertion() throws IOException {
         ramUsage = ramUsage();
-        clearAction();
-    }
-
-    /**
-     * 从外存中加载布隆过滤器后，校验是否超过了内存限制，如果超过了，清除内存中多余的布隆过滤器
-     * @param filter 新添加的布隆过滤器
-     * @throws IOException 存储多余的布隆过滤器抛出异常
-     */
-    private void doClearAfterLoadAFilter(IFilter filter) throws IOException {
-        ramUsage += RamUsageEstimator.sizeOf(filter);
         clearAction();
     }
 
@@ -69,6 +67,17 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
     }
 
     @Override
+    public IFilter getWithIO(BytesKey index) {
+        // we do nothing
+        return null;
+    }
+
+    @Override
+    public void out() {
+        // we do nothing
+    }
+
+    @Override
     public long ramUsage() {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
@@ -95,5 +104,10 @@ public class StreamLRUFilterManager extends AbstractFilterManager {
             }
         }
         HBaseIO.putFilters(tableName, filtersToRemove);
+    }
+
+    private void doClearAfterLoadAFilter(IFilter filter) throws IOException {
+        ramUsage += RamUsageEstimator.sizeOf(filter);
+        clearAction();
     }
 }

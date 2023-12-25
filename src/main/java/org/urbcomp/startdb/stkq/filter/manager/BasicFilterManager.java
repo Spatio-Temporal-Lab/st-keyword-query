@@ -9,11 +9,15 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BasicFilterManager extends AbstractFilterManager {
+public class BasicFilterManager implements IFilterManager {
     protected Map<BytesKey, IFilter> filters = new HashMap<>();
 
+    private final int log2Size;
+    private final int bitsPerKey;
+
     public BasicFilterManager(int log2Size, int bitsPerKey) {
-        super(log2Size, bitsPerKey, null, 0);
+        this.log2Size = log2Size;
+        this.bitsPerKey = bitsPerKey;
     }
 
     public IFilter getAndCreateIfNoExists(BytesKey index) {

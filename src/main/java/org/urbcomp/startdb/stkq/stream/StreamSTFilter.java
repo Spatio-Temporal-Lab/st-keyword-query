@@ -26,6 +26,7 @@ public class StreamSTFilter extends AbstractSTFilter {
         this.filterManager = filterManager;
     }
 
+    @Override
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
@@ -102,6 +103,17 @@ public class StreamSTFilter extends AbstractSTFilter {
         }
 
         return merge(keysLong);
+    }
+
+    @Override
+    public void out() {
+        // we do nothing
+    }
+
+    @Override
+    public IFilter getWithIO(byte[] stIndex) {
+        // we do nothing
+        return null;
     }
 
     public void doClearAfterBatchInsertion() throws IOException {
