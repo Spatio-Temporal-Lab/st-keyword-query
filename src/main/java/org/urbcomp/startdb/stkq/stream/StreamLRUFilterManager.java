@@ -39,6 +39,7 @@ public class StreamLRUFilterManager implements IFilterManager {
         clearAction();
     }
 
+    @Override
     public IFilter getAndCreateIfNoExists(BytesKey index, boolean readFromDb) throws IOException {
         InfiniFilterWithTag filter;
         if (!readFromDb) {
@@ -53,6 +54,7 @@ public class StreamLRUFilterManager implements IFilterManager {
         return filter;
     }
 
+    @Override
     public IFilter get(BytesKey index) throws IOException {
         InfiniFilterWithTag filter = filters.get(index);
         if (filter == null) {

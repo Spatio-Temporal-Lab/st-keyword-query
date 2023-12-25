@@ -29,10 +29,12 @@ public class BasicFilterManager implements IFilterManager {
         return filter;
     }
 
+    @Override
     public IFilter get(BytesKey index) {
         return filters.get(index);
     }
 
+    @Override
     public IFilter getWithIO(BytesKey index) {
         IFilter filter = filters.get(index);
         if (filter == null) {
@@ -50,6 +52,7 @@ public class BasicFilterManager implements IFilterManager {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
 
+    @Override
     public void out() {
         RedisIO.putFilters(0, filters);
     }
