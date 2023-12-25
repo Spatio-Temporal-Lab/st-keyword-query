@@ -20,7 +20,7 @@ public class TestSTKQ {
     // 查询生成相关配置
     private final static int queryCountEachBin = 1000;
     private final static int timeBin = 4;   // 每timeBin小时生成一次查询，每次生成queryCountEachBin个查询
-    private final static String dataDir = "D:\\data\\stkeyword\\tweetSorted.csv";   // 存储数据的文件，有序
+    private final static String dataDir = "D:\\data\\tweetSorted.csv";   // 存储数据的文件，有序
     private final static String queryDir = new File("").getAbsolutePath() + "/src/main/resources/streamTweet.csv";
     private final static int sampleCount = 100_000;     //测试数据的量
     private final static String tableName = "testTweet";    // HBase存储数据的表名
@@ -97,7 +97,7 @@ public class TestSTKQ {
                     window = getHourDate(now);
                 } else if (DateUtil.getHours(window, now) >= timeBin) {
                     // 即将创建新的timeBin，尝试调整过滤器
-                    filter.doClear();
+                    filter.doClearAfterBatchInsertion();
 
                     // 获取当前timeBin的查询
                     List<Query> queries = queriesAll.subList(timeBinId * queryCountEachBin, (timeBinId + 1) * queryCountEachBin);
@@ -140,7 +140,7 @@ public class TestSTKQ {
 
             int queryCount = queriesAll.size();
             System.out.println("QueryCount: " + queryCount);
-            System.out.println("Avg Time: " + (allTime * 1.0 / queriesAll.size() / 1000_000) + "ms");
+            System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
         }
     }
 
