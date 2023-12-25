@@ -1,5 +1,6 @@
 package org.urbcomp.startdb.stkq.stream;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
@@ -115,6 +116,9 @@ public class StreamSTFilter extends AbstractSTFilter {
         // we do nothing
         return null;
     }
+
+    @Override
+    public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
 
     public void doClearAfterBatchInsertion() throws IOException {
         filterManager.doClearAfterBatchInsertion();
