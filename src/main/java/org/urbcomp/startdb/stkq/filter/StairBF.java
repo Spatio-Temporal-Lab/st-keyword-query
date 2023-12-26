@@ -237,6 +237,7 @@ public class StairBF implements ISTKFilter {
         return RamUsageEstimator.sizeOf(this);
     }
 
+    @Override
     public void out() {
         RedisIO.set(3, "level".getBytes(), ByteUtil.getKByte(level, 4));
         RedisIO.set(3, "minT".getBytes(), ByteUtil.getKByte(minT, 4));

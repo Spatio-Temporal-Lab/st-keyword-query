@@ -1,7 +1,8 @@
 package org.urbcomp.startdb.stkq.stream;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.AbstractSTFilter;
+import org.urbcomp.startdb.stkq.filter.AbstractSTKFilter;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.model.BytesKey;
@@ -14,18 +15,19 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class StreamSTFilter extends AbstractSTFilter {
+public class StreamSTKFilter extends AbstractSTKFilter {
     private final StreamLRUFilterManager filterManager;
 
     protected Set<BytesKey> fnSet = new HashSet<>();
 
     private int latestTimeBin = 0;
 
-    public StreamSTFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
+    public StreamSTKFilter(int sBits, int tBits, StreamLRUFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }
 
+    @Override
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
@@ -103,6 +105,20 @@ public class StreamSTFilter extends AbstractSTFilter {
 
         return merge(keysLong);
     }
+
+    @Override
+    public void out() {
+        // we do nothing
+    }
+
+    @Override
+    public IFilter getWithIO(byte[] stIndex) {
+        // we do nothing
+        return null;
+    }
+
+    @Override
+    public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
 
     public void doClearAfterBatchInsertion() throws IOException {
         filterManager.doClearAfterBatchInsertion();

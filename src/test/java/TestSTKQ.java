@@ -76,7 +76,7 @@ public class TestSTKQ {
         initFilterTable();
         Date window = null;
         List<Query> queriesAll = getQueries();
-        StreamSTFilter filter = new StreamSTFilter(sBits, tBits,
+        StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits,
                 new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
         List<STObject> totalObjects = new ArrayList<>();
         

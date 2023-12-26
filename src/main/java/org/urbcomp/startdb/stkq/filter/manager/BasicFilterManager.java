@@ -9,11 +9,15 @@ import org.urbcomp.startdb.stkq.model.BytesKey;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BasicFilterManager extends AbstractFilterManager {
+public class BasicFilterManager implements IFilterManager {
     protected Map<BytesKey, IFilter> filters = new HashMap<>();
 
+    private final int log2Size;
+    private final int bitsPerKey;
+
     public BasicFilterManager(int log2Size, int bitsPerKey) {
-        super(log2Size, bitsPerKey, null, 0);
+        this.log2Size = log2Size;
+        this.bitsPerKey = bitsPerKey;
     }
 
     public IFilter getAndCreateIfNoExists(BytesKey index) {
@@ -25,10 +29,12 @@ public class BasicFilterManager extends AbstractFilterManager {
         return filter;
     }
 
+    @Override
     public IFilter get(BytesKey index) {
         return filters.get(index);
     }
 
+    @Override
     public IFilter getWithIO(BytesKey index) {
         IFilter filter = filters.get(index);
         if (filter == null) {
@@ -46,6 +52,7 @@ public class BasicFilterManager extends AbstractFilterManager {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
 
+    @Override
     public void out() {
         RedisIO.putFilters(0, filters);
     }

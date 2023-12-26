@@ -1,6 +1,5 @@
 package org.urbcomp.startdb.stkq.filter;
 
-import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
@@ -9,14 +8,16 @@ import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
-import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractSTFilter implements ISTKFilter {
+public abstract class AbstractSTKFilter implements ISTKFilter {
     private final int sBytes;
     private final int tBytes;
     protected final int sBits;
@@ -30,7 +31,7 @@ public abstract class AbstractSTFilter implements ISTKFilter {
     protected final TimeKeyGenerator tKeyGenerator = new TimeKeyGenerator();
     protected final KeywordKeyGenerator kKeyGenerator = new KeywordKeyGenerator();
 
-    public AbstractSTFilter(int sBits, int tBits) {
+    public AbstractSTKFilter(int sBits, int tBits) {
         this.sBits = sBits;
         this.tBits = tBits;
 
@@ -147,9 +148,6 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         ).collect(Collectors.toList());
     }
 
-    public void insert(STObject stObject) throws IOException {
-    }
-
     public List<byte[]> shrink(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
@@ -256,15 +254,5 @@ public abstract class AbstractSTFilter implements ISTKFilter {
         return results;
     }
 
-    public IFilter getWithIO(byte[] stIndex) {
-        return null;
-    }
-
-    public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
-
-    public void out() {}
-
-    public List<byte[]> shrinkWithIO(Query query) {
-        return null;
-    }
+    public abstract IFilter getWithIO(byte[] stIndex);
 }

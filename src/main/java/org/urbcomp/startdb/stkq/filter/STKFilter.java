@@ -1,7 +1,7 @@
 package org.urbcomp.startdb.stkq.filter;
 
 import org.urbcomp.startdb.stkq.constant.QueryType;
-import org.urbcomp.startdb.stkq.filter.manager.AbstractFilterManager;
+import org.urbcomp.startdb.stkq.filter.manager.IFilterManager;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
@@ -14,14 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class STFilter extends AbstractSTFilter implements ISTKFilter {
-    private final AbstractFilterManager filterManager;
+public class STKFilter extends AbstractSTKFilter {
+    private final IFilterManager filterManager;
 
-    public STFilter(int sBits, int tBits, AbstractFilterManager filterManager) {
+    public STKFilter(int sBits, int tBits, IFilterManager filterManager) {
         super(sBits, tBits);
         this.filterManager = filterManager;
     }
 
+    @Override
     public void insert(STObject stObject) throws IOException {
         long s = sKeyGenerator.toNumber(stObject.getLocation());
         int t = tKeyGenerator.toNumber(stObject.getTime());
@@ -62,7 +63,6 @@ public class STFilter extends AbstractSTFilter implements ISTKFilter {
         return results;
     }
 
-    @Override
     public List<byte[]> shrinkWithIO(Query query) {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
