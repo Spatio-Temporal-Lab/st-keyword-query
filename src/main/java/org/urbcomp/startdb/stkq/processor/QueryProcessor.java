@@ -6,6 +6,7 @@ import org.urbcomp.startdb.stkq.model.Range;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class QueryProcessor extends AbstractQueryProcessor {
     private final ISTKFilter filter;
@@ -18,5 +19,10 @@ public class QueryProcessor extends AbstractQueryProcessor {
     @Override
     public List<Range<byte[]>> getRanges(Query query) throws IOException {
         return filter.shrinkAndMerge(query);
+    }
+
+    @Override
+    protected List<Map<String, String>> HBaseScan(String tableName, List<Range<byte[]>> ranges, Query query) throws InterruptedException {
+        return HBaseQueryProcessor.scan(tableName, ranges, query);
     }
 }

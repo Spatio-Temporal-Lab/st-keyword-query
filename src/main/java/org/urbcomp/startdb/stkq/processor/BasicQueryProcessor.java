@@ -5,6 +5,7 @@ import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
 
 import java.util.List;
+import java.util.Map;
 
 public class BasicQueryProcessor extends AbstractQueryProcessor {
     private final ISTKeyGenerator keyGenerator;
@@ -17,5 +18,10 @@ public class BasicQueryProcessor extends AbstractQueryProcessor {
     @Override
     public List<Range<byte[]>> getRanges(Query query) {
         return keyGenerator.toBytesRanges(query);
+    }
+
+    @Override
+    protected List<Map<String, String>> HBaseScan(String tableName, List<Range<byte[]>> ranges, Query query) throws InterruptedException {
+        return HBaseQueryProcessor.scan(tableName, ranges, query);
     }
 }
