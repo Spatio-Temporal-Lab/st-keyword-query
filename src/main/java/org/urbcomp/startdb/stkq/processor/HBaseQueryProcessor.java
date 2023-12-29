@@ -44,8 +44,7 @@ public class HBaseQueryProcessor {
         //覆写线程的run方法
         @Override
         public void run() {
-            List<Map<String, String>> scanResult = hBaseUtil.scanWithKeywords(tableName, keywords,
-                    start, end, query.getQueryType());
+            List<Map<String, String>> scanResult = hBaseUtil.scanSTK(tableName, start, end);
 
             if (scanResult == null || scanResult.isEmpty()) {
                 cdl.countDown();
@@ -80,7 +79,7 @@ public class HBaseQueryProcessor {
         //覆写线程的run方法
         @Override
         public void run() {
-            List<Map<String, String>> scanResult = hBaseUtil.BDIAScan(tableName, keywords,
+            List<Map<String, String>> scanResult = hBaseUtil.scanBDIA(tableName, keywords,
                     start, end, query.getQueryType());
 
             if (scanResult == null || scanResult.isEmpty()) {
