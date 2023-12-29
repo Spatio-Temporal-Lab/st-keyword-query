@@ -17,7 +17,6 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -30,7 +29,6 @@ public class HBaseUtil {
 
     static {
         defaultUtil = new HBaseUtil();
-//        defaultUtil.init("192.168.137.207:2181");
         defaultUtil.init("10.242.6.16:2181,10.242.6.17:2181,10.242.6.18:2181,10.242.6.19:2181,10.242.6.20:2181");
     }
 
@@ -206,58 +204,6 @@ public class HBaseUtil {
         }
     }
 
-    // 扫描一行内容
-    public Map<String, String> getRow(String tableName, String rowKey) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            Get get = new Get(Bytes.toBytes(rowKey));
-
-            Result result = table.get(get);
-            List<Cell> cells = result.listCells();
-
-            if (CollectionUtils.isEmpty(cells)) {
-                return Collections.emptyMap();
-            }
-            Map<String, String> objectMap = new HashMap<>();
-            for (Cell cell : cells) {
-                String qualifier = new String(CellUtil.cloneQualifier(cell));
-                String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
-                objectMap.put(qualifier, value);
-            }
-            return objectMap;
-        }
-    }
-
-    // 扫描多行内容
-    public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd) throws IOException {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            ResultScanner rs = null;
-            try {
-                Scan scan = new Scan();
-                scan.withStartRow(rowkeyStart);
-                scan.withStopRow(rowkeyEnd, true);
-
-                rs = table.getScanner(scan);
-
-                List<Map<String, String>> dataList = new ArrayList<>();
-                for (Result r : rs) {
-                    Map<String, String> objectMap = new HashMap<>();
-                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
-                    for (Cell cell : r.listCells()) {
-                        String qualifier = new String(CellUtil.cloneQualifier(cell));
-                        String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
-                        objectMap.put(qualifier, value);
-                    }
-                    dataList.add(objectMap);
-                }
-                return dataList;
-            } finally {
-                if (rs != null) {
-                    rs.close();
-                }
-            }
-        }
-    }
-
     public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd, MultiRowRangeFilter filter) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -298,51 +244,13 @@ public class HBaseUtil {
         }
     }
 
-    // 扫描所有内容
-    public List<Map<String, String>> scanAll(String tableName) {
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
-            ResultScanner rs = null;
-            try {
-                Scan scan = new Scan();
-
-                rs = table.getScanner(scan);
-
-                List<Map<String, String>> dataList = new ArrayList<>();
-                for (Result r : rs) {
-                    Map<String, String> objectMap = new HashMap<>();
-                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
-                    for (Cell cell : r.listCells()) {
-                        String qualifier = new String(CellUtil.cloneQualifier(cell));
-                        String value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
-                        objectMap.put(qualifier, value);
-                    }
-                    dataList.add(objectMap);
-                }
-                return dataList;
-            } finally {
-                if (rs != null) {
-                    rs.close();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public List<Map<String, String>> scanWithKeywords(String tableName, String[] keywords,
-                                                      byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
+    public List<Map<String, String>> scanSTK(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
             try {
                 Scan scan = new Scan();
                 scan.withStartRow(rowkeyStart);
                 scan.withStopRow(rowkeyEnd, true);
-                ByteBuffer byteBuffer = ByteBuffer.allocate(keywords.length * 4);
-                for (String keyword : keywords) {
-                    byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
-                }
-                scan.setAttribute("keywords", byteBuffer.array());
 
                 rs = table.getScanner(scan);
 
@@ -375,19 +283,13 @@ public class HBaseUtil {
         return null;
     }
 
-    public List<Map<String, String>> BDIAScan(String tableName, String[] keywords,
-                                                      byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
+    public List<Map<String, String>> scanBDIA(String tableName, String[] keywords, byte[] rowkeyStart, byte[] rowkeyEnd, QueryType queryType) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
             try {
                 Scan scan = new Scan();
                 scan.withStartRow(rowkeyStart);
                 scan.withStopRow(rowkeyEnd, true);
-                ByteBuffer byteBuffer = ByteBuffer.allocate(keywords.length * 4);
-                for (String keyword : keywords) {
-                    byteBuffer.put(Bytes.toBytes(keyword.hashCode()));
-                }
-                scan.setAttribute("keywords", byteBuffer.array());
 
                 rs = table.getScanner(scan);
 
