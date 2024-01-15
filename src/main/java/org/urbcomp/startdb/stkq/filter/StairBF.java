@@ -256,6 +256,11 @@ public class StairBF implements ISTKFilter {
         }
     }
 
+    @Override
+    public List<Range<Long>> shrinkAndMergeLong(Query query) {
+        return null;
+    }
+
     public void init() {
         level = ByteUtil.toInt(RedisIO.get(3, "level".getBytes()));
         minT = ByteUtil.toInt(RedisIO.get(3, "minT".getBytes()));

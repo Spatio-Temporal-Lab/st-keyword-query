@@ -204,6 +204,44 @@ public class HBaseUtil {
         }
     }
 
+    public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            ResultScanner rs = null;
+            try {
+                Scan scan = new Scan();
+                scan = scan.withStartRow(rowkeyStart, true);
+                scan = scan.withStopRow(rowkeyEnd, true);
+                rs = table.getScanner(scan);
+
+                List<Map<String, String>> dataList = new ArrayList<>();
+                for (Result r : rs) {
+                    Map<String, String> objectMap = new HashMap<>();
+                    objectMap.put("rowkey", Arrays.toString(r.getRow()));
+                    for (Cell cell : r.listCells()) {
+                        String qualifier = new String(CellUtil.cloneQualifier(cell));
+                        String value;
+                        if (qualifier.equals("id")) {
+                            value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
+                        }
+                        else {
+                            value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);
+                        }
+                        objectMap.put(qualifier, value);
+                    }
+                    dataList.add(objectMap);
+                }
+                return dataList;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public List<Map<String, String>> scan(String tableName, byte[] rowkeyStart, byte[] rowkeyEnd, MultiRowRangeFilter filter) {
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             ResultScanner rs = null;
@@ -224,7 +262,7 @@ public class HBaseUtil {
                         String qualifier = new String(CellUtil.cloneQualifier(cell));
                         String value;
                         if (qualifier.equals("id")) {
-                            value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+                            value = String.valueOf(ByteUtil.toLong(CellUtil.cloneValue(cell)));
                         }
                         else {
                             value = new String(CellUtil.cloneValue(cell), StandardCharsets.UTF_8);

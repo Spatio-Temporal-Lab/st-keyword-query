@@ -10,7 +10,7 @@ public interface IFilterManager {
 
     IFilter get(BytesKey index) throws IOException;
 
-    IFilter getWithIO(BytesKey index);
+    IFilter getWithIO(BytesKey index) throws IOException;
 
     void out();
 

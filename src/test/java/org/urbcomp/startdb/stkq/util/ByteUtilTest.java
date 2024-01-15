@@ -3,9 +3,12 @@ package org.urbcomp.startdb.stkq.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 import static org.junit.Assert.assertEquals;
 
 public class ByteUtilTest {
+    Random rand = new Random();
 
     @Test
     public void testToInt() {

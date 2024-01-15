@@ -36,15 +36,7 @@ public class BasicFilterManager implements IFilterManager {
 
     @Override
     public IFilter getWithIO(BytesKey index) {
-        IFilter filter = filters.get(index);
-        if (filter == null) {
-            filter = RedisIO.getFilter(0, index.getArray());
-            if (filter != null) {
-                filters.put(index, filter);
-            }
-            return filter;
-        }
-        return filter;
+        return filters.get(index);
     }
 
     @Override

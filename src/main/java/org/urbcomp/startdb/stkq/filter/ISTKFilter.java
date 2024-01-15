@@ -13,4 +13,6 @@ public interface ISTKFilter {
     List<Range<byte[]>> shrinkAndMerge(Query query) throws IOException;
     long ramUsage();
     void out();
+
+    List<Range<Long>> shrinkAndMergeLong(Query query) throws IOException;
 }

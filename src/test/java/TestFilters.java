@@ -186,16 +186,6 @@ public class TestFilters {
 
     @Test
     @Ignore
-    public void testSTFilterIO() {
-        int sBits = 8;
-        int tBits = 4;
-        STKFilter stFilter = new STKFilter(sBits, tBits, new BasicFilterManager(3, 13));
-        List<List<byte[]>> results = shrinkBySTFilterWithIO(stFilter);
-        checkNoFalsePositive(results);
-    }
-
-    @Test
-    @Ignore
     public void testStairBFIO() {
         StairBF bf = new StairBF(5,100, 20, 0, 1000);
 
@@ -250,15 +240,6 @@ public class TestFilters {
         List<List<byte[]>> results = new ArrayList<>();
         for (Query query : QUERIES_SMALL) {
             List<byte[]> filterResult = filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
-            results.add(filterResult);
-        }
-        return results;
-    }
-
-    private List<List<byte[]>> shrinkBySTFilterWithIO(STKFilter stFilter) {
-        List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : QUERIES_SMALL) {
-            List<byte[]> filterResult = stFilter.shrinkWithIO(query);
             results.add(filterResult);
         }
         return results;

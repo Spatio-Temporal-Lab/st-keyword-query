@@ -17,7 +17,7 @@ public class StreamQueryGenerator {
     private final int totalQueryCount;          // 生成的总的查询个数
     private final static int preHours = 24;        // 可能查最近的小时数
     private final static int[] timeRangeHour = new int[]{2}; //new int[]{1, 2, 3, 4, 5};  // 可能生成的查询时间范围小时数
-    private final static int[] spatialRangeMeter = new int[]{1000}; // new int[]{100, 300, 500, 1000, 2000, 4000};         // 可能生成的查询空间范围米数
+    private final static int[] spatialRangeMeter = new int[]{2000}; // new int[]{100, 300, 500, 1000, 2000, 4000};         // 可能生成的查询空间范围米数
     private final static int[] keywordNumber = new int[]{3};    // 查询中关键字的个数
     private final Random random = new Random(0);
     private final Map<Integer, List<byte[]>> tKey2sKeys = new TreeMap<>(Comparator.reverseOrder());
@@ -47,6 +47,7 @@ public class StreamQueryGenerator {
             Date endTime = DateUtil.getDateAfterHours(tInt + 1);   // 加1是为了保证当前小时能够查询到
 
             List<byte[]> sKeys = entry.getValue();
+            Collections.shuffle(sKeys, random);
 
             int sCount = endTimeHourCount[timeCount];
             for (int i = 0; i < sCount; ++i) {
@@ -74,6 +75,7 @@ public class StreamQueryGenerator {
                 queries.add(query);
             }
         }
+        Collections.shuffle(queries, random);
         return queries;
     }
 

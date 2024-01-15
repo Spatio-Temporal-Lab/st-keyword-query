@@ -1,8 +1,15 @@
 package org.urbcomp.startdb.stkq.model;
 
+import org.apache.hbase.thirdparty.io.netty.buffer.ByteBuf;
+import org.apache.hbase.thirdparty.io.netty.buffer.ByteBufAllocator;
+import org.apache.hbase.thirdparty.io.netty.buffer.Unpooled;
+import org.apache.hbase.thirdparty.io.netty.buffer.UnpooledDirectByteBuf;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.*;
 
@@ -25,6 +32,25 @@ public class STObject implements Serializable, Comparable<STObject> {
         this.location = new Location(lat, lon);
         this.time = time;
         this.keywords = new ArrayList<>(Arrays.asList(keywords));
+    }
+
+    public STObject(byte[] bytes) {
+        ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
+        double lat = buffer.readDouble();
+        double lon = buffer.readDouble();
+        location = new Location(lat, lon);
+
+        long time = buffer.readLong();
+        this.time = new Date(time);
+
+        int length = buffer.readInt();
+        byte[] keywordsBytes = new  byte[length];
+        buffer.readBytes(keywordsBytes);
+        String sentence = new String(keywordsBytes, StandardCharsets.UTF_8);
+        keywords = Arrays.asList(sentence.split(" "));
+
+        ID = buffer.readLong();
+        buffer.release();
     }
 
     public STObject(String csvLine) throws ParseException {
@@ -69,6 +95,24 @@ public class STObject implements Serializable, Comparable<STObject> {
 
     public String toVSCLine() {
         return location.getLat() + "," + location.getLon() + "," + DateUtil.format(time) + "," + String.join(",", keywords);
+    }
+
+    public byte[] toByteArray() {
+        ByteBuf buffer = Unpooled.buffer();
+
+        buffer.writeDouble(location.getLat());
+        buffer.writeDouble(location.getLon());
+        buffer.writeLong(time.getTime());
+
+        byte[] keywordsBytes = getSentence().getBytes(StandardCharsets.UTF_8);
+        buffer.writeInt(keywordsBytes.length);
+        buffer.writeBytes(keywordsBytes);
+
+        buffer.writeLong(ID);
+
+        byte[] result = buffer.array();
+        buffer.release();
+        return result;
     }
 
     public boolean equals(STObject other) {

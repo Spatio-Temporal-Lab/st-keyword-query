@@ -181,7 +181,6 @@ public abstract class AbstractSTKFilter implements ISTKFilter {
         int tIndexMin = tLow >> tBits;
         int tIndexMax = tHigh >> tBits;
 
-        List<Range<byte[]>> results;
         QueryType queryType = query.getQueryType();
         List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
 
@@ -222,37 +221,8 @@ public abstract class AbstractSTKFilter implements ISTKFilter {
             }
         }
 
-        keysLong.sort(Comparator.naturalOrder());
-        int mask = (1 << tKeyGenerator.getBits()) - 1;
-        List<Range<Long>> temp = new ArrayList<>();
-        for (long keyLong : keysLong) {
-            if (temp.isEmpty()) {
-                temp.add(new Range<>(keyLong, keyLong));
-            } else {
-                Range<Long> last = temp.get(temp.size() - 1);
-                if (last.getHigh() + 1 >= keyLong) {
-                    last.setHigh(keyLong);
-                } else {
-                    temp.add(new Range<>(keyLong, keyLong));
-                }
-            }
-        }
-
-        results = temp.stream().map(
-                rl -> {
-                    byte[] sKey = sKeyGenerator.numberToBytes(rl.getLow() >> tKeyGenerator.getBits());
-                    int tLow_ = (int) (rl.getLow() & mask);
-                    int thigh_ = (int) (rl.getHigh() & mask);
-
-                    return new Range<>(
-                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(tLow_)),
-                            ByteUtil.concat(sKey, tKeyGenerator.numberToBytes(thigh_))
-                    );
-                }
-        ).collect(Collectors.toList());
-
-        return results;
+        return merge(keysLong);
     }
 
-    public abstract IFilter getWithIO(byte[] stIndex);
+    public abstract IFilter getWithIO(byte[] stIndex) throws IOException;
 }

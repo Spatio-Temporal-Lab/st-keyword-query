@@ -2,7 +2,6 @@ package org.urbcomp.startdb.stkq.filter;
 
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.manager.IFilterManager;
-import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.Range;
@@ -11,6 +10,7 @@ import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,18 +63,19 @@ public class STKFilter extends AbstractSTKFilter {
         return results;
     }
 
-    public List<byte[]> shrinkWithIO(Query query) {
+    public List<Range<Long>> shrinkAndMergeLong(Query query) throws IOException {
         Range<Integer> tRange = tKeyGenerator.toNumberRanges(query).get(0);
         List<Range<Long>> sRanges = sKeyGenerator.toNumberRanges(query);
         int tLow = tRange.getLow();
         int tHigh = tRange.getHigh();
 
-        List<byte[]> results = new ArrayList<>();
+        int tIndexMin = tLow >> tBits;
+        int tIndexMax = tHigh >> tBits;
+
         QueryType queryType = query.getQueryType();
         List<byte[]> kKeys = query.getKeywords().stream().map(kKeyGenerator::toBytes).collect(Collectors.toList());
 
-        int tIndexMin = tLow >> tBits;
-        int tIndexMax = tHigh >> tBits;
+        List<Long> keysLong = new ArrayList<>();
 
         for (Range<Long> sRange : sRanges) {
             long sLow = sRange.getLow();
@@ -86,7 +87,7 @@ public class STKFilter extends AbstractSTKFilter {
             for (long sIndex = sIndexMin; sIndex <= sIndexMax; ++sIndex) {
                 for (int tIndex = tIndexMin; tIndex <= tIndexMax; ++tIndex) {
                     byte[] stIndex = ByteUtil.concat(ByteUtil.getKByte(sIndex, sIndexBytes), ByteUtil.getKByte(tIndex, tIndexBytes));
-                    IFilter filter = RedisIO.getFilter(stIndex);
+                    IFilter filter = getWithIO(stIndex);
 
                     if (filter == null) {
                         continue;
@@ -102,10 +103,7 @@ public class STKFilter extends AbstractSTKFilter {
                         for (int t = tMin; t <= tMax; ++t) {
                             byte[] stKey = ByteUtil.concat(getSKey(s), getTKey(t));
                             if (checkInFilter(filter, stKey, kKeys, queryType)) {
-                                results.add(ByteUtil.concat(
-                                        sKeyGenerator.numberToBytes(s),
-                                        tKeyGenerator.numberToBytes(t)
-                                ));
+                                keysLong.add(s << tKeyGenerator.getBits() | t);
                             }
                         }
                     }
@@ -114,11 +112,29 @@ public class STKFilter extends AbstractSTKFilter {
             }
         }
 
-        return results;
+        return mergeLong(keysLong);
+    }
+
+    private List<Range<Long>> mergeLong(List<Long> keysLong) {
+        keysLong.sort(Comparator.naturalOrder());
+        List<Range<Long>> result = new ArrayList<>();
+        for (long keyLong : keysLong) {
+            if (result.isEmpty()) {
+                result.add(new Range<>(keyLong, keyLong));
+            } else {
+                Range<Long> last = result.get(result.size() - 1);
+                if (last.getHigh() + 1 >= keyLong) {
+                    last.setHigh(keyLong);
+                } else {
+                    result.add(new Range<>(keyLong, keyLong));
+                }
+            }
+        }
+        return result;
     }
 
     @Override
-    public IFilter getWithIO(byte[] stIndex) {
+    public IFilter getWithIO(byte[] stIndex) throws IOException {
         return filterManager.getWithIO(new BytesKey(stIndex));
     }
 
