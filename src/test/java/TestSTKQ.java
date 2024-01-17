@@ -1,6 +1,8 @@
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.Test;
+import org.urbcomp.startdb.stkq.STILT.STILTIndex;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.STKFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
@@ -35,7 +37,7 @@ public class TestSTKQ {
     private final static int sBits = 4;     //HBase键中空间键的后sBits位抹除，用于构建布隆过滤器的键，2的整数倍
     private final static int tBits = 2;     //HBase键中时间键的后tBits位抹除，用于构建布隆过滤器的键
     private final static int logInitFilterSlotSize = 3; // 布隆过滤器初始化槽的个数，log
-    private final static int fingerSize = 13;           // 布隆过滤器初始化指纹长度
+    private final static int fingerSize = 15;           // 布隆过滤器初始化指纹长度
 
     // 替换相关配置
     private final static long maxRamUsage = 10 * 1024 * 1024;  // 布隆过滤器最大占用内存
@@ -157,10 +159,10 @@ public class TestSTKQ {
 
         RedisIO.flush();
         List<Query> queriesAll = getQueries();
-        StreamLRUFilterManager filterManager =
-                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage);
-        StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits, filterManager);
-//        STKFilter filter = new STKFilter(sBits, tBits, new BasicFilterManager(logInitFilterSlotSize, fingerSize));
+//        StreamLRUFilterManager filterManager =
+//                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage);
+//        StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits, filterManager);
+        STKFilter filter = new STKFilter(sBits, tBits, new BasicFilterManager(logInitFilterSlotSize, fingerSize));
         List<STObject> totalObjects = new ArrayList<>();
 
         STKeyGenerator keyGenerator = new STKeyGenerator();
@@ -183,7 +185,7 @@ public class TestSTKQ {
                 if (window == null) {
                     window = getHourDate(now);
                 } else if (DateUtil.getHours(window, now) >= timeBin) {
-                    filterManager.doClearAfterBatchInsertion();
+//                    filterManager.doClearAfterBatchInsertion();
 
                     // 获取当前timeBin的查询
                     List<Query> queries = queriesAll.subList(timeBinId * queryCountEachBin, (timeBinId + 1) * queryCountEachBin);
@@ -229,6 +231,7 @@ public class TestSTKQ {
             int queryCount = queriesAll.size();
             System.out.println("QueryCount: " + queryCount);
             System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
+            System.out.println("Ram usage: " + RamUsageEstimator.humanSizeOf(filter));
         }
     }
 
@@ -303,6 +306,80 @@ public class TestSTKQ {
             int queryCount = queriesAll.size();
             System.out.println("QueryCount: " + queryCount);
             System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
+        }
+    }
+
+    @Test
+    public void testSampleDataSTILT() throws IOException, ParseException {
+        Date window = null;
+
+        RedisIO.flush();
+        List<Query> queriesAll = getQueries();
+        List<STObject> totalObjects = new ArrayList<>();
+
+        int timeBinId = 0;
+        long allTime = 0;
+        long id = 0;
+
+        try (STILTIndex index = new STILTIndex((byte) 64);
+             BufferedReader dataBr = new BufferedReader(new FileReader(dataDir))) {
+
+            String line;
+            int count = 0;
+
+            while ((line = dataBr.readLine()) != null) {
+                STObject cur = DataProcessor.parseSTObject(line);
+                if (cur == null) {
+                    continue;
+                }
+                Date now = cur.getTime();
+                if (window == null) {
+                    window = getHourDate(now);
+                } else if (DateUtil.getHours(window, now) >= timeBin) {
+
+                    // 获取当前timeBin的查询
+                    List<Query> queries = queriesAll.subList(timeBinId * queryCountEachBin, (timeBinId + 1) * queryCountEachBin);
+                    ++timeBinId;
+
+                    // 执行查询
+                    for (Query query : queries) {
+                        //获取查询结果
+                        long begin = System.nanoTime();
+                        List<STObject> queryResults = index.getResult(query);
+                        allTime += System.nanoTime() - begin;
+
+                        //获取groundTruth
+                        List<STObject> groundTruth = getGroundTruthByQuery(query, totalObjects);
+
+                        //校验
+                        if (!equals(queryResults, groundTruth)) {
+                            System.out.println("query: " + query);
+                            System.out.println("queryResult:" + queryResults);
+                            System.out.println("groundTruth:" + groundTruth);
+                            Assert.fail();
+                        }
+                    }
+
+                    // 找到下一个timeBin
+                    while (DateUtil.getHours(window, now) >= timeBin) {
+                        window = DateUtil.getDateAfterHours(window, timeBin);
+                    }
+                }
+
+                cur.setID(id++);
+                index.insert(cur);
+                // 保存在数组中，用于校验结果
+                totalObjects.add(cur);
+
+                if (++count >= sampleCount) {
+                    break;
+                }
+            }
+
+            int queryCount = queriesAll.size();
+            System.out.println("QueryCount: " + queryCount);
+            System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
+            System.out.println("Ram usage: " + RamUsageEstimator.humanSizeOf(index));
         }
     }
 

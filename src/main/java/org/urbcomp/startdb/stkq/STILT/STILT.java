@@ -9,34 +9,42 @@ import java.util.List;
 import java.util.Queue;
 
 public class STILT {
-    Node root;
+    private Node root;
+    private final byte height;
+    private final byte maxPos;
+
+    public STILT(byte height) {
+        this.height = height;
+        maxPos = (byte) (height - 1);
+    }
 
     public void insert(long key, long id) {
+        String s = Long.toBinaryString(key);
         if (root == null) {
             root = new Node();
-            if ((key >> 63 & 1) == 0) {
-                root.leftLength = 64;
+            if ((key >> maxPos & 1) == 0) {
+                root.leftLength = height;
                 root.leftPath = key;
                 root.left = new Leaf(id);
             } else {
-                root.rightLength = 64;
+                root.rightLength = height;
                 root.rightPath = key;
                 root.right = new Leaf(id);
             }
             return;
         }
-        insert(root, key, (byte) 63, id);
+        insert(root, key, maxPos, id);
     }
 
     public List<Long> query(long key) {
         if (root == null) {
             return new ArrayList<>();
         }
-        return query(root, key, (byte) 63);
+        return query(root, key, maxPos);
     }
 
     public List<Long> query(QueryBox queryBox) {
-        return query(root, queryBox, new QueryBox(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, (byte) 63);
+        return query(root, queryBox, new QueryBox(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, maxPos);
     }
 
     private List<Long> query(AbstractTreeNode now, long key, byte curPos) {
@@ -91,22 +99,22 @@ public class STILT {
                         case 3:
                             xNow = xNow << 1 | pathBit;
                             box.xMin = box.xMin << 1 | (boundary.xMin >> p & 1);
-                            if (xNow < boundary.xMin) {
+                            if (xNow < box.xMin) {
                                 return result;
                             }
                             box.xMax = box.xMax << 1 | (boundary.xMax >> p & 1);
-                            if (xNow > boundary.xMax) {
+                            if (xNow > box.xMax) {
                                 return result;
                             }
                             break;
                         case 2:
                             yNow = yNow << 1 | pathBit;
                             box.yMin = box.yMin << 1 | (boundary.yMin >> p & 1);
-                            if (yNow < boundary.yMin) {
+                            if (yNow < box.yMin) {
                                 return result;
                             }
                             box.yMax = box.yMax << 1 | (boundary.yMax >> p & 1);
-                            if (yNow > boundary.yMax) {
+                            if (yNow > box.yMax) {
                                 return result;
                             }
                             break;
@@ -118,11 +126,11 @@ public class STILT {
                         case 0:
                             tNow = tNow << 1 | pathBit;
                             box.tMin = box.tMin << 1 | (boundary.tMin >> p & 1);
-                            if (tNow < boundary.tMin) {
+                            if (tNow < box.tMin) {
                                 return result;
                             }
                             box.tMax = box.tMax << 1 | (boundary.tMax >> p & 1);
-                            if (tNow > boundary.tMax) {
+                            if (tNow > box.tMax) {
                                 return result;
                             }
                             break;
@@ -142,22 +150,22 @@ public class STILT {
                         case 3:
                             xNow = xNow << 1 | pathBit;
                             box.xMin = box.xMin << 1 | (boundary.xMin >> p & 1);
-                            if (xNow < boundary.xMin) {
+                            if (xNow < box.xMin) {
                                 return result;
                             }
                             box.xMax = box.xMax << 1 | (boundary.xMax >> p & 1);
-                            if (xNow > boundary.xMax) {
+                            if (xNow > box.xMax) {
                                 return result;
                             }
                             break;
                         case 2:
                             yNow = yNow << 1 | pathBit;
                             box.yMin = box.yMin << 1 | (boundary.yMin >> p & 1);
-                            if (yNow < boundary.yMin) {
+                            if (yNow < box.yMin) {
                                 return result;
                             }
                             box.yMax = box.yMax << 1 | (boundary.yMax >> p & 1);
-                            if (yNow > boundary.yMax) {
+                            if (yNow > box.yMax) {
                                 return result;
                             }
                             break;
@@ -169,11 +177,11 @@ public class STILT {
                         case 0:
                             tNow = tNow << 1 | pathBit;
                             box.tMin = box.tMin << 1 | (boundary.tMin >> p & 1);
-                            if (tNow < boundary.tMin) {
+                            if (tNow < box.tMin) {
                                 return result;
                             }
                             box.tMax = box.tMax << 1 | (boundary.tMax >> p & 1);
-                            if (tNow > boundary.tMax) {
+                            if (tNow > box.tMax) {
                                 return result;
                             }
                             break;
@@ -184,13 +192,15 @@ public class STILT {
         }
         // range, must in boundary
         else {
-            int lLen = now.getLeftLength();
             int oldX = xNow;
             int oldY = yNow;
             int oldT = tNow;
             byte oldPos = curPos;
+            QueryBox oldBox = new QueryBox(box);
 
+            int lLen = now.getLeftLength();
             if (lLen != 0) {
+                boolean match = true;
                 long lPath = now.getLeftPath();
                 for (int i = lLen - 1; i >= 0; --i, --curPos) {
                     byte p = (byte) (curPos >> 2);    //The bit position corresponding to x, y, t or keyword
@@ -199,44 +209,49 @@ public class STILT {
                         case 3:
                             xNow = xNow << 1 | pathBit;
                             box.xMin = box.xMin << 1 | (boundary.xMin >> p & 1);
-                            if (xNow < boundary.xMin) {
-                                return result;
+                            if (xNow < box.xMin) {
+                                match = false;
                             }
                             box.xMax = box.xMax << 1 | (boundary.xMax >> p & 1);
-                            if (xNow > boundary.xMax) {
-                                return result;
+                            if (xNow > box.xMax) {
+                                match = false;
                             }
                             break;
                         case 2:
                             yNow = yNow << 1 | pathBit;
                             box.yMin = box.yMin << 1 | (boundary.yMin >> p & 1);
-                            if (yNow < boundary.yMin) {
-                                return result;
+                            if (yNow < box.yMin) {
+                                match = false;
                             }
                             box.yMax = box.yMax << 1 | (boundary.yMax >> p & 1);
-                            if (yNow > boundary.yMax) {
-                                return result;
+                            if (yNow > box.yMax) {
+                                match = false;
                             }
                             break;
                         case 1:
                             if ((boundary.keyword >> p & 1) != pathBit) {
-                                return result;
+                                match = false;
                             }
                             break;
                         case 0:
                             tNow = tNow << 1 | pathBit;
                             box.tMin = box.tMin << 1 | (boundary.tMin >> p & 1);
-                            if (tNow < boundary.tMin) {
-                                return result;
+                            if (tNow < box.tMin) {
+                                match = false;
                             }
                             box.tMax = box.tMax << 1 | (boundary.tMax >> p & 1);
-                            if (tNow > boundary.tMax) {
-                                return result;
+                            if (tNow > box.tMax) {
+                                match = false;
                             }
                             break;
                     }
+                    if (!match) {
+                        break;
+                    }
                 }
-                result.addAll(query(now.getLeft(), boundary, box, xNow, yNow, tNow, curPos));
+                if (match) {
+                    result.addAll(query(now.getLeft(), boundary, box, xNow, yNow, tNow, curPos));
+                }
             }
 
             int rLen = now.getRightLength();
@@ -244,10 +259,11 @@ public class STILT {
                 xNow = oldX;
                 yNow = oldY;
                 tNow = oldT;
-                box = new QueryBox(pre);
+                box = new QueryBox(oldBox);
                 curPos = oldPos;
 
                 long rPath = now.getRightPath();
+
                 for (int i = rLen - 1; i >= 0; --i, --curPos) {
                     byte p = (byte) (curPos >> 2);    //The bit position corresponding to x, y, t or keyword
                     int pathBit = (int) (rPath >> i & 1);
@@ -255,22 +271,22 @@ public class STILT {
                         case 3:
                             xNow = xNow << 1 | pathBit;
                             box.xMin = box.xMin << 1 | (boundary.xMin >> p & 1);
-                            if (xNow < boundary.xMin) {
+                            if (xNow < box.xMin) {
                                 return result;
                             }
                             box.xMax = box.xMax << 1 | (boundary.xMax >> p & 1);
-                            if (xNow > boundary.xMax) {
+                            if (xNow > box.xMax) {
                                 return result;
                             }
                             break;
                         case 2:
                             yNow = yNow << 1 | pathBit;
                             box.yMin = box.yMin << 1 | (boundary.yMin >> p & 1);
-                            if (yNow < boundary.yMin) {
+                            if (yNow < box.yMin) {
                                 return result;
                             }
                             box.yMax = box.yMax << 1 | (boundary.yMax >> p & 1);
-                            if (yNow > boundary.yMax) {
+                            if (yNow > box.yMax) {
                                 return result;
                             }
                             break;
@@ -282,11 +298,11 @@ public class STILT {
                         case 0:
                             tNow = tNow << 1 | pathBit;
                             box.tMin = box.tMin << 1 | (boundary.tMin >> p & 1);
-                            if (tNow < boundary.tMin) {
+                            if (tNow < box.tMin) {
                                 return result;
                             }
                             box.tMax = box.tMax << 1 | (boundary.tMax >> p & 1);
-                            if (tNow > boundary.tMax) {
+                            if (tNow > box.tMax) {
                                 return result;
                             }
                             break;
@@ -327,7 +343,7 @@ public class STILT {
         long newPath = oldLeftPath & ((1L << newPathLength) - 1);
 
         // origin child move to left
-        if ((newPath >> newPathLength & 1) == 0) {
+        if ((newPath >> (newPathLength - 1) & 1) == 0) {
             next.left = oldLeft;
             next.leftPath = newPath;
             next.leftLength = newPathLength;
@@ -356,7 +372,7 @@ public class STILT {
         long newPath = oldRightPath & ((1L << newPathLength) - 1);
 
         // origin child move to left
-        if ((newPath >> newPathLength & 1) == 0) {
+        if ((newPath >> (newPathLength - 1) & 1) == 0) {
             next.left = oldRight;
             next.leftPath = newPath;
             next.leftLength = newPathLength;
@@ -414,7 +430,6 @@ public class STILT {
                 }
             }
         }
-
     }
 
     public void print() {
@@ -446,9 +461,9 @@ public class STILT {
     }
 
     public static void main(String[] args) {
-        STILT tree = new STILT();
+        STILT tree = new STILT((byte) 64);
         long begin = System.currentTimeMillis();
-        int testCount = 256 * 1024 * 1024;
+        int testCount = 1024 * 1024;
         for (int i = 0; i < testCount; ++i) {
             tree.insert(i, i);
         }
@@ -459,6 +474,17 @@ public class STILT {
         System.out.println(RamUsageEstimator.humanSizeOf(tree));
 
         begin = System.currentTimeMillis();
+
+        for (int i = 0; i < testCount; ++i) {
+            if (tree.query(i).isEmpty()) {
+                System.err.println("can not find key " + i);
+            }
+        }
+        for (int i = testCount; i < testCount + testCount; ++i) {
+            if (!tree.query(i).isEmpty()) {
+                System.err.println("should not find key " + i);
+            }
+        }
 
         for (int i = 0; i < 4; ++i) {
             System.out.println(tree.query(new QueryBox(

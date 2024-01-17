@@ -150,7 +150,7 @@ public class STObject implements Serializable, Comparable<STObject> {
         return String.join(" ", keywords).compareTo(String.join(" ", stObject.getKeywords()));
     }
 
-    public void setID(int id) {
+    public void setID(long id) {
         ID = id;
     }
 }

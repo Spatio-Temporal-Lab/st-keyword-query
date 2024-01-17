@@ -77,6 +77,22 @@ public class RedisIO {
         return con.get(key);
     }
 
+    public static List<byte[]> get(int db, List<byte[]> keyList) {
+        Jedis con = jedis[db];
+        Pipeline pipeline = con.pipelined();
+
+        List<Response<byte[]>> responses = new ArrayList<>();
+        for (byte[] key : keyList) {
+            responses.add(pipeline.get(key));
+        }
+        pipeline.sync();
+        List<byte[]> result = new ArrayList<>();
+        for (Response<byte[]> response : responses) {
+            result.add(response.get());
+        }
+        return result;
+    }
+
     public static void close() {
         for (Jedis j : jedis) {
             j.close();

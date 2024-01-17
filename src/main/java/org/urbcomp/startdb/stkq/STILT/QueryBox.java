@@ -9,63 +9,6 @@ public class QueryBox {
     int tMin;
     int tMax;
 
-
-    public int getKeyword() {
-        return keyword;
-    }
-
-    public void setKeyword(int keyword) {
-        this.keyword = keyword;
-    }
-
-    public int getXMin() {
-        return xMin;
-    }
-
-    public void setXMin(int xMin) {
-        this.xMin = xMin;
-    }
-
-    public int getXMax() {
-        return xMax;
-    }
-
-    public void setXMax(int xMax) {
-        this.xMax = xMax;
-    }
-
-    public int getYMin() {
-        return yMin;
-    }
-
-    public void setYMin(int yMin) {
-        this.yMin = yMin;
-    }
-
-    public int getYMax() {
-        return yMax;
-    }
-
-    public void setYMax(int yMax) {
-        this.yMax = yMax;
-    }
-
-    public int getTMin() {
-        return tMin;
-    }
-
-    public void setTMin(int tMin) {
-        this.tMin = tMin;
-    }
-
-    public int getTMax() {
-        return tMax;
-    }
-
-    public void setTMax(int tMax) {
-        this.tMax = tMax;
-    }
-
     public QueryBox(int xMin, int xMax, int yMin, int yMax, int tMin, int tMax, int keyword) {
         this.keyword = keyword;
         this.xMin = xMin;
