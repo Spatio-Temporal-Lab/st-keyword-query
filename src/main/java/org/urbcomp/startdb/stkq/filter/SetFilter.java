@@ -18,11 +18,6 @@ public class SetFilter implements IFilter {
     }
 
     @Override
-    public boolean sacrifice() {
-        return false;
-    }
-
-    @Override
     public int size() {
         return set.size();
     }

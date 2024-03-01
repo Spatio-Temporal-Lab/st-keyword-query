@@ -21,7 +21,7 @@ public class DataProcessor {
     private double rate;
     private static long ID;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSampleBig.csv";
+    private static final String TWEET_SAMPLE_FILE = "src/main/resources/tweetSample.csv";
 
     static String DELIMITER = ",";
 
@@ -218,55 +218,6 @@ public class DataProcessor {
         return shops;
     }
 
-    public void putFiltersToRedis(ISTKFilter stFilter, String path) throws ParseException {
-        double maxLat = -100.0;
-        double minLat = 100.0;
-        double maxLon = -200.0;
-        double minLon = 200.0;
-
-        //实现对象读取
-        String dateString = "1900-02-23 00:00";
-        Date initEnd = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateString);
-        Date initFrom = new Date();
-
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(new File(path).toPath())))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-
-                STObject cur = getSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-
-                stFilter.insert(cur);
-
-                minLat = Math.min(minLat, cur.getLat());
-                minLon = Math.min(minLon, cur.getLon());
-                maxLat = Math.max(maxLat, cur.getLat());
-                maxLon = Math.max(maxLon, cur.getLon());
-                if (cur.getTime().before(initFrom)) {
-                    initFrom = cur.getTime();
-                }
-                if (cur.getTime().after(initEnd)) {
-                    initEnd = cur.getTime();
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        System.out.println(stFilter.ramUsage());
-        stFilter.out();
-        System.out.println(minLat);
-        System.out.println(minLon);
-        System.out.println(maxLat);
-        System.out.println(maxLon);
-        System.out.println(initFrom);
-        System.out.println(initEnd);
-    }
-
     public List<Map> generateDistribution(String path) {
         Map<BytesKey, Integer> st2Count = new HashMap<>();
         Map<BytesKey, Set<String>> st2Keywords = new HashMap<>();
@@ -351,11 +302,6 @@ public class DataProcessor {
     }
 
     public static void main(String[] args) throws ParseException, IOException {
-        DataProcessor dataProcessor = new DataProcessor();
-        int sBits = 8;
-        int tBits = 4;
-        BasicFilterManager manager = new BasicFilterManager(3, 18);
-        ISTKFilter stFilter = new STKFilter(sBits, tBits, manager);
-        dataProcessor.putFiltersToRedis(stFilter, "/usr/data/yelp.csv");
+
     }
 }

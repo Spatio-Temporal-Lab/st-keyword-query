@@ -7,7 +7,6 @@ import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.STKFilter;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
 import org.urbcomp.startdb.stkq.io.HBaseUtil;
-import org.urbcomp.startdb.stkq.io.LevelDbIO;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.keyGenerator.STKeyGenerator;
 import org.urbcomp.startdb.stkq.model.MBR;
@@ -15,7 +14,10 @@ import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
 import org.urbcomp.startdb.stkq.preProcessing.DataProcessor;
 import org.urbcomp.startdb.stkq.processor.*;
-import org.urbcomp.startdb.stkq.stream.*;
+import org.urbcomp.startdb.stkq.stream.QueryDistributionEnum;
+import org.urbcomp.startdb.stkq.stream.StreamLRUFilterManager;
+import org.urbcomp.startdb.stkq.stream.StreamQueryGenerator;
+import org.urbcomp.startdb.stkq.stream.StreamSTKFilter;
 import org.urbcomp.startdb.stkq.util.DateUtil;
 import org.urbcomp.startdb.stkq.util.STKUtil;
 
@@ -81,12 +83,12 @@ public class TestSTKQ {
     @Test
     public void testSampleData() throws IOException, ParseException, InterruptedException {
 //        initFilterTable();
-        LevelDbIO.clearData();
+        RedisIO.flush();
 
         Date window = null;
         List<Query> queriesAll = getQueries();
         StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits,
-                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage));
+                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, maxRamUsage));
         List<STObject> totalObjects = new ArrayList<>();
         
         int timeBinId = 0;
@@ -159,10 +161,10 @@ public class TestSTKQ {
 
         RedisIO.flush();
         List<Query> queriesAll = getQueries();
-//        StreamLRUFilterManager filterManager =
-//                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, filterTableName, maxRamUsage);
-//        StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits, filterManager);
-        STKFilter filter = new STKFilter(sBits, tBits, new BasicFilterManager(logInitFilterSlotSize, fingerSize));
+        StreamLRUFilterManager filterManager =
+                new StreamLRUFilterManager(logInitFilterSlotSize, fingerSize, maxRamUsage);
+        StreamSTKFilter filter = new StreamSTKFilter(sBits, tBits, filterManager);
+//        STKFilter filter = new STKFilter(sBits, tBits, new BasicFilterManager(logInitFilterSlotSize, fingerSize));
         List<STObject> totalObjects = new ArrayList<>();
 
         STKeyGenerator keyGenerator = new STKeyGenerator();
@@ -380,82 +382,6 @@ public class TestSTKQ {
             System.out.println("QueryCount: " + queryCount);
             System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
             System.out.println("Ram usage: " + RamUsageEstimator.humanSizeOf(index));
-        }
-    }
-
-    @Test
-    public void testSampleDataStair() throws IOException, ParseException, InterruptedException {
-        LevelDbIO.clearData();
-
-        Date window = null;
-        List<Query> queriesAll = getQueries();
-        StairStreamSTFilter filter = new StairStreamSTFilter(sBits, tBits,
-                new StairStreamLRUFilterManager(logInitFilterSlotSize, fingerSize, new long[]{
-                        maxRamUsage * 3 / 5, maxRamUsage / 5, maxRamUsage / 5
-                }));
-        List<STObject> totalObjects = new ArrayList<>();
-
-        int timeBinId = 0;
-        long allTime = 0;
-        try (QueryProcessor processor = new QueryProcessor(tableName, filter);
-             BufferedReader dataBr = new BufferedReader(new FileReader(dataDir))) {
-
-            String line;
-            int count = 0;
-            while ((line = dataBr.readLine()) != null) {
-                STObject cur = DataProcessor.parseSTObject(line);
-                if (cur == null) {
-                    continue;
-                }
-                Date now = cur.getTime();
-                if (window == null) {
-                    window = getHourDate(now);
-                } else if (DateUtil.getHours(window, now) >= timeBin) {
-                    // 即将创建新的timeBin，尝试调整过滤器
-                    filter.doClear();
-
-                    // 获取当前timeBin的查询
-                    List<Query> queries = queriesAll.subList(timeBinId * queryCountEachBin, (timeBinId + 1) * queryCountEachBin);
-                    ++timeBinId;
-
-                    // 执行查询
-                    for (Query query : queries) {
-                        //获取查询结果
-                        long begin = System.nanoTime();
-                        List<STObject> queryResults = processor.getResult(query);
-                        allTime += System.nanoTime() - begin;
-
-                        //获取groundTruth
-                        List<STObject> groundTruth = getGroundTruthByQuery(query, totalObjects);
-
-                        //校验
-                        if (!equals(queryResults, groundTruth)) {
-                            System.out.println("query: " + query);
-                            System.out.println("queryResult:" + queryResults);
-                            System.out.println("groundTruth:" + groundTruth);
-                            Assert.fail();
-                        }
-                    }
-
-                    // 找到下一个timeBin
-                    while (DateUtil.getHours(window, now) >= timeBin) {
-                        window = DateUtil.getDateAfterHours(window, timeBin);
-                    }
-                }
-
-                // 插入过滤器
-                filter.insert(cur);
-                // 保存在数组中，用于校验结果
-                totalObjects.add(cur);
-
-                if (++count >= sampleCount) {
-                    break;
-                }
-            }
-
-            int queryCount = queriesAll.size();
-            System.out.println("QueryCount: " + queryCount);
-            System.out.println("Avg Time: " + (allTime * 1.0 / queryCount / 1000_000) + "ms");
         }
     }
 

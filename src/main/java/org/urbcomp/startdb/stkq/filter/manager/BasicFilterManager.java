@@ -3,7 +3,6 @@ package org.urbcomp.startdb.stkq.filter.manager;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
-import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
 import java.util.HashMap;
@@ -35,18 +34,8 @@ public class BasicFilterManager implements IFilterManager {
     }
 
     @Override
-    public IFilter getWithIO(BytesKey index) {
-        return filters.get(index);
-    }
-
-    @Override
     public long ramUsage() {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
-    }
-
-    @Override
-    public void out() {
-        RedisIO.putFilters(0, filters);
     }
 
     @Override

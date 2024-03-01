@@ -2,20 +2,19 @@ import com.github.nivdayan.FilterLibrary.filters.ChainedInfiniFilter;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.urbcomp.startdb.stkq.constant.QueryType;
 import org.urbcomp.startdb.stkq.filter.*;
 import org.urbcomp.startdb.stkq.filter.manager.BasicFilterManager;
-import org.urbcomp.startdb.stkq.preProcessing.DataProcessor;
 import org.urbcomp.startdb.stkq.keyGenerator.HilbertSpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.ISpatialKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.KeywordKeyGenerator;
 import org.urbcomp.startdb.stkq.keyGenerator.TimeKeyGenerator;
 import org.urbcomp.startdb.stkq.model.Query;
 import org.urbcomp.startdb.stkq.model.STObject;
-import org.urbcomp.startdb.stkq.util.ByteUtil;
+import org.urbcomp.startdb.stkq.preProcessing.DataProcessor;
 import org.urbcomp.startdb.stkq.preProcessing.QueryGenerator;
+import org.urbcomp.startdb.stkq.util.ByteUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,8 +26,7 @@ import static org.junit.Assert.assertTrue;
 public class TestFilters {
     private static int minT = Integer.MAX_VALUE;
     private static int maxT = -1;
-    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSampleBig.csv");
-    private static final List<Query> QUERIES_SMALL = QueryGenerator.getQueries("queriesZipfSample.csv");
+    private static final List<Query> QUERIES = QueryGenerator.getQueries("queriesZipfSample.csv");
 
     private static final List<STObject> SAMPLE_DATA = DataProcessor.getSampleData();
     private static final ISpatialKeyGenerator spatialKeyGenerator = new HilbertSpatialKeyGenerator();
@@ -44,14 +42,10 @@ public class TestFilters {
         for (Query query : QUERIES) {
             query.setQueryType(QueryType.CONTAIN_ONE);
         }
-        for (Query query : QUERIES_SMALL) {
-            query.setQueryType(QueryType.CONTAIN_ONE);
-        }
     }
 
     @Test
     public void testInfiniFilterFPR() {
-
         IFilter[] filters = new IFilter[]{
                 new InfiniFilter(3, 20)
         };
@@ -75,71 +69,6 @@ public class TestFilters {
             checkNoFalsePositive(results);
         }
 
-    }
-
-    @Test
-    public void testStairBf() {
-        int minT = 0;
-        int maxT = 2_0000;
-        int level = 8;
-        StairBF stairBF = new StairBF(level, 20, 10, minT, maxT);
-        for (int i = minT; i <= maxT; ++i) {
-            stairBF.insert(intToByte4(i), i);
-        }
-        for (int i = minT; i <= maxT; ++i) {
-            assertTrue(stairBF.query(intToByte4(i), i, i));
-            assertTrue(stairBF.query(intToByte4(i), i));
-        }
-        int error = 0;
-        for (int i = minT; i <= maxT - 2; ++i) {
-            if (stairBF.query(intToByte4(i), i + 1, i + 2)) {
-                ++error;
-            }
-        }
-        System.out.println((double) error / (maxT - 5 - minT + 1));
-        List<Integer> ids = new ArrayList<>();
-        ids.add(minT);
-        for (int i = 0; i < level - 1; ++i) {
-            ids.add((ids.get(ids.size() - 1) + maxT) / 2);
-        }
-        for (int i = minT; i <= maxT; ++i) {
-            int errorCount = 0;
-            int errorCount1 = 0;
-            for (int j = minT; j <= maxT; ++j) {
-                if (i == j) continue;
-                if (stairBF.query(intToByte4(j), i, i)) {
-                    ++errorCount;
-                }
-                if (stairBF.query(intToByte4(j), i)) {
-                    ++errorCount1;
-                }
-            }
-            Assert.assertEquals(errorCount, errorCount1);
-            if (ids.contains(i)) {
-                System.out.println(i + " error rate = " + errorCount + " " + (double) errorCount / (maxT - minT + 1));
-            }
-        }
-        System.out.println(RamUsageEstimator.humanSizeOf(stairBF));
-    }
-
-    @Test
-    public void testStairBfShrink() throws IOException {
-        System.out.printf("time range: [%d, %d]\n", minT, maxT);
-        ISTKFilter sbf = new StairBF(8, 10000, 20, minT, maxT);
-
-        long start = System.currentTimeMillis();
-        insertIntoSTFilter(sbf);
-        long end = System.currentTimeMillis();
-        System.out.println("Insert Time " +": " + (end - start));
-
-        start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkBySTFilter(sbf, QUERIES_SMALL);
-        end = System.currentTimeMillis();
-
-        System.out.println("Memory Usage: " + RamUsageEstimator.humanSizeOf(sbf));
-        System.out.println("Query Time " + ": " + (end - start));
-        System.out.println("Result Size" + ": " + results.stream().mapToInt(List::size).sum());
-        checkNoFalsePositive(results);
     }
 
     @Test
@@ -173,7 +102,7 @@ public class TestFilters {
         insertIntoSTFilter(stFilter);
 
         long start = System.currentTimeMillis();
-        List<List<byte[]>> results = shrinkBySTFilter(stFilter, QUERIES_SMALL);
+        List<List<byte[]>> results = shrinkBySTFilter(stFilter);
         long end = System.currentTimeMillis();
         checkNoFalsePositive(results);
         System.out.println("Memory usage: " + RamUsageEstimator.sizeOf(stFilter) + " " +
@@ -182,35 +111,6 @@ public class TestFilters {
         System.out.println("query Time: " + (end - start));
         System.out.println("result Size: " + results.stream().mapToInt(List::size).sum());
         System.out.println("------------------------------------------------------------------");
-    }
-
-    @Test
-    @Ignore
-    public void testStairBFIO() {
-        StairBF bf = new StairBF(5,100, 20, 0, 1000);
-
-        int n = 1000;
-        for (int i = 0; i < n; ++i) {
-            bf.insert(intToByte4(i), i);
-        }
-        for (int i = 0; i < n; ++i) {
-            Assert.assertTrue(bf.query(intToByte4(i), i));
-        }
-        int err0 = 0;
-        for (int i = n; i < n + n; ++i) {
-            if (bf.query(intToByte4(i), i)) {
-                ++err0;
-            }
-        }
-
-        bf.out();
-        bf.init();
-        for (int i = n; i < n + n; ++i) {
-            if (bf.query(intToByte4(i), i)) {
-                --err0;
-            }
-        }
-        Assert.assertEquals(err0, 0);
     }
 
     private static void insertIntoFilter(IFilter filter) {
@@ -238,16 +138,16 @@ public class TestFilters {
 
     private static List<List<byte[]>> shrinkByFilter(IFilter filter) {
         List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : QUERIES_SMALL) {
+        for (Query query : QUERIES) {
             List<byte[]> filterResult = filter.shrink(query, spatialKeyGenerator, timeKeyGenerator, keywordGenerator);
             results.add(filterResult);
         }
         return results;
     }
 
-    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter, List<Query> queries) throws IOException {
+    private List<List<byte[]>> shrinkBySTFilter(ISTKFilter stFilter) throws IOException {
         List<List<byte[]>> results = new ArrayList<>();
-        for (Query query : queries) {
+        for (Query query : TestFilters.QUERIES) {
             List<byte[]> filterResult = stFilter.shrink(query);
             results.add(filterResult);
         }
@@ -255,7 +155,7 @@ public class TestFilters {
     }
 
     private static void checkNoFalsePositive(List<List<byte[]>> results) {
-        for (int i = 0; i < QUERIES_SMALL.size(); ++i) {
+        for (int i = 0; i < QUERIES.size(); ++i) {
             for (byte[] code : GROUND_TRUTH_RANGES.get(i)) {
                 boolean find = false;
                 for (byte[] aCode : results.get(i)) {
@@ -269,12 +169,4 @@ public class TestFilters {
         }
     }
 
-    private static byte[] intToByte4(int i) {
-        byte[] targets = new byte[4];
-        targets[3] = (byte) (i & 0xFF);
-        targets[2] = (byte) (i >> 8 & 0xFF);
-        targets[1] = (byte) (i >> 16 & 0xFF);
-        targets[0] = (byte) (i >> 24 & 0xFF);
-        return targets;
-    }
 }

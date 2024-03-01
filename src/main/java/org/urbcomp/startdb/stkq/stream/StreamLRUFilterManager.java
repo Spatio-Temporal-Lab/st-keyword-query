@@ -6,7 +6,6 @@ import org.urbcomp.startdb.stkq.filter.IFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilter;
 import org.urbcomp.startdb.stkq.filter.InfiniFilterWithTag;
 import org.urbcomp.startdb.stkq.filter.manager.IFilterManager;
-import org.urbcomp.startdb.stkq.io.LevelDbIO;
 import org.urbcomp.startdb.stkq.io.RedisIO;
 import org.urbcomp.startdb.stkq.model.BytesKey;
 
@@ -21,15 +20,13 @@ public class StreamLRUFilterManager implements IFilterManager {
     private final int bitsPerKey;
     private final long maxRamUsage;
     private long ramUsage;
-    private final String tableName;
     private final IFilter filterIndex = new InfiniFilter(10, 20);
 
     private final Map<BytesKey, InfiniFilterWithTag> filters = new LinkedHashMap<>(16, .75F, true);
 
-    public StreamLRUFilterManager(int log2Size, int bitsPerKey, String tableName, long maxRamUsage) {
+    public StreamLRUFilterManager(int log2Size, int bitsPerKey, long maxRamUsage) {
         this.log2Size = log2Size;
         this.bitsPerKey = bitsPerKey;
-        this.tableName = tableName;
         this.maxRamUsage = maxRamUsage;
     }
 
@@ -53,24 +50,6 @@ public class StreamLRUFilterManager implements IFilterManager {
     public IFilter get(BytesKey index) throws IOException {
         InfiniFilterWithTag filter = filters.get(index);
         if (filter == null && filterIndex.check(index.getArray())) {
-//            ChainedInfiniFilter temp = HBaseIO.getFilterInChainType(tableName, index.getArray());
-            ChainedInfiniFilter temp = RedisIO.getFilterInChainType(1, index.getArray());
-//            ChainedInfiniFilter temp = LevelDbIO.getFilterInChainType(index.getArray());
-            if (temp != null) {
-                filter = new InfiniFilterWithTag(temp, false);
-                filters.put(index, filter);
-                doClearAfterLoadAFilter(filter);
-            }
-        }
-        return filter;
-    }
-
-    @Override
-    public IFilter getWithIO(BytesKey index) throws IOException {
-        InfiniFilterWithTag filter = filters.get(index);
-        if (filter == null) {
-//            ChainedInfiniFilter temp = HBaseIO.getFilterInChainType(tableName, index.getArray());
-//            ChainedInfiniFilter temp = RedisIO.getFilterInChainType(0, index.getArray());
             ChainedInfiniFilter temp = RedisIO.getFilterInChainType(1, index.getArray());
             if (temp != null) {
                 filter = new InfiniFilterWithTag(temp, false);
@@ -79,11 +58,6 @@ public class StreamLRUFilterManager implements IFilterManager {
             }
         }
         return filter;
-    }
-
-    @Override
-    public void out() {
-        // we do nothing
     }
 
     @Override
@@ -91,7 +65,7 @@ public class StreamLRUFilterManager implements IFilterManager {
         return filters.values().stream().mapToLong(RamUsageEstimator::sizeOf).sum();
     }
 
-    private void clearAction() throws IOException {
+    private void clearAction() {
         if (ramUsage < maxRamUsage) return;
 
         Iterator<Map.Entry<BytesKey, InfiniFilterWithTag>> iterator = filters.entrySet().iterator();
@@ -112,9 +86,7 @@ public class StreamLRUFilterManager implements IFilterManager {
                 break;
             }
         }
-//        HBaseIO.putFilters(tableName, filtersToRemove);
         RedisIO.putFilters(1, filtersToRemove);
-//        LevelDbIO.putFilters(filtersToRemove);
     }
 
     private void doClearAfterLoadAFilter(IFilter filter) throws IOException {

@@ -70,15 +70,6 @@ public class ByteUtil {
         return result;
     }
 
-    public static double toDouble(byte[] bytes) {
-        int n = Math.min(bytes.length, 8);
-        double result = 0;
-        for (int i = 0; i < n; ++i) {
-            result = result * 256 + (bytes[i] & 0xFF);
-        }
-        return result;
-    }
-
     public static BigInteger getValue(byte[] bytes) {
         return new BigInteger(1, bytes);
     }

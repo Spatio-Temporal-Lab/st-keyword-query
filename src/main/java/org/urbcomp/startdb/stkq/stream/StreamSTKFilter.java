@@ -107,17 +107,6 @@ public class StreamSTKFilter extends AbstractSTKFilter {
     }
 
     @Override
-    public void out() {
-        // we do nothing
-    }
-
-    @Override
-    public IFilter getWithIO(byte[] stIndex) {
-        // we do nothing
-        return null;
-    }
-
-    @Override
     public long ramUsage() { return RamUsageEstimator.sizeOf(this); }
 
     public void doClearAfterBatchInsertion() throws IOException {

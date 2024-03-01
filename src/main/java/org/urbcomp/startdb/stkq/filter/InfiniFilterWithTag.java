@@ -46,8 +46,6 @@ public class InfiniFilterWithTag implements IFilter {
         return filter.insert(code, true);
     }
 
-    public boolean sacrifice() { return filter.sacrifice(); }
-
     @Override
     public void writeTo(ByteArrayOutputStream bos) {
         filter.writeTo(bos);

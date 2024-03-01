@@ -40,7 +40,6 @@ public class RedisIO {
             entry.getValue().writeTo(bos);
             byte[] value = bos.toByteArray();
             pipeline.set(key, value);
-//            con.set(key, value);
         }
         pipeline.sync();
     }
